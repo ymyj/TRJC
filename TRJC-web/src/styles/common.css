@@ -1,0 +1,273 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background-color: #f5f7fa;
+  color: #333;
+}
+
+/* 按钮样式 */
+.btn {
+  height: 36px;
+  padding: 0 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-default {
+  background-color: #fff;
+  border: 1px solid #d9d9d9;
+  color: #595959;
+}
+
+.btn-default:hover {
+  border-color: #4096ff;
+  color: #4096ff;
+}
+
+.btn-primary {
+  background-color: #1677ff;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background-color: #4096ff;
+}
+
+.btn-large {
+  height: 40px;
+  padding: 0 32px;
+}
+
+/* 表单样式 */
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #262626;
+  background-color: #fff;
+  transition: all 0.3s;
+}
+
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover {
+  border-color: #4096ff;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #1677ff;
+  box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.1);
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: #bfbfbf;
+}
+
+.form-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+.form-textarea {
+  height: 120px;
+  padding: 12px;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+/* 标签样式 */
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tag-blue {
+  background-color: #e6f4ff;
+  color: #1677ff;
+}
+
+.tag-purple {
+  background-color: #f0e6ff;
+  color: #722ed1;
+}
+
+.tag-red {
+  background-color: #fff1f0;
+  color: #f5222d;
+}
+
+.tag-cyan {
+  background-color: #e6fffb;
+  color: #13c2c2;
+}
+
+.tag-orange {
+  background-color: #fff7e6;
+  color: #fa8c16;
+}
+
+/* 状态标签 */
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.status-processing {
+  background-color: #e6f4ff;
+  color: #1677ff;
+}
+
+.status-pending {
+  background-color: #fff7e6;
+  color: #fa8c16;
+}
+
+.status-completed {
+  background-color: #f6ffed;
+  color: #52c41a;
+}
+
+.status-delayed {
+  background-color: #fff1f0;
+  color: #f5222d;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.status-processing .status-dot {
+  background-color: #1677ff;
+}
+
+.status-pending .status-dot {
+  background-color: #fa8c16;
+}
+
+.status-completed .status-dot {
+  background-color: #52c41a;
+}
+
+.status-delayed .status-dot {
+  background-color: #f5222d;
+}
+
+/* 用户头像 */
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  margin-right: 8px;
+}
+
+/* 图标按钮 */
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  background-color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #595959;
+  transition: all 0.3s;
+}
+
+.icon-btn:hover {
+  border-color: #4096ff;
+  color: #4096ff;
+}
+
+.icon-btn.active {
+  background-color: #1677ff;
+  border-color: #1677ff;
+  color: #fff;
+}
+
+/* 分页 */
+.pagination {
+  display: flex;
+  gap: 8px;
+}
+
+.page-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  background-color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  color: #595959;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.page-btn:hover {
+  border-color: #1677ff;
+  color: #1677ff;
+}
+
+.page-btn.active {
+  background-color: #1677ff;
+  border-color: #1677ff;
+  color: #fff;
+}
+
+.page-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* 复选框 */
+.checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}

@@ -1,0 +1,3723 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>耕地质量监测管理系统</title>
+  <!-- Vant CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@4/lib/index.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #F5F5F5;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    #app {
+      min-height: 100vh;
+    }
+
+    :root {
+      --primary-color: #4A90E2;
+      --primary-gradient: linear-gradient(135deg, #5B9FE8 0%, #4A90E2 100%);
+      --pending-color: #FF9500;
+      --completed-color: #34C759;
+      --in-progress-color: #007AFF;
+      --to-submit-color: #FF3B30;
+      --bg-color: #F5F5F5;
+      --card-bg: #FFFFFF;
+      --header-bg: linear-gradient(135deg, #5B9FE8 0%, #4A90E2 50%, #3D7FD4 100%);
+      --text-primary: #333333;
+      --text-secondary: #666666;
+      --text-tertiary: #999999;
+      --text-white: #FFFFFF;
+      --border-color: #EEEEEE;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 12px;
+      --spacing-lg: 16px;
+      --spacing-xl: 20px;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-full: 50%;
+    }
+
+    /* 动画 */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .animate-fade-in {
+      animation: fadeInUp 0.5s ease-out forwards;
+    }
+
+    .animate-slide-in {
+      animation: slideIn 0.4s ease-out forwards;
+    }
+
+    .list-item-1 { animation-delay: 0.1s; }
+    .list-item-2 { animation-delay: 0.2s; }
+    .list-item-3 { animation-delay: 0.3s; }
+    .list-item-4 { animation-delay: 0.4s; }
+    .list-item-5 { animation-delay: 0.5s; }
+    .list-item-6 { animation-delay: 0.6s; }
+    .list-item-7 { animation-delay: 0.7s; }
+    .list-item-8 { animation-delay: 0.8s; }
+
+    /* 状态标签样式 */
+    .status-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-pending {
+      color: var(--pending-color);
+      background-color: rgba(255, 149, 0, 0.1);
+    }
+
+    .status-completed {
+      color: var(--completed-color);
+      background-color: rgba(52, 199, 89, 0.1);
+    }
+
+    .status-in-progress {
+      color: var(--in-progress-color);
+      background-color: rgba(0, 122, 255, 0.1);
+    }
+
+    .status-to-submit {
+      color: var(--to-submit-color);
+      background-color: rgba(255, 59, 48, 0.1);
+    }
+
+    /* 地块状态标签样式 */
+    .plot-status-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .plot-status-pending {
+      color: #FF9500;
+      background-color: rgba(255, 149, 0, 0.1);
+    }
+
+    .plot-status-sampling {
+      color: #007AFF;
+      background-color: rgba(0, 122, 255, 0.1);
+    }
+
+    .plot-status-transport {
+      color: #5856D6;
+      background-color: rgba(88, 86, 214, 0.1);
+    }
+
+    .plot-status-analysis {
+      color: #FF2D55;
+      background-color: rgba(255, 45, 85, 0.1);
+    }
+
+    .plot-status-completed {
+      color: #34C759;
+      background-color: rgba(52, 199, 89, 0.1);
+    }
+
+    /* UserHeader 样式 */
+    .user-header {
+      background: var(--header-bg);
+      padding: 20px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 0 0 20px 20px;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      flex-shrink: 0;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .user-details {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .user-name-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .user-name {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-white);
+    }
+
+    .online-dot {
+      width: 10px;
+      height: 10px;
+      background-color: #4CD964;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .user-role {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .settings-btn {
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .settings-btn:active {
+      transform: scale(0.95);
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* TaskStats 样式 */
+    .task-stats-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      margin: 12px 16px;
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stats-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+    }
+
+    .stats-grid {
+      display: flex;
+      justify-content: space-around;
+      gap: 12px;
+    }
+
+    .stat-item {
+      flex: 1;
+      text-align: center;
+      padding: 16px 8px;
+      background: #FAFAFA;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .stat-item:active {
+      transform: scale(0.98);
+      background: #F0F0F0;
+    }
+
+    .stat-number {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* TaskItem 样式 */
+    .task-item {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      opacity: 0;
+    }
+
+    .task-item:active {
+      transform: scale(0.98);
+      box-shadow: var(--shadow-md);
+    }
+
+    .task-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .task-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      flex: 1;
+      line-height: 1.4;
+    }
+
+    .task-meta {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: var(--text-tertiary);
+    }
+
+    .task-no {
+      color: var(--text-secondary);
+    }
+
+    .task-type {
+      color: var(--text-tertiary);
+    }
+
+    .task-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--text-tertiary);
+    }
+
+    .task-location {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .task-time {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .task-time.urgent span {
+      color: var(--to-submit-color);
+    }
+
+    /* HomeView 样式 */
+    .home-view {
+      min-height: 100vh;
+      background-color: var(--bg-color);
+      padding-bottom: 20px;
+    }
+
+    .task-list-section {
+      margin: 0 16px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-top: 8px;
+    }
+
+    .section-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .view-all {
+      font-size: 14px;
+      color: var(--primary-color);
+      cursor: pointer;
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TaskListView 样式 */
+    .task-list-view {
+      min-height: 100vh;
+      background-color: var(--bg-color);
+      padding-bottom: 20px;
+    }
+
+    .search-bar {
+      padding: 12px 16px;
+      background: var(--card-bg);
+      margin: 12px 16px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .search-input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #F5F5F5;
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      transition: all 0.3s ease;
+    }
+
+    .search-input-wrapper:focus-within {
+      background: #EEEEEE;
+    }
+
+    .search-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 14px;
+      color: var(--text-primary);
+      outline: none;
+    }
+
+    .search-input::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    .clear-icon {
+      cursor: pointer;
+      padding: 2px;
+    }
+
+    .task-list-content {
+      margin: 0 16px;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      color: var(--text-tertiary);
+    }
+
+    .empty-state p {
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    /* 页面切换动画 */
+    .page-enter {
+      animation: fadeInUp 0.3s ease-out;
+    }
+
+    /* PlotListView 样式 */
+    .plot-list-view {
+      min-height: 100vh;
+      background-color: var(--bg-color);
+      padding-bottom: 80px;
+    }
+
+    .plot-header {
+      background: var(--header-bg);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      border-radius: 0 0 20px 20px;
+    }
+
+    .plot-header-back {
+      position: absolute;
+      left: 16px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .plot-header-back:active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .plot-header-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-white);
+    }
+
+    .plot-search-bar {
+      padding: 12px 16px;
+      background: var(--card-bg);
+      margin: 12px 16px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .plot-search-input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #F5F5F5;
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      transition: all 0.3s ease;
+    }
+
+    .plot-search-input-wrapper:focus-within {
+      background: #EEEEEE;
+    }
+
+    .plot-search-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 14px;
+      color: var(--text-primary);
+      outline: none;
+    }
+
+    .plot-search-input::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    .plot-list-content {
+      margin: 0 16px;
+    }
+
+    .plot-item {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      opacity: 0;
+    }
+
+    .plot-item:active {
+      transform: scale(0.98);
+      box-shadow: var(--shadow-md);
+    }
+
+    .plot-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .plot-code {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .plot-unit {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .plot-location {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: var(--text-tertiary);
+    }
+
+    .plot-list-bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      padding: 12px 16px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .batch-btn-group {
+      display: flex;
+      gap: 12px;
+    }
+
+    .batch-btn {
+      flex: 1;
+      height: 44px;
+      border: none;
+      border-radius: 22px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .batch-btn:active {
+      opacity: 0.9;
+      transform: scale(0.98);
+    }
+
+    .batch-collect {
+      background: var(--primary-color);
+    }
+
+    .batch-analyze {
+      background: #34C759;
+    }
+
+    /* PlotDetailView 样式 */
+    .plot-detail-view {
+      min-height: 100vh;
+      background-color: var(--bg-color);
+      padding-bottom: 80px;
+    }
+
+    .plot-detail-header {
+      background: var(--header-bg);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      position: relative;
+      border-radius: 0 0 20px 20px;
+    }
+
+    .plot-detail-header-back {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .plot-detail-header-back:active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .plot-detail-header-title {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-white);
+      margin-right: 36px;
+    }
+
+    .plot-detail-content {
+      padding: 16px;
+    }
+
+    .plot-detail-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .plot-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .plot-detail-item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .plot-detail-label {
+      font-size: 13px;
+      color: var(--text-tertiary);
+    }
+
+    .plot-detail-value {
+      font-size: 15px;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .plot-detail-status {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 500;
+      width: fit-content;
+    }
+
+    .plot-detail-bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      padding: 12px 16px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+      display: flex;
+      justify-content: center;
+    }
+
+    .plot-detail-btn {
+      width: 100%;
+      max-width: 400px;
+      height: 44px;
+      border: none;
+      border-radius: 22px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #fff;
+      background: var(--primary-color);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .plot-detail-btn:active {
+      opacity: 0.9;
+      transform: scale(0.98);
+    }
+
+    .plot-detail-map-container {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      height: 400px;
+      position: relative;
+      margin-top: 16px;
+    }
+
+    .plot-detail-map {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* PlotDetailPendingView 样式 */
+    .plot-detail-pending-view {
+      min-height: 100vh;
+      background-color: var(--bg-color);
+      padding-bottom: 80px;
+    }
+
+    .plot-pending-header {
+      background: var(--header-bg);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      position: relative;
+      border-radius: 0 0 20px 20px;
+    }
+
+    .plot-pending-header-back {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .plot-pending-header-back:active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .plot-pending-header-title {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-white);
+      margin-right: 36px;
+    }
+
+    .plot-pending-content {
+      padding: 16px;
+    }
+
+    .plot-pending-info-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .plot-pending-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .plot-pending-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .plot-pending-label {
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+
+    .plot-pending-value {
+      font-size: 14px;
+      color: var(--text-primary);
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .plot-pending-status {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      width: fit-content;
+      background-color: rgba(255, 149, 0, 0.1);
+      color: #FF9500;
+    }
+
+    .plot-pending-map-container {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      height: 400px;
+      position: relative;
+    }
+
+    .plot-pending-map {
+      width: 100%;
+      height: 100%;
+      background: #e8e8e8;
+      position: relative;
+    }
+
+    .plot-pending-map-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+      position: relative;
+    }
+
+    .plot-pending-map-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .plot-pending-marker {
+      width: 40px;
+      height: 48px;
+      position: relative;
+    }
+
+    .plot-pending-marker-pin {
+      width: 40px;
+      height: 40px;
+      background: var(--primary-color);
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      position: absolute;
+      top: 0;
+      left: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .plot-pending-marker-inner {
+      width: 20px;
+      height: 20px;
+      background: #fff;
+      border-radius: 50%;
+      position: absolute;
+      top: 10px;
+      left: 10px;
+    }
+
+    .plot-pending-fence {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -40%);
+      width: 80px;
+      height: 100px;
+      border: 3px solid var(--primary-color);
+      background: rgba(74, 144, 226, 0.2);
+      border-radius: 4px;
+    }
+
+    .plot-pending-bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      padding: 12px 16px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+      display: flex;
+      justify-content: center;
+    }
+
+    .plot-pending-btn {
+      width: 100%;
+      max-width: 400px;
+      height: 44px;
+      border: none;
+      border-radius: 22px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #fff;
+      background: var(--primary-color);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .plot-pending-btn:active {
+      opacity: 0.9;
+      transform: scale(0.98);
+    }
+
+    /* SurveyRecordView 样式 */
+    .survey-record-view {
+      min-height: 100vh;
+      background-color: var(--bg-color);
+      padding-bottom: 80px;
+    }
+
+    .survey-header {
+      background: var(--header-bg);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      position: relative;
+      border-radius: 0 0 20px 20px;
+    }
+
+    .survey-header-back {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .survey-header-back:active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .survey-header-title {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-white);
+      margin-right: 36px;
+    }
+
+    .survey-content {
+      padding: 16px;
+    }
+
+    .survey-form-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .survey-form-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .survey-form-item {
+      margin-bottom: 16px;
+    }
+
+    .survey-form-label {
+      display: block;
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .survey-form-label-required::before {
+      content: '* ';
+      color: #ff4d4f;
+    }
+
+    .survey-form-input,
+    .survey-form-select,
+    .survey-form-textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #e8e8e8;
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--text-primary);
+      background: #fafafa;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    .survey-form-input:focus,
+    .survey-form-select:focus,
+    .survey-form-textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      background: #fff;
+    }
+
+    .survey-form-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+
+    .survey-form-textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .survey-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .survey-form-unit {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      margin-left: 4px;
+    }
+
+    .survey-bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      padding: 12px 16px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+      display: flex;
+      justify-content: center;
+    }
+
+    .survey-submit-btn {
+      width: 100%;
+      max-width: 400px;
+      height: 44px;
+      border: none;
+      border-radius: 22px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #fff;
+      background: var(--primary-color);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .survey-submit-btn:active {
+      opacity: 0.9;
+      transform: scale(0.98);
+    }
+
+    .survey-submit-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    /* PlotDetailSamplingView 样式 */
+    .plot-detail-sampling-view {
+      min-height: 100vh;
+      background-color: var(--bg-color);
+      padding-bottom: 80px;
+    }
+
+    .plot-sampling-header {
+      background: var(--header-bg);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      position: relative;
+      border-radius: 0 0 20px 20px;
+    }
+
+    .plot-sampling-header-back {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .plot-sampling-header-back:active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .plot-sampling-header-title {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-white);
+      margin-right: 36px;
+    }
+
+    .plot-sampling-content {
+      padding: 16px;
+    }
+
+    .plot-sampling-info-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .plot-sampling-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .plot-sampling-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .plot-sampling-label {
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+
+    .plot-sampling-value {
+      font-size: 14px;
+      color: var(--text-primary);
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .plot-sampling-status {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      width: fit-content;
+      background-color: rgba(0, 122, 255, 0.1);
+      color: #007AFF;
+    }
+
+    .plot-sampling-map-container {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      height: 400px;
+      position: relative;
+    }
+
+    .plot-sampling-map {
+      width: 100%;
+      height: 100%;
+      background: #e8e8e8;
+      position: relative;
+    }
+
+    .plot-sampling-map-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+      position: relative;
+    }
+
+    .plot-sampling-map-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .plot-sampling-marker {
+      width: 40px;
+      height: 48px;
+      position: relative;
+    }
+
+    .plot-sampling-marker-pin {
+      width: 40px;
+      height: 40px;
+      background: var(--primary-color);
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      position: absolute;
+      top: 0;
+      left: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .plot-sampling-marker-inner {
+      width: 20px;
+      height: 20px;
+      background: #fff;
+      border-radius: 50%;
+      position: absolute;
+      top: 10px;
+      left: 10px;
+    }
+
+    .plot-sampling-fence {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -40%);
+      width: 80px;
+      height: 100px;
+      border: 3px solid var(--primary-color);
+      background: rgba(74, 144, 226, 0.2);
+      border-radius: 4px;
+    }
+
+    .plot-sampling-bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      padding: 12px 16px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+      display: flex;
+      justify-content: center;
+    }
+
+    .plot-sampling-btn {
+      width: 100%;
+      max-width: 400px;
+      height: 44px;
+      border: none;
+      border-radius: 22px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #fff;
+      background: var(--primary-color);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .plot-sampling-btn:active {
+      opacity: 0.9;
+      transform: scale(0.98);
+    }
+
+    /* SampleCollectionView 样式 */
+    .sample-collection-view {
+      min-height: 100vh;
+      background-color: var(--bg-color);
+      padding-bottom: 80px;
+    }
+
+    .sample-collection-header {
+      background: var(--header-bg);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      position: relative;
+      border-radius: 0 0 20px 20px;
+    }
+
+    .sample-collection-header-back {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .sample-collection-header-back:active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .sample-collection-header-title {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-white);
+      margin-right: 36px;
+    }
+
+    .sample-collection-content {
+      padding: 16px;
+    }
+
+    .sample-collection-form-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 16px;
+    }
+
+    .form-item {
+      margin-bottom: 16px;
+    }
+
+    .form-item.half {
+      flex: 1;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--text-primary);
+      background: #fafafa;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      background: #fff;
+    }
+
+    .form-input::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    .date-input {
+      color: var(--text-primary);
+    }
+
+    .input-with-unit {
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .input-with-unit .form-input {
+      padding-right: 50px;
+    }
+
+    .input-unit {
+      position: absolute;
+      right: 12px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .form-tip {
+      display: block;
+      font-size: 12px;
+      color: var(--text-tertiary);
+      margin-top: 4px;
+    }
+
+    .form-instructions {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .instructions-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .instructions-list {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .instructions-list li {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin-bottom: 8px;
+    }
+
+    .instructions-list li:last-child {
+      margin-bottom: 0;
+    }
+
+    .sample-collection-bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      padding: 12px 16px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .submit-btn {
+      width: 100%;
+      height: 44px;
+      border: none;
+      border-radius: 22px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #fff;
+      background: var(--primary-color);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .submit-btn:active {
+      opacity: 0.9;
+      transform: scale(0.98);
+    }
+
+    /* AnalysisResultView 样式 */
+    .analysis-result-view {
+      min-height: 100vh;
+      background-color: var(--bg-color);
+      padding-bottom: 80px;
+    }
+
+    .analysis-result-header {
+      background: var(--header-bg);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      position: relative;
+      border-radius: 0 0 20px 20px;
+    }
+
+    .analysis-result-header-back {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .analysis-result-header-back:active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .analysis-result-header-title {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-white);
+      margin-right: 36px;
+    }
+
+    .analysis-result-content {
+      padding: 16px;
+    }
+
+    .analysis-result-form-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .analysis-result-bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      padding: 12px 16px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    /* BatchCollectView 样式 */
+    .batch-collect-view {
+      min-height: 100vh;
+      background-color: var(--bg-color);
+      padding-bottom: 80px;
+    }
+
+    .batch-collect-header {
+      background: var(--header-bg);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      position: relative;
+      border-radius: 0 0 20px 20px;
+    }
+
+    .batch-collect-header-back {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .batch-collect-header-back:active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .batch-collect-header-title {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-white);
+      margin-right: 36px;
+    }
+
+    .batch-collect-search-bar {
+      padding: 12px 16px;
+      background: var(--card-bg);
+      margin: 12px 16px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .batch-collect-search-input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #F5F5F5;
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      transition: all 0.3s ease;
+    }
+
+    .batch-collect-search-input-wrapper:focus-within {
+      background: #EEEEEE;
+    }
+
+    .batch-collect-search-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 14px;
+      color: var(--text-primary);
+      outline: none;
+    }
+
+    .batch-collect-search-input::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    .batch-collect-list-content {
+      margin: 0 16px;
+    }
+
+    .batch-collect-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .batch-collect-item {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      opacity: 0;
+    }
+
+    .batch-collect-checkbox {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .batch-collect-item-content {
+      flex: 1;
+    }
+
+    .batch-collect-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .batch-collect-code {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .batch-collect-unit {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .batch-collect-location {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: var(--text-tertiary);
+    }
+
+    .batch-collect-bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      padding: 12px 16px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .batch-collect-submit-btn {
+      width: 100%;
+      height: 44px;
+      border: none;
+      border-radius: 22px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #fff;
+      background: var(--primary-color);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .batch-collect-submit-btn:active {
+      opacity: 0.9;
+      transform: scale(0.98);
+    }
+  </style>
+  <!-- 天地图API -->
+  <script src="https://api.tianditu.gov.cn/api?v=4.0&tk=YOUR_TIANDITU_KEY"></script>
+</head>
+<body>
+  <div id="app"></div>
+  
+  <!-- Vue 3 -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+  <!-- Vant -->
+  <script src="https://cdn.jsdelivr.net/npm/vant@4/lib/vant.min.js"></script>
+  
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+
+    // UserHeader 组件
+    const UserHeader = {
+      name: 'UserHeader',
+      props: {
+        user: { type: Object, required: true }
+      },
+      template: `
+        <div class="user-header">
+          <div class="user-info">
+            <div class="avatar">
+              <img :src="user.avatar" alt="avatar">
+            </div>
+            <div class="user-details">
+              <div class="user-name-row">
+                <span class="user-name">{{ user.name }}</span>
+                <span class="online-dot"></span>
+              </div>
+              <div class="user-role">{{ user.role }} · {{ user.district }}</div>
+            </div>
+          </div>
+          <div class="settings-btn" @click="$emit('settings')">
+            <van-icon name="setting-o" size="24" color="#fff" />
+          </div>
+        </div>
+      `
+    };
+
+    // TaskStats 组件
+    const TaskStats = {
+      name: 'TaskStats',
+      props: {
+        stats: { type: Object, required: true }
+      },
+      template: `
+        <div class="task-stats-card animate-fade-in">
+          <div class="stats-title">今日任务统计</div>
+          <div class="stats-grid">
+            <div class="stat-item" @click="$emit('click', 'pending')">
+              <div class="stat-number" style="color: var(--pending-color)">{{ stats.pending }}</div>
+              <div class="stat-label">待执行任务</div>
+            </div>
+            <div class="stat-item" @click="$emit('click', 'completed')">
+              <div class="stat-number" style="color: var(--completed-color)">{{ stats.completed }}</div>
+              <div class="stat-label">已完成任务</div>
+            </div>
+            <div class="stat-item" @click="$emit('click', 'toSubmit')">
+              <div class="stat-number" style="color: var(--to-submit-color)">{{ stats.toSubmit }}</div>
+              <div class="stat-label">待提交数据</div>
+            </div>
+          </div>
+        </div>
+      `
+    };
+
+    // TaskItem 组件
+    const TaskItem = {
+      name: 'TaskItem',
+      props: {
+        task: { type: Object, required: true },
+        index: { type: Number, default: 0 }
+      },
+      template: `
+        <div :class="['task-item', 'animate-slide-in', 'list-item-' + ((index % 8) + 1)]" @click="$emit('click', task)">
+          <div class="task-header">
+            <div class="task-title">{{ task.title }}</div>
+            <span :class="['status-tag', getStatusClass(task.status)]">
+              {{ task.statusLabel }}
+            </span>
+          </div>
+          <div class="task-meta">
+            <span class="task-no">任务编号：{{ task.taskNo }}</span>
+            <span class="task-type">· {{ task.typeLabel }}</span>
+          </div>
+          <div class="task-footer">
+            <div class="task-location">
+              <van-icon name="location-o" size="14" color="#999" />
+              <span>{{ task.location }}</span>
+            </div>
+            <div class="task-time" :class="{ 'urgent': isUrgent }">
+              <van-icon name="clock-o" size="14" :color="isUrgent ? '#FF3B30' : '#999'" />
+              <span>{{ timeLabel }}：{{ timeValue }}</span>
+            </div>
+          </div>
+        </div>
+      `,
+      setup(props) {
+        const getStatusClass = (status) => {
+          const map = {
+            'pending': 'status-pending',
+            'in_progress': 'status-in-progress',
+            'completed': 'status-completed',
+            'to_submit': 'status-to-submit'
+          };
+          return map[status] || 'status-pending';
+        };
+
+        const isUrgent = computed(() => {
+          if (props.task.status === 'completed') return false;
+          if (!props.task.deadline) return false;
+          const deadline = new Date(props.task.deadline);
+          const today = new Date();
+          const diffDays = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+          return diffDays <= 3;
+        });
+
+        const timeLabel = computed(() => props.task.status === 'completed' ? '完成' : '截止');
+        const timeValue = computed(() => props.task.status === 'completed' ? props.task.completedAt : props.task.deadline);
+
+        return { getStatusClass, isUrgent, timeLabel, timeValue };
+      }
+    };
+
+    // HomeView 组件
+    const HomeView = {
+      name: 'HomeView',
+      components: { UserHeader, TaskStats, TaskItem },
+      emits: ['navigate'],
+      template: `
+        <div class="home-view">
+          <user-header :user="user" @settings="onSettings" />
+          <task-stats :stats="taskStats" @click="onStatClick" />
+          <div class="task-list-section">
+            <div class="section-header">
+              <h3 class="section-title">最近任务</h3>
+              <span class="view-all" @click="viewAllTasks">查看全部</span>
+            </div>
+            <div class="task-list">
+              <task-item 
+                v-for="(task, index) in recentTasks" 
+                :key="task.id"
+                :task="task"
+                :index="index"
+                @click="onTaskClick"
+              />
+            </div>
+          </div>
+        </div>
+      `,
+      setup(props, { emit }) {
+        const user = ref({
+          id: '1',
+          name: '张调查员',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=inspector&backgroundColor=b6e3f4',
+          role: '外业调查员',
+          district: '东城区'
+        });
+
+        const taskStats = ref({
+          pending: 8,
+          completed: 24,
+          toSubmit: 3
+        });
+
+        const recentTasks = ref([
+          {
+            id: '1',
+            title: '东城区地块A土壤采样任务',
+            taskNo: 'RW202400123',
+            type: 'routine',
+            typeLabel: '常规监测',
+            location: '东城区和平里街道',
+            deadline: '2024-03-20',
+            status: 'in_progress',
+            statusLabel: '进行中'
+          },
+          {
+            id: '2',
+            title: '西城区地块B土壤调查任务',
+            taskNo: 'RW202400124',
+            type: 'special',
+            typeLabel: '专项调查',
+            location: '西城区金融街街道',
+            deadline: '2024-03-22',
+            status: 'in_progress',
+            statusLabel: '进行中'
+          },
+          {
+            id: '3',
+            title: '海淀区地块C质量鉴定任务',
+            taskNo: 'RW202400125',
+            type: 'supplement',
+            typeLabel: '补充鉴定',
+            location: '海淀区中关村街道',
+            completedAt: '2024-03-15',
+            status: 'completed',
+            statusLabel: '已完成'
+          },
+          {
+            id: '4',
+            title: '海淀区地块C质量鉴定任务',
+            taskNo: 'RW202400125',
+            type: 'supplement',
+            typeLabel: '补充鉴定',
+            location: '海淀区中关村街道',
+            completedAt: '2024-03-15',
+            status: 'completed',
+            statusLabel: '已完成'
+          }
+        ]);
+
+        const onSettings = () => vant.showToast('打开设置');
+        const onStatClick = (type) => {
+          const map = { 'pending': '待执行任务', 'completed': '已完成任务', 'toSubmit': '待提交数据' };
+          vant.showToast(`查看${map[type]}`);
+        };
+        const onTaskClick = (task) => {
+          emit('navigate', 'plot-list', task);
+        };
+        const viewAllTasks = () => emit('navigate', 'task-list');
+
+        return { user, taskStats, recentTasks, onSettings, onStatClick, onTaskClick, viewAllTasks };
+      }
+    };
+
+    // TaskListView 组件（全部任务列表页）
+    const TaskListView = {
+      name: 'TaskListView',
+      components: { UserHeader, TaskItem },
+      emits: ['navigate'],
+      template: `
+        <div class="task-list-view">
+          <user-header :user="user" @settings="onSettings" />
+          <div class="search-bar animate-fade-in">
+            <div class="search-input-wrapper">
+              <van-icon name="search" size="18" color="#999" />
+              <input 
+                type="text" 
+                v-model="searchKeyword"
+                placeholder="请输入任务名称"
+                class="search-input"
+              />
+              <van-icon 
+                v-if="searchKeyword" 
+                name="clear" 
+                size="16" 
+                color="#999" 
+                @click="clearSearch"
+                class="clear-icon"
+              />
+            </div>
+          </div>
+          <div class="task-list-content">
+            <div class="task-list">
+              <task-item 
+                v-for="(task, index) in filteredTasks" 
+                :key="task.id"
+                :task="task"
+                :index="index"
+                @click="onTaskClick"
+              />
+            </div>
+            <div v-if="filteredTasks.length === 0" class="empty-state">
+              <van-icon name="search" size="48" color="#ccc" />
+              <p>未找到相关任务</p>
+            </div>
+          </div>
+        </div>
+      `,
+      setup(props, { emit }) {
+        const user = ref({
+          id: '1',
+          name: '张调查员',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=inspector&backgroundColor=b6e3f4',
+          role: '外业调查员',
+          district: '东城区'
+        });
+
+        const searchKeyword = ref('');
+
+        const allTasks = ref([
+          {
+            id: '1',
+            title: '东城区地块A土壤采样任务',
+            taskNo: 'RW202400123',
+            type: 'routine',
+            typeLabel: '常规监测',
+            location: '东城区和平里街道',
+            deadline: '2024-03-20',
+            status: 'in_progress',
+            statusLabel: '进行中'
+          },
+          {
+            id: '2',
+            title: '西城区地块B土壤调查任务',
+            taskNo: 'RW202400124',
+            type: 'special',
+            typeLabel: '专项调查',
+            location: '西城区金融街街道',
+            deadline: '2024-03-22',
+            status: 'in_progress',
+            statusLabel: '进行中'
+          },
+          {
+            id: '3',
+            title: '海淀区地块C质量鉴定任务',
+            taskNo: 'RW202400125',
+            type: 'supplement',
+            typeLabel: '补充鉴定',
+            location: '海淀区中关村街道',
+            completedAt: '2024-03-15',
+            status: 'completed',
+            statusLabel: '已完成'
+          },
+          {
+            id: '4',
+            title: '海淀区地块C质量鉴定任务',
+            taskNo: 'RW202400125',
+            type: 'supplement',
+            typeLabel: '补充鉴定',
+            location: '海淀区中关村街道',
+            completedAt: '2024-03-15',
+            status: 'completed',
+            statusLabel: '已完成'
+          },
+          {
+            id: '5',
+            title: '朝阳区地块D土壤检测任务',
+            taskNo: 'RW202400126',
+            type: 'routine',
+            typeLabel: '常规监测',
+            location: '朝阳区望京街道',
+            deadline: '2024-03-25',
+            status: 'in_progress',
+            statusLabel: '进行中'
+          },
+          {
+            id: '6',
+            title: '丰台区地块E环境评估任务',
+            taskNo: 'RW202400127',
+            type: 'special',
+            typeLabel: '专项调查',
+            location: '丰台区方庄街道',
+            deadline: '2024-03-28',
+            status: 'in_progress',
+            statusLabel: '进行中'
+          },
+          {
+            id: '7',
+            title: '石景山区地块F土壤修复任务',
+            taskNo: 'RW202400128',
+            type: 'supplement',
+            typeLabel: '补充鉴定',
+            location: '石景山区八角街道',
+            completedAt: '2024-03-10',
+            status: 'completed',
+            statusLabel: '已完成'
+          },
+          {
+            id: '8',
+            title: '通州区地块G耕地质量调查',
+            taskNo: 'RW202400129',
+            type: 'routine',
+            typeLabel: '常规监测',
+            location: '通州区梨园街道',
+            deadline: '2024-04-01',
+            status: 'in_progress',
+            statusLabel: '进行中'
+          }
+        ]);
+
+        const filteredTasks = computed(() => {
+          if (!searchKeyword.value) return allTasks.value;
+          const keyword = searchKeyword.value.toLowerCase();
+          return allTasks.value.filter(task => 
+            task.title.toLowerCase().includes(keyword) ||
+            task.taskNo.toLowerCase().includes(keyword) ||
+            task.location.toLowerCase().includes(keyword)
+          );
+        });
+
+        const onSettings = () => vant.showToast('打开设置');
+        const clearSearch = () => { searchKeyword.value = ''; };
+        const onTaskClick = (task) => {
+          emit('navigate', 'plot-list', task);
+        };
+
+        return { user, searchKeyword, filteredTasks, onSettings, clearSearch, onTaskClick };
+      }
+    };
+
+    // PlotItem 组件
+    const PlotItem = {
+      name: 'PlotItem',
+      props: {
+        plot: { type: Object, required: true },
+        index: { type: Number, default: 0 }
+      },
+      emits: ['click'],
+      template: `
+        <div :class="['plot-item', 'animate-slide-in', 'list-item-' + ((index % 8) + 1)]" @click="$emit('click', plot)">
+          <div class="plot-item-header">
+            <span class="plot-code">{{ plot.code }}</span>
+            <span :class="['plot-status-tag', getStatusClass(plot.status)]">
+              {{ plot.statusLabel }}
+            </span>
+          </div>
+          <div class="plot-unit">所属单元：{{ plot.unit }}</div>
+          <div class="plot-location">
+            <van-icon name="location-o" size="14" color="#999" />
+            <span>{{ plot.location }}</span>
+          </div>
+        </div>
+      `,
+      setup() {
+        const getStatusClass = (status) => {
+          const map = {
+            'pending': 'plot-status-pending',
+            'sampling': 'plot-status-sampling',
+            'transport': 'plot-status-transport',
+            'analysis': 'plot-status-analysis',
+            'completed': 'plot-status-completed'
+          };
+          return map[status] || 'plot-status-pending';
+        };
+        return { getStatusClass };
+      }
+    };
+
+    // PlotListView 组件（采样地块列表页）
+    const PlotListView = {
+      name: 'PlotListView',
+      components: { PlotItem },
+      props: {
+        task: { type: Object, default: null }
+      },
+      emits: ['navigate'],
+      template: `
+        <div class="plot-list-view">
+          <div class="plot-header">
+            <div class="plot-header-back" @click="goBack">
+              <van-icon name="arrow-left" size="20" color="#fff" />
+            </div>
+            <span class="plot-header-title">采样地块</span>
+          </div>
+          <div class="plot-search-bar animate-fade-in">
+            <div class="plot-search-input-wrapper">
+              <van-icon name="search" size="18" color="#999" />
+              <input 
+                type="text" 
+                v-model="searchKeyword"
+                placeholder="请输入图斑编号"
+                class="plot-search-input"
+              />
+              <van-icon 
+                v-if="searchKeyword" 
+                name="clear" 
+                size="16" 
+                color="#999" 
+                @click="clearSearch"
+                class="clear-icon"
+              />
+            </div>
+          </div>
+          <div class="plot-list-content">
+            <div class="plot-list">
+              <plot-item 
+                v-for="(plot, index) in filteredPlots" 
+                :key="plot.id"
+                :plot="plot"
+                :index="index"
+                @click="onPlotClick"
+              />
+            </div>
+            <div v-if="filteredPlots.length === 0" class="empty-state">
+              <van-icon name="search" size="48" color="#ccc" />
+              <p>未找到相关地块</p>
+            </div>
+          </div>
+          <div class="plot-list-bottom">
+            <div class="batch-btn-group">
+              <button class="batch-btn batch-collect" @click="handleBatchCollect">
+                批量采集
+              </button>
+              <button class="batch-btn batch-analyze" @click="handleBatchAnalyze">
+                批量分析
+              </button>
+            </div>
+          </div>
+        </div>
+      `,
+      setup(props, { emit }) {
+        const searchKeyword = ref('');
+
+        const plots = ref([
+          {
+            id: '1',
+            code: 'TB2024001',
+            unit: '单元A',
+            location: '东城区和平里街道',
+            status: 'pending',
+            statusLabel: '待领取'
+          },
+          {
+            id: '2',
+            code: 'TB2024001',
+            unit: '单元A',
+            location: '西城区金融街街道',
+            status: 'sampling',
+            statusLabel: '待采样'
+          },
+          {
+            id: '3',
+            code: 'TB2024001',
+            unit: '单元A',
+            location: '海淀区中关村街道',
+            status: 'transport',
+            statusLabel: '待运输'
+          },
+          {
+            id: '4',
+            code: 'TB2024001',
+            unit: '单元A',
+            location: '海淀区中关村街道',
+            status: 'analysis',
+            statusLabel: '待分析'
+          },
+          {
+            id: '5',
+            code: 'TB2024001',
+            unit: '单元A',
+            location: '朝阳区望京街道',
+            status: 'completed',
+            statusLabel: '已完成'
+          },
+          {
+            id: '6',
+            code: 'TB2024001',
+            unit: '单元A',
+            location: '丰台区方庄街道',
+            status: 'pending',
+            statusLabel: '待领取'
+          }
+        ]);
+
+        const filteredPlots = computed(() => {
+          if (!searchKeyword.value) return plots.value;
+          const keyword = searchKeyword.value.toLowerCase();
+          return plots.value.filter(plot => 
+            plot.code.toLowerCase().includes(keyword) ||
+            plot.unit.toLowerCase().includes(keyword) ||
+            plot.location.toLowerCase().includes(keyword)
+          );
+        });
+
+        const goBack = () => emit('navigate', 'task-list');
+        const clearSearch = () => { searchKeyword.value = ''; };
+        const onPlotClick = (plot) => {
+          // 根据状态跳转到对应的详情页
+          if (plot.status === 'pending') {
+            emit('navigate', 'plot-detail-pending', plot);
+          } else if (plot.status === 'sampling') {
+            emit('navigate', 'plot-detail-sampling', plot);
+          } else {
+            emit('navigate', 'plot-detail', plot);
+          }
+        };
+
+        const handleBatchCollect = () => {
+          emit('navigate', 'batch-collect');
+        };
+
+        const handleBatchAnalyze = () => {
+          emit('navigate', 'batch-analyze');
+        };
+
+        return { searchKeyword, filteredPlots, goBack, clearSearch, onPlotClick, handleBatchCollect, handleBatchAnalyze };
+      }
+    };
+
+    // BatchCollectView 组件（批量采集页面）
+    const BatchCollectView = {
+      name: 'BatchCollectView',
+      emits: ['navigate'],
+      setup(props, { emit }) {
+        const searchKeyword = ref('');
+        const selectedPlots = ref([]);
+
+        const plots = ref([
+          { id: '1', code: 'TB2024001', unit: '单元A', location: '东城区和平里街道', status: 'pending', statusLabel: '待领取' },
+          { id: '2', code: 'TB2024001', unit: '单元A', location: '西城区金融街街道', status: 'sampling', statusLabel: '待采样' },
+          { id: '3', code: 'TB2024001', unit: '单元A', location: '海淀区中关村街道', status: 'transport', statusLabel: '待运输' },
+          { id: '4', code: 'TB2024001', unit: '单元A', location: '海淀区中关村街道', status: 'analysis', statusLabel: '待分析' },
+          { id: '5', code: 'TB2024001', unit: '单元A', location: '朝阳区望京街道', status: 'completed', statusLabel: '已完成' },
+          { id: '6', code: 'TB2024001', unit: '单元A', location: '丰台区方庄街道', status: 'pending', statusLabel: '待领取' }
+        ]);
+
+        const filteredPlots = computed(() => {
+          if (!searchKeyword.value) return plots.value;
+          const keyword = searchKeyword.value.toLowerCase();
+          return plots.value.filter(plot => 
+            plot.code.toLowerCase().includes(keyword) ||
+            plot.unit.toLowerCase().includes(keyword) ||
+            plot.location.toLowerCase().includes(keyword)
+          );
+        });
+
+        const goBack = () => emit('navigate', 'plot-list');
+        const clearSearch = () => { searchKeyword.value = ''; };
+
+        const toggleSelect = (plot) => {
+          const index = selectedPlots.value.indexOf(plot.id);
+          if (index > -1) {
+            selectedPlots.value.splice(index, 1);
+          } else {
+            selectedPlots.value.push(plot.id);
+          }
+        };
+
+        const isSelected = (plot) => selectedPlots.value.includes(plot.id);
+
+        const handleSampleCollection = () => {
+          if (selectedPlots.value.length === 0) {
+            vant.showToast('请选择至少一个地块');
+            return;
+          }
+          emit('navigate', 'sample-collection');
+        };
+
+        const getStatusClass = (status) => {
+          const map = {
+            'pending': 'plot-status-pending',
+            'sampling': 'plot-status-sampling',
+            'transport': 'plot-status-transport',
+            'analysis': 'plot-status-analysis',
+            'completed': 'plot-status-completed'
+          };
+          return map[status] || 'plot-status-pending';
+        };
+
+        return { 
+          searchKeyword, 
+          filteredPlots, 
+          selectedPlots,
+          goBack, 
+          clearSearch, 
+          toggleSelect,
+          isSelected,
+          handleSampleCollection,
+          getStatusClass
+        };
+      },
+      template: `
+        <div class="batch-collect-view">
+          <div class="batch-collect-header">
+            <div class="batch-collect-header-back" @click="goBack">
+              <van-icon name="arrow-left" size="20" color="#fff" />
+            </div>
+            <span class="batch-collect-header-title">批量采集</span>
+          </div>
+          <div class="batch-collect-search-bar animate-fade-in">
+            <div class="batch-collect-search-input-wrapper">
+              <van-icon name="search" size="18" color="#999" />
+              <input 
+                type="text" 
+                v-model="searchKeyword"
+                placeholder="请输入图斑编号"
+                class="batch-collect-search-input"
+              />
+              <van-icon 
+                v-if="searchKeyword" 
+                name="clear" 
+                size="16" 
+                color="#999" 
+                @click="clearSearch"
+                class="clear-icon"
+              />
+            </div>
+          </div>
+          <div class="batch-collect-list-content">
+            <div class="batch-collect-list">
+              <div 
+                v-for="(plot, index) in filteredPlots" 
+                :key="plot.id"
+                :class="['batch-collect-item', 'animate-slide-in', 'list-item-' + ((index % 8) + 1)]"
+              >
+                <div class="batch-collect-checkbox" @click="toggleSelect(plot)">
+                  <van-icon 
+                    :name="isSelected(plot) ? 'checked' : 'circle'" 
+                    :color="isSelected(plot) ? '#4A90E2' : '#ccc'"
+                    size="24"
+                  />
+                </div>
+                <div class="batch-collect-item-content">
+                  <div class="batch-collect-item-header">
+                    <span class="batch-collect-code">{{ plot.code }}</span>
+                    <span :class="['plot-status-tag', getStatusClass(plot.status)]">
+                      {{ plot.statusLabel }}
+                    </span>
+                  </div>
+                  <div class="batch-collect-unit">所属单元：{{ plot.unit }}</div>
+                  <div class="batch-collect-location">
+                    <van-icon name="location-o" size="14" color="#999" />
+                    <span>{{ plot.location }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-if="filteredPlots.length === 0" class="empty-state">
+              <van-icon name="search" size="48" color="#ccc" />
+              <p>未找到相关地块</p>
+            </div>
+          </div>
+          <div class="batch-collect-bottom">
+            <button class="batch-collect-submit-btn" @click="handleSampleCollection">
+              样品采集记录登记
+            </button>
+          </div>
+        </div>
+      `
+    };
+
+    // BatchAnalyzeView 组件（批量分析页面）
+    const BatchAnalyzeView = {
+      name: 'BatchAnalyzeView',
+      emits: ['navigate'],
+      setup(props, { emit }) {
+        const searchKeyword = ref('');
+        const selectedPlots = ref([]);
+
+        const plots = ref([
+          { id: '1', code: 'TB2024001', unit: '单元A', location: '东城区和平里街道', status: 'pending', statusLabel: '待领取' },
+          { id: '2', code: 'TB2024001', unit: '单元A', location: '西城区金融街街道', status: 'sampling', statusLabel: '待采样' },
+          { id: '3', code: 'TB2024001', unit: '单元A', location: '海淀区中关村街道', status: 'transport', statusLabel: '待运输' },
+          { id: '4', code: 'TB2024001', unit: '单元A', location: '海淀区中关村街道', status: 'analysis', statusLabel: '待分析' },
+          { id: '5', code: 'TB2024001', unit: '单元A', location: '朝阳区望京街道', status: 'completed', statusLabel: '已完成' },
+          { id: '6', code: 'TB2024001', unit: '单元A', location: '丰台区方庄街道', status: 'pending', statusLabel: '待领取' }
+        ]);
+
+        const filteredPlots = computed(() => {
+          if (!searchKeyword.value) return plots.value;
+          const keyword = searchKeyword.value.toLowerCase();
+          return plots.value.filter(plot => 
+            plot.code.toLowerCase().includes(keyword) ||
+            plot.unit.toLowerCase().includes(keyword) ||
+            plot.location.toLowerCase().includes(keyword)
+          );
+        });
+
+        const goBack = () => emit('navigate', 'plot-list');
+        const clearSearch = () => { searchKeyword.value = ''; };
+
+        const toggleSelect = (plot) => {
+          const index = selectedPlots.value.indexOf(plot.id);
+          if (index > -1) {
+            selectedPlots.value.splice(index, 1);
+          } else {
+            selectedPlots.value.push(plot.id);
+          }
+        };
+
+        const isSelected = (plot) => selectedPlots.value.includes(plot.id);
+
+        const handleAnalysisResult = () => {
+          if (selectedPlots.value.length === 0) {
+            vant.showToast('请选择至少一个地块');
+            return;
+          }
+          emit('navigate', 'analysis-result');
+        };
+
+        const getStatusClass = (status) => {
+          const map = {
+            'pending': 'plot-status-pending',
+            'sampling': 'plot-status-sampling',
+            'transport': 'plot-status-transport',
+            'analysis': 'plot-status-analysis',
+            'completed': 'plot-status-completed'
+          };
+          return map[status] || 'plot-status-pending';
+        };
+
+        return { 
+          searchKeyword, 
+          filteredPlots, 
+          selectedPlots,
+          goBack, 
+          clearSearch, 
+          toggleSelect,
+          isSelected,
+          handleAnalysisResult,
+          getStatusClass
+        };
+      },
+      template: `
+        <div class="batch-analyze-view">
+          <div class="batch-analyze-header">
+            <div class="batch-analyze-header-back" @click="goBack">
+              <van-icon name="arrow-left" size="20" color="#fff" />
+            </div>
+            <span class="batch-analyze-header-title">批量分析</span>
+          </div>
+          <div class="batch-analyze-search-bar animate-fade-in">
+            <div class="batch-analyze-search-input-wrapper">
+              <van-icon name="search" size="18" color="#999" />
+              <input 
+                type="text" 
+                v-model="searchKeyword"
+                placeholder="请输入图斑编号"
+                class="batch-analyze-search-input"
+              />
+              <van-icon 
+                v-if="searchKeyword" 
+                name="clear" 
+                size="16" 
+                color="#999" 
+                @click="clearSearch"
+                class="clear-icon"
+              />
+            </div>
+          </div>
+          <div class="batch-analyze-list-content">
+            <div class="batch-analyze-list">
+              <div 
+                v-for="(plot, index) in filteredPlots" 
+                :key="plot.id"
+                :class="['batch-analyze-item', 'animate-slide-in', 'list-item-' + ((index % 8) + 1)]"
+              >
+                <div class="batch-analyze-checkbox" @click="toggleSelect(plot)">
+                  <van-icon 
+                    :name="isSelected(plot) ? 'checked' : 'circle'" 
+                    :color="isSelected(plot) ? '#4A90E2' : '#ccc'"
+                    size="24"
+                  />
+                </div>
+                <div class="batch-analyze-item-content">
+                  <div class="batch-analyze-item-header">
+                    <span class="batch-analyze-code">{{ plot.code }}</span>
+                    <span :class="['plot-status-tag', getStatusClass(plot.status)]">
+                      {{ plot.statusLabel }}
+                    </span>
+                  </div>
+                  <div class="batch-analyze-unit">所属单元：{{ plot.unit }}</div>
+                  <div class="batch-analyze-location">
+                    <van-icon name="location-o" size="14" color="#999" />
+                    <span>{{ plot.location }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-if="filteredPlots.length === 0" class="empty-state">
+              <van-icon name="search" size="48" color="#ccc" />
+              <p>未找到相关地块</p>
+            </div>
+          </div>
+          <div class="batch-analyze-bottom">
+            <button class="batch-analyze-submit-btn" @click="handleAnalysisResult">
+              分析结果登记
+            </button>
+          </div>
+        </div>
+      `
+    };
+
+    // PlotDetailView 组件（地块详情页）
+    const PlotDetailView = {
+      name: 'PlotDetailView',
+      props: {
+        plot: { type: Object, default: null }
+      },
+      emits: ['navigate'],
+      template: `
+        <div class="plot-detail-view">
+          <div class="plot-detail-header">
+            <div class="plot-detail-header-back" @click="goBack">
+              <van-icon name="arrow-left" size="20" color="#fff" />
+            </div>
+            <span class="plot-detail-header-title">地块详情</span>
+          </div>
+          <div class="plot-detail-content">
+            <div class="plot-detail-card animate-fade-in">
+              <div class="plot-detail-grid">
+                <div class="plot-detail-item">
+                  <span class="plot-detail-label">任务名称</span>
+                  <span class="plot-detail-value">{{ plotDetail.taskName }}</span>
+                </div>
+                <div class="plot-detail-item">
+                  <span class="plot-detail-label">图斑编号</span>
+                  <span class="plot-detail-value">{{ plotDetail.code }}</span>
+                </div>
+                <div class="plot-detail-item">
+                  <span class="plot-detail-label">所属单元</span>
+                  <span class="plot-detail-value">{{ plotDetail.unit }}</span>
+                </div>
+                <div class="plot-detail-item">
+                  <span class="plot-detail-label">图斑面积 (㎡)</span>
+                  <span class="plot-detail-value">{{ plotDetail.area }}</span>
+                </div>
+                <div class="plot-detail-item">
+                  <span class="plot-detail-label">所属区划</span>
+                  <span class="plot-detail-value">{{ plotDetail.district }}</span>
+                </div>
+                <div class="plot-detail-item">
+                  <span class="plot-detail-label">经度</span>
+                  <span class="plot-detail-value">{{ plotDetail.longitude }}</span>
+                </div>
+                <div class="plot-detail-item">
+                  <span class="plot-detail-label">纬度</span>
+                  <span class="plot-detail-value">{{ plotDetail.latitude }}</span>
+                </div>
+                <div class="plot-detail-item">
+                  <span class="plot-detail-label">状态</span>
+                  <span :class="['plot-detail-status', getStatusClass(plotDetail.status)]">
+                    {{ plotDetail.statusLabel }}
+                  </span>
+                </div>
+                <div class="plot-detail-item">
+                  <span class="plot-detail-label">采样人员</span>
+                  <span class="plot-detail-value">{{ plotDetail.samplers }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="plot-detail-map-container animate-fade-in" v-if="showMap">
+              <div class="plot-detail-map" ref="mapContainer"></div>
+            </div>
+          </div>
+          <div class="plot-detail-bottom">
+            <button class="plot-detail-btn" @click="handleAction">
+              {{ actionButtonText }}
+            </button>
+          </div>
+        </div>
+      `,
+      setup(props, { emit }) {
+        const plotDetail = ref({
+          taskName: '东城区耕地质量监测任务',
+          code: props.plot?.code || 'TB2024001',
+          unit: props.plot?.unit || '单元A',
+          area: '5000',
+          district: '东城区',
+          longitude: '116.3974',
+          latitude: '39.9093',
+          status: props.plot?.status || 'sampling',
+          statusLabel: props.plot?.statusLabel || '待采样',
+          samplers: '张三、李四'
+        });
+
+        const getStatusClass = (status) => {
+          const map = {
+            'pending': 'plot-status-pending',
+            'sampling': 'plot-status-sampling',
+            'transport': 'plot-status-transport',
+            'analysis': 'plot-status-analysis',
+            'completed': 'plot-status-completed'
+          };
+          return map[status] || 'plot-status-pending';
+        };
+
+        const actionButtonText = computed(() => {
+          const map = {
+            'pending': '领取',
+            'sampling': '勘察记录登记',
+            'transport': '样品采集记录',
+            'analysis': '分析结果录入',
+            'completed': '返回'
+          };
+          return map[plotDetail.value.status] || '领取';
+        });
+
+        const goBack = () => emit('navigate', 'plot-list');
+        const handleAction = () => {
+          // 待运输状态跳转到样品采集记录登记页面
+          if (plotDetail.value.status === 'transport') {
+            emit('navigate', 'sample-collection');
+            return;
+          }
+          
+          // 待分析状态跳转到分析结果登记页面
+          if (plotDetail.value.status === 'analysis') {
+            emit('navigate', 'analysis-result');
+            return;
+          }
+          
+          // 已完成状态返回地块列表页
+          if (plotDetail.value.status === 'completed') {
+            emit('navigate', 'plot-list');
+            return;
+          }
+          
+          vant.showToast('操作');
+        };
+
+        const mapContainer = ref(null);
+        
+        const showMap = computed(() => {
+          return ['transport', 'analysis', 'completed'].includes(plotDetail.value.status);
+        });
+
+        onMounted(() => {
+          if (showMap.value && typeof T !== 'undefined' && mapContainer.value) {
+            setTimeout(() => {
+              try {
+                const map = new T.Map(mapContainer.value);
+                const lng = parseFloat(plotDetail.value.longitude);
+                const lat = parseFloat(plotDetail.value.latitude);
+                map.centerAndZoom(new T.LngLat(lng, lat), 15);
+                
+                const marker = new T.Marker(new T.LngLat(lng, lat));
+                map.addOverLay(marker);
+                
+                const points = [
+                  new T.LngLat(lng - 0.001, lat + 0.001),
+                  new T.LngLat(lng + 0.001, lat + 0.001),
+                  new T.LngLat(lng + 0.001, lat - 0.001),
+                  new T.LngLat(lng - 0.001, lat - 0.001)
+                ];
+                const polygon = new T.Polygon(points, {
+                  color: '#4A90E2',
+                  weight: 3,
+                  opacity: 0.8,
+                  fillColor: '#4A90E2',
+                  fillOpacity: 0.2
+                });
+                map.addOverLay(polygon);
+              } catch (e) {
+                console.log('天地图加载失败', e);
+              }
+            }, 100);
+          }
+        });
+
+        return { plotDetail, getStatusClass, actionButtonText, goBack, handleAction, mapContainer, showMap };
+      }
+    };
+
+    // PlotDetailPendingView 组件（待领取状态地块详情页）
+    const PlotDetailPendingView = {
+      name: 'PlotDetailPendingView',
+      props: {
+        plot: { type: Object, default: null }
+      },
+      emits: ['navigate'],
+      template: `
+        <div class="plot-detail-pending-view">
+          <div class="plot-pending-header">
+            <div class="plot-pending-header-back" @click="goBack">
+              <van-icon name="arrow-left" size="20" color="#fff" />
+            </div>
+            <span class="plot-pending-header-title">地块详情</span>
+          </div>
+          <div class="plot-pending-content">
+            <div class="plot-pending-info-card animate-fade-in">
+              <div class="plot-pending-grid">
+                <div class="plot-pending-item">
+                  <span class="plot-pending-label">任务名称</span>
+                  <span class="plot-pending-value">{{ plotDetail.taskName }}</span>
+                </div>
+                <div class="plot-pending-item">
+                  <span class="plot-pending-label">图斑编号</span>
+                  <span class="plot-pending-value">{{ plotDetail.code }}</span>
+                </div>
+                <div class="plot-pending-item">
+                  <span class="plot-pending-label">所属单元</span>
+                  <span class="plot-pending-value">{{ plotDetail.unit }}</span>
+                </div>
+                <div class="plot-pending-item">
+                  <span class="plot-pending-label">图斑面积 (㎡)</span>
+                  <span class="plot-pending-value">{{ plotDetail.area }}</span>
+                </div>
+                <div class="plot-pending-item">
+                  <span class="plot-pending-label">所属区划</span>
+                  <span class="plot-pending-value">{{ plotDetail.district }}</span>
+                </div>
+                <div class="plot-pending-item">
+                  <span class="plot-pending-label">经度</span>
+                  <span class="plot-pending-value">{{ plotDetail.longitude }}</span>
+                </div>
+                <div class="plot-pending-item">
+                  <span class="plot-pending-label">纬度</span>
+                  <span class="plot-pending-value">{{ plotDetail.latitude }}</span>
+                </div>
+                <div class="plot-pending-item">
+                  <span class="plot-pending-label">状态</span>
+                  <span class="plot-pending-status">{{ plotDetail.statusLabel }}</span>
+                </div>
+                <div class="plot-pending-item">
+                  <span class="plot-pending-label">采样人员</span>
+                  <span class="plot-pending-value">{{ plotDetail.samplers }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="plot-pending-map-container animate-fade-in">
+              <div class="plot-pending-map" ref="mapContainer">
+                <div class="plot-pending-map-placeholder">
+                  <div class="plot-pending-fence"></div>
+                  <div class="plot-pending-map-icon">
+                    <div class="plot-pending-marker">
+                      <div class="plot-pending-marker-pin"></div>
+                      <div class="plot-pending-marker-inner"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="plot-pending-bottom">
+            <button class="plot-pending-btn" @click="handleClaim">
+              领取
+            </button>
+          </div>
+        </div>
+      `,
+      setup(props, { emit }) {
+        const mapContainer = ref(null);
+        const plotDetail = ref({
+          taskName: '东城区耕地质量监测任务',
+          code: props.plot?.code || 'TB2024001',
+          unit: props.plot?.unit || '单元A',
+          area: '5000',
+          district: '东城区',
+          longitude: '116.3974',
+          latitude: '39.9093',
+          status: 'pending',
+          statusLabel: '待领取',
+          samplers: '张三、李四'
+        });
+
+        const goBack = () => emit('navigate', 'plot-list');
+        const handleClaim = () => {
+          vant.showToast('领取成功');
+          setTimeout(() => {
+            emit('navigate', 'plot-list');
+          }, 1500);
+        };
+
+        onMounted(() => {
+          // 天地图初始化（需要替换YOUR_TIANDITU_KEY为实际的key）
+          if (typeof T !== 'undefined' && mapContainer.value) {
+            try {
+              const map = new T.Map(mapContainer.value);
+              map.centerAndZoom(new T.LngLat(116.3974, 39.9093), 15);
+              
+              // 添加标记
+              const marker = new T.Marker(new T.LngLat(116.3974, 39.9093));
+              map.addOverLay(marker);
+              
+              // 添加电子围栏（多边形）
+              const points = [
+                new T.LngLat(116.3964, 39.9103),
+                new T.LngLat(116.3984, 39.9103),
+                new T.LngLat(116.3984, 39.9083),
+                new T.LngLat(116.3964, 39.9083)
+              ];
+              const polygon = new T.Polygon(points, {
+                color: '#4A90E2',
+                weight: 3,
+                opacity: 0.8,
+                fillColor: '#4A90E2',
+                fillOpacity: 0.2
+              });
+              map.addOverLay(polygon);
+            } catch (e) {
+              console.log('天地图加载失败，使用占位图');
+            }
+          }
+        });
+
+        return { mapContainer, plotDetail, goBack, handleClaim };
+      }
+    };
+
+    // PlotDetailSamplingView 组件（待采样状态地块详情页）
+    const PlotDetailSamplingView = {
+      name: 'PlotDetailSamplingView',
+      props: {
+        plot: { type: Object, default: null }
+      },
+      emits: ['navigate'],
+      template: `
+        <div class="plot-detail-sampling-view">
+          <div class="plot-sampling-header">
+            <div class="plot-sampling-header-back" @click="goBack">
+              <van-icon name="arrow-left" size="20" color="#fff" />
+            </div>
+            <span class="plot-sampling-header-title">地块详情</span>
+          </div>
+          <div class="plot-sampling-content">
+            <div class="plot-sampling-info-card animate-fade-in">
+              <div class="plot-sampling-grid">
+                <div class="plot-sampling-item">
+                  <span class="plot-sampling-label">任务名称</span>
+                  <span class="plot-sampling-value">{{ plotDetail.taskName }}</span>
+                </div>
+                <div class="plot-sampling-item">
+                  <span class="plot-sampling-label">图斑编号</span>
+                  <span class="plot-sampling-value">{{ plotDetail.code }}</span>
+                </div>
+                <div class="plot-sampling-item">
+                  <span class="plot-sampling-label">所属单元</span>
+                  <span class="plot-sampling-value">{{ plotDetail.unit }}</span>
+                </div>
+                <div class="plot-sampling-item">
+                  <span class="plot-sampling-label">图斑面积 (㎡)</span>
+                  <span class="plot-sampling-value">{{ plotDetail.area }}</span>
+                </div>
+                <div class="plot-sampling-item">
+                  <span class="plot-sampling-label">所属区划</span>
+                  <span class="plot-sampling-value">{{ plotDetail.district }}</span>
+                </div>
+                <div class="plot-sampling-item">
+                  <span class="plot-sampling-label">经度</span>
+                  <span class="plot-sampling-value">{{ plotDetail.longitude }}</span>
+                </div>
+                <div class="plot-sampling-item">
+                  <span class="plot-sampling-label">纬度</span>
+                  <span class="plot-sampling-value">{{ plotDetail.latitude }}</span>
+                </div>
+                <div class="plot-sampling-item">
+                  <span class="plot-sampling-label">状态</span>
+                  <span class="plot-sampling-status">{{ plotDetail.statusLabel }}</span>
+                </div>
+                <div class="plot-sampling-item">
+                  <span class="plot-sampling-label">采样人员</span>
+                  <span class="plot-sampling-value">{{ plotDetail.samplers }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="plot-sampling-map-container animate-fade-in">
+              <div class="plot-sampling-map" ref="mapContainer">
+                <div class="plot-sampling-map-placeholder">
+                  <div class="plot-sampling-fence"></div>
+                  <div class="plot-sampling-map-icon">
+                    <div class="plot-sampling-marker">
+                      <div class="plot-sampling-marker-pin"></div>
+                      <div class="plot-sampling-marker-inner"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="plot-sampling-bottom">
+            <button class="plot-sampling-btn" @click="handleSurvey">
+              勘察记录登记
+            </button>
+          </div>
+        </div>
+      `,
+      setup(props, { emit }) {
+        const mapContainer = ref(null);
+        const plotDetail = ref({
+          taskName: '东城区耕地质量监测任务',
+          code: props.plot?.code || 'TB2024001',
+          unit: props.plot?.unit || '单元A',
+          area: '5000',
+          district: '东城区',
+          longitude: '116.3974',
+          latitude: '39.9093',
+          status: 'sampling',
+          statusLabel: '待采样',
+          samplers: '张三、李四'
+        });
+
+        const goBack = () => emit('navigate', 'plot-list');
+        const handleSurvey = () => {
+          emit('navigate', 'survey-record');
+        };
+
+        onMounted(() => {
+          if (typeof T !== 'undefined' && mapContainer.value) {
+            try {
+              const map = new T.Map(mapContainer.value);
+              map.centerAndZoom(new T.LngLat(116.3974, 39.9093), 15);
+              const marker = new T.Marker(new T.LngLat(116.3974, 39.9093));
+              map.addOverLay(marker);
+              const points = [
+                new T.LngLat(116.3964, 39.9103),
+                new T.LngLat(116.3984, 39.9103),
+                new T.LngLat(116.3984, 39.9083),
+                new T.LngLat(116.3964, 39.9083)
+              ];
+              const polygon = new T.Polygon(points, {
+                color: '#4A90E2',
+                weight: 3,
+                opacity: 0.8,
+                fillColor: '#4A90E2',
+                fillOpacity: 0.2
+              });
+              map.addOverLay(polygon);
+            } catch (e) {
+              console.log('天地图加载失败，使用占位图');
+            }
+          }
+        });
+
+        return { mapContainer, plotDetail, goBack, handleSurvey };
+      }
+    };
+
+    // SurveyRecordView 组件（勘察记录登记页面）
+    const SurveyRecordView = {
+      name: 'SurveyRecordView',
+      emits: ['navigate'],
+      template: `
+        <div class="survey-record-view">
+          <div class="survey-header">
+            <div class="survey-header-back" @click="goBack">
+              <van-icon name="arrow-left" size="20" color="#fff" />
+            </div>
+            <span class="survey-header-title">勘察记录登记</span>
+          </div>
+          <div class="survey-content">
+            <div class="survey-form-card animate-fade-in">
+              <div class="survey-form-title">基本信息</div>
+              
+              <div class="survey-form-item">
+                <label class="survey-form-label survey-form-label-required">变更前土地利用类型</label>
+                <input type="text" v-model="form.landUseBefore" placeholder="请输入变更前的土地具体用途信息" class="survey-form-input" />
+              </div>
+
+              <div class="survey-form-grid">
+                <div class="survey-form-item">
+                  <label class="survey-form-label survey-form-label-required">变更时间</label>
+                  <input type="date" v-model="form.changeDate" class="survey-form-input" />
+                </div>
+                <div class="survey-form-item">
+                  <label class="survey-form-label survey-form-label-required">利用类型</label>
+                  <select v-model="form.landUseType" class="survey-form-select">
+                    <option value="">请选择</option>
+                    <option value="水田">水田</option>
+                    <option value="水浇地">水浇地</option>
+                    <option value="旱地">旱地</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="survey-form-grid">
+                <div class="survey-form-item">
+                  <label class="survey-form-label survey-form-label-required">有效土层厚度<span class="survey-form-unit">(cm)</span></label>
+                  <input type="number" v-model="form.soilThickness" placeholder="取整数位" class="survey-form-input" />
+                </div>
+                <div class="survey-form-item">
+                  <label class="survey-form-label">砾石含量<span class="survey-form-unit">(%)</span></label>
+                  <input type="number" v-model="form.gravelContent" placeholder="取整数位" class="survey-form-input" />
+                </div>
+              </div>
+
+              <div class="survey-form-item">
+                <label class="survey-form-label">侵入体类型及含量<span class="survey-form-unit">(%)</span></label>
+                <input type="text" v-model="form.intrusiveType" placeholder="类型, 含量取整数位" class="survey-form-input" />
+              </div>
+
+              <div class="survey-form-grid">
+                <div class="survey-form-item">
+                  <label class="survey-form-label survey-form-label-required">地形坡度<span class="survey-form-unit">(°)</span></label>
+                  <input type="number" step="0.1" v-model="form.slope" placeholder="保留1位小数" class="survey-form-input" />
+                </div>
+                <div class="survey-form-item">
+                  <label class="survey-form-label survey-form-label-required">海拔高度<span class="survey-form-unit">(m)</span></label>
+                  <input type="number" v-model="form.altitude" placeholder="保留整数" class="survey-form-input" />
+                </div>
+              </div>
+
+              <div class="survey-form-grid">
+                <div class="survey-form-item">
+                  <label class="survey-form-label survey-form-label-required">田面平整程度</label>
+                  <select v-model="form.flatness" class="survey-form-select">
+                    <option value="">请选择</option>
+                    <option value="平整">平整</option>
+                    <option value="基本平整">基本平整</option>
+                    <option value="不平整">不平整</option>
+                  </select>
+                </div>
+                <div class="survey-form-item">
+                  <label class="survey-form-label survey-form-label-required">耕层厚度<span class="survey-form-unit">(cm)</span></label>
+                  <input type="number" step="0.1" v-model="form.plowLayerThickness" placeholder="保留1位小数" class="survey-form-input" />
+                </div>
+              </div>
+
+              <div class="survey-form-grid">
+                <div class="survey-form-item">
+                  <label class="survey-form-label survey-form-label-required">水资源保障条件</label>
+                  <select v-model="form.waterResource" class="survey-form-select">
+                    <option value="">请选择</option>
+                    <option value="充分满足">充分满足</option>
+                    <option value="满足">满足</option>
+                    <option value="基本满足">基本满足</option>
+                    <option value="不满足">不满足</option>
+                  </select>
+                </div>
+                <div class="survey-form-item">
+                  <label class="survey-form-label survey-form-label-required">道路通行条件</label>
+                  <select v-model="form.roadCondition" class="survey-form-select">
+                    <option value="">请选择</option>
+                    <option value="可通达">可通达</option>
+                    <option value="基本可通达">基本可通达</option>
+                    <option value="不可通达">不可通达</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="survey-form-item">
+                <label class="survey-form-label survey-form-label-required">地形部位</label>
+                <select v-model="form.terrainPosition" class="survey-form-select">
+                  <option value="">请选择</option>
+                  <option value="山间盆地">山间盆地</option>
+                  <option value="宽谷盆地">宽谷盆地</option>
+                  <option value="平原低阶">平原低阶</option>
+                  <option value="平原中阶">平原中阶</option>
+                  <option value="平原高阶">平原高阶</option>
+                  <option value="丘陵上部">丘陵上部</option>
+                  <option value="丘陵中部">丘陵中部</option>
+                  <option value="丘陵下部">丘陵下部</option>
+                  <option value="山地坡上">山地坡上</option>
+                  <option value="山地坡中">山地坡中</option>
+                  <option value="山地坡下">山地坡下</option>
+                  <option value="塬">塬</option>
+                  <option value="其他">其他(需注明)</option>
+                </select>
+              </div>
+
+              <div class="survey-form-item" v-if="form.terrainPosition === '其他'">
+                <label class="survey-form-label">地形部位备注</label>
+                <input type="text" v-model="form.terrainPositionNote" placeholder="请注明具体地形部位" class="survey-form-input" />
+              </div>
+
+              <div class="survey-form-item">
+                <label class="survey-form-label survey-form-label-required">质地构型</label>
+                <select v-model="form.textureStructure" class="survey-form-select">
+                  <option value="">请选择</option>
+                  <option value="薄层型">薄层型</option>
+                  <option value="松散型">松散型</option>
+                  <option value="紧实型">紧实型</option>
+                  <option value="夹层型">夹层型</option>
+                  <option value="上紧下松型">上紧下松型</option>
+                  <option value="上松下紧型">上松下紧型</option>
+                  <option value="海绵型">海绵型</option>
+                  <option value="其他">其他(需注明)</option>
+                </select>
+              </div>
+
+              <div class="survey-form-item" v-if="form.textureStructure === '其他'">
+                <label class="survey-form-label">质地构型备注</label>
+                <input type="text" v-model="form.textureStructureNote" placeholder="请注明具体质地构型" class="survey-form-input" />
+              </div>
+
+              <div class="survey-form-grid">
+                <div class="survey-form-item">
+                  <label class="survey-form-label survey-form-label-required">排水能力</label>
+                  <select v-model="form.drainageCapacity" class="survey-form-select">
+                    <option value="">请选择</option>
+                    <option value="充分满足">充分满足</option>
+                    <option value="满足">满足</option>
+                    <option value="基本满足">基本满足</option>
+                    <option value="不满足">不满足</option>
+                  </select>
+                </div>
+                <div class="survey-form-item">
+                  <label class="survey-form-label survey-form-label-required">农田防护与生态环境保护水平</label>
+                  <select v-model="form.protectionLevel" class="survey-form-select">
+                    <option value="">请选择</option>
+                    <option value="高">高</option>
+                    <option value="中">中</option>
+                    <option value="低">低</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="survey-form-item">
+                <label class="survey-form-label survey-form-label-required">踏勘日期</label>
+                <input type="date" v-model="form.surveyDate" class="survey-form-input" />
+              </div>
+
+              <div class="survey-form-item">
+                <label class="survey-form-label">备注</label>
+                <textarea v-model="form.remark" placeholder="请输入其他需要说明的信息" class="survey-form-textarea"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="survey-bottom">
+            <button class="survey-submit-btn" @click="handleSubmit" :disabled="!isFormValid">
+              提交
+            </button>
+          </div>
+        </div>
+      `,
+      setup(props, { emit }) {
+        const form = ref({
+          landUseBefore: '',
+          changeDate: '',
+          landUseType: '',
+          soilThickness: '',
+          gravelContent: '',
+          intrusiveType: '',
+          slope: '',
+          altitude: '',
+          flatness: '',
+          plowLayerThickness: '',
+          waterResource: '',
+          roadCondition: '',
+          terrainPosition: '',
+          terrainPositionNote: '',
+          textureStructure: '',
+          textureStructureNote: '',
+          drainageCapacity: '',
+          protectionLevel: '',
+          surveyDate: '',
+          remark: ''
+        });
+
+        const isFormValid = computed(() => {
+          return form.value.landUseBefore &&
+                 form.value.changeDate &&
+                 form.value.landUseType &&
+                 form.value.soilThickness &&
+                 form.value.slope &&
+                 form.value.altitude &&
+                 form.value.flatness &&
+                 form.value.plowLayerThickness &&
+                 form.value.waterResource &&
+                 form.value.roadCondition &&
+                 form.value.terrainPosition &&
+                 form.value.textureStructure &&
+                 form.value.drainageCapacity &&
+                 form.value.protectionLevel &&
+                 form.value.surveyDate;
+        });
+
+        const goBack = () => emit('navigate', 'plot-detail-sampling');
+        const handleSubmit = () => {
+          if (!isFormValid.value) {
+            vant.showToast('请填写所有必填项');
+            return;
+          }
+          vant.showToast('提交成功');
+          setTimeout(() => {
+            emit('navigate', 'plot-list');
+          }, 1500);
+        };
+
+        return { form, isFormValid, goBack, handleSubmit };
+      }
+    };
+
+    // SampleCollectionView 组件（样品采集记录登记页面）
+    const SampleCollectionView = {
+      name: 'SampleCollectionView',
+      emits: ['navigate'],
+      setup(props, { emit }) {
+        const formData = Vue.reactive({
+          sampleCode: '',
+          location: '',
+          coordinates: '',
+          depth: '',
+          pointCount: '',
+          weight: '',
+          sampleDate: ''
+        });
+
+        const goBack = () => {
+          emit('navigate', 'plot-detail');
+        };
+
+        const handleSubmit = () => {
+          if (!formData.sampleCode) {
+            vant.showToast({
+              message: '请输入土壤混合样品编号',
+              position: 'top'
+            });
+            return;
+          }
+          if (!formData.location) {
+            vant.showToast({
+              message: '请输入地理位置',
+              position: 'top'
+            });
+            return;
+          }
+          if (!formData.coordinates) {
+            vant.showToast({
+              message: '请输入地理坐标',
+              position: 'top'
+            });
+            return;
+          }
+          if (!formData.depth) {
+            vant.showToast({
+              message: '请输入采样深度',
+              position: 'top'
+            });
+            return;
+          }
+          if (!formData.pointCount) {
+            vant.showToast({
+              message: '请输入采样点位数量',
+              position: 'top'
+            });
+            return;
+          }
+          if (!formData.weight) {
+            vant.showToast({
+              message: '请输入混合样品重量',
+              position: 'top'
+            });
+            return;
+          }
+          if (!formData.sampleDate) {
+            vant.showToast({
+              message: '请选择采样日期',
+              position: 'top'
+            });
+            return;
+          }
+
+          vant.showToast({
+            message: '提交成功',
+            position: 'top'
+          });
+        };
+
+        return {
+          formData,
+          goBack,
+          handleSubmit
+        };
+      },
+      template: `
+        <div class="sample-collection-view">
+          <div class="sample-collection-header">
+            <div class="sample-collection-header-back" @click="goBack">
+              <van-icon name="arrow-left" size="20" color="#fff" />
+            </div>
+            <span class="sample-collection-header-title">样品采集记录登记</span>
+          </div>
+          <div class="sample-collection-content">
+            <div class="sample-collection-form-card">
+              <div class="form-item">
+                <label class="form-label">土壤混合样品编号</label>
+                <input 
+                  type="text" 
+                  v-model="formData.sampleCode"
+                  placeholder="如：110101F250723001"
+                  class="form-input"
+                />
+                <span class="form-tip">县级行政区域代码(6位)+补充耕地类型(F复耕/K垦造)+采样日期(6位)+顺序号(3位)</span>
+              </div>
+              <div class="form-item">
+                <label class="form-label">地理位置</label>
+                <input 
+                  type="text" 
+                  v-model="formData.location"
+                  placeholder="所在市(州)、县(市、区)、乡(镇、街道)、村的名称"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-item">
+                <label class="form-label">地理坐标</label>
+                <input 
+                  type="text" 
+                  v-model="formData.coordinates"
+                  placeholder="按度分秒填写"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-row">
+                <div class="form-item half">
+                  <label class="form-label">采样深度</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      v-model="formData.depth"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">cm</span>
+                  </div>
+                </div>
+                <div class="form-item half">
+                  <label class="form-label">采样点位数量</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      v-model="formData.pointCount"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">个</span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-item">
+                <label class="form-label">混合样品重量</label>
+                <div class="input-with-unit">
+                  <input 
+                    type="number" 
+                    v-model="formData.weight"
+                    placeholder="请输入"
+                    class="form-input"
+                  />
+                  <span class="input-unit">g</span>
+                </div>
+              </div>
+              <div class="form-item">
+                <label class="form-label">采样日期</label>
+                <input 
+                  type="date" 
+                  v-model="formData.sampleDate"
+                  class="form-input date-input"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="sample-collection-bottom">
+            <button class="submit-btn" @click="handleSubmit">提交</button>
+          </div>
+        </div>
+      `
+    };
+
+    // AnalysisResultView 组件（分析结果登记页面）
+    const AnalysisResultView = {
+      name: 'AnalysisResultView',
+      emits: ['navigate'],
+      setup(props, { emit }) {
+        const formData = Vue.reactive({
+          bulkDensity: '',
+          phValue: '',
+          organicMatter: '',
+          availablePhosphorus: '',
+          availablePotassium: '',
+          waterSolubleSalt: '',
+          cadmium: '',
+          totalMercury: '',
+          totalArsenic: '',
+          lead: '',
+          chromium: ''
+        });
+
+        const goBack = () => {
+          emit('navigate', 'plot-detail');
+        };
+
+        const handleSubmit = () => {
+          vant.showToast({
+            message: '提交成功',
+            position: 'top'
+          });
+        };
+
+        return {
+          formData,
+          goBack,
+          handleSubmit
+        };
+      },
+      template: `
+        <div class="analysis-result-view">
+          <div class="analysis-result-header">
+            <div class="analysis-result-header-back" @click="goBack">
+              <van-icon name="arrow-left" size="20" color="#fff" />
+            </div>
+            <span class="analysis-result-header-title">分析结果登记</span>
+          </div>
+          <div class="analysis-result-content">
+            <div class="analysis-result-form-card">
+              <div class="form-row">
+                <div class="form-item half">
+                  <label class="form-label">容重</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      step="0.01"
+                      v-model="formData.bulkDensity"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">g/cm</span>
+                  </div>
+                </div>
+                <div class="form-item half">
+                  <label class="form-label">pH值</label>
+                  <input 
+                    type="number" 
+                    step="0.01"
+                    v-model="formData.phValue"
+                    placeholder="请输入"
+                    class="form-input"
+                  />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-item half">
+                  <label class="form-label">有机质</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      step="0.01"
+                      v-model="formData.organicMatter"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">g/kg</span>
+                  </div>
+                </div>
+                <div class="form-item half">
+                  <label class="form-label">有效磷</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      step="0.01"
+                      v-model="formData.availablePhosphorus"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">mg/kg</span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-item half">
+                  <label class="form-label">速效钾</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      step="0.01"
+                      v-model="formData.availablePotassium"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">mg/kg</span>
+                  </div>
+                </div>
+                <div class="form-item half">
+                  <label class="form-label">水溶性盐总量</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      step="0.01"
+                      v-model="formData.waterSolubleSalt"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">g/kg</span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-item half">
+                  <label class="form-label">镉</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      step="0.001"
+                      v-model="formData.cadmium"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">mg/kg</span>
+                  </div>
+                </div>
+                <div class="form-item half">
+                  <label class="form-label">总汞</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      step="0.001"
+                      v-model="formData.totalMercury"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">mg/kg</span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-item half">
+                  <label class="form-label">总砷</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      step="0.001"
+                      v-model="formData.totalArsenic"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">mg/kg</span>
+                  </div>
+                </div>
+                <div class="form-item half">
+                  <label class="form-label">铅</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      step="0.001"
+                      v-model="formData.lead"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">mg/kg</span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-item">
+                <label class="form-label">铬</label>
+                <div class="input-with-unit">
+                  <input 
+                    type="number" 
+                    step="0.001"
+                    v-model="formData.chromium"
+                    placeholder="请输入"
+                    class="form-input"
+                  />
+                  <span class="input-unit">mg/kg</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="analysis-result-bottom">
+            <button class="submit-btn" @click="handleSubmit">提交</button>
+          </div>
+        </div>
+      `
+    };
+
+    // 根组件
+    const App = {
+      components: { HomeView, TaskListView, PlotListView, PlotDetailView, PlotDetailPendingView, PlotDetailSamplingView, SurveyRecordView, SampleCollectionView, AnalysisResultView, BatchCollectView, BatchAnalyzeView },
+      setup() {
+        const currentPage = ref('home');
+        const currentTask = ref(null);
+        const currentPlot = ref(null);
+        const navigate = (page, data = null) => { 
+          currentPage.value = page;
+          if (page === 'plot-list' && data) currentTask.value = data;
+          if ((page === 'plot-detail' || page === 'plot-detail-pending' || page === 'plot-detail-sampling') && data) currentPlot.value = data;
+        };
+        return { currentPage, currentTask, currentPlot, navigate };
+      },
+      template: `
+        <div class="app-container">
+          <home-view 
+            v-if="currentPage === 'home'" 
+            @navigate="navigate"
+            class="page-enter"
+          />
+          <task-list-view 
+            v-else-if="currentPage === 'task-list'" 
+            @navigate="navigate"
+            class="page-enter"
+          />
+          <plot-list-view 
+            v-else-if="currentPage === 'plot-list'" 
+            :task="currentTask"
+            @navigate="navigate"
+            class="page-enter"
+          />
+          <plot-detail-view 
+            v-else-if="currentPage === 'plot-detail'" 
+            :plot="currentPlot"
+            @navigate="navigate"
+            class="page-enter"
+          />
+          <plot-detail-pending-view 
+            v-else-if="currentPage === 'plot-detail-pending'" 
+            :plot="currentPlot"
+            @navigate="navigate"
+            class="page-enter"
+          />
+          <plot-detail-sampling-view 
+            v-else-if="currentPage === 'plot-detail-sampling'" 
+            :plot="currentPlot"
+            @navigate="navigate"
+            class="page-enter"
+          />
+          <survey-record-view 
+            v-else-if="currentPage === 'survey-record'" 
+            @navigate="navigate"
+            class="page-enter"
+          />
+          <sample-collection-view 
+            v-else-if="currentPage === 'sample-collection'" 
+            @navigate="navigate"
+            class="page-enter"
+          />
+          <analysis-result-view 
+            v-else-if="currentPage === 'analysis-result'" 
+            @navigate="navigate"
+            class="page-enter"
+          />
+          <batch-collect-view 
+            v-else-if="currentPage === 'batch-collect'" 
+            @navigate="navigate"
+            class="page-enter"
+          />
+          <batch-analyze-view 
+            v-else-if="currentPage === 'batch-analyze'" 
+            @navigate="navigate"
+            class="page-enter"
+          />
+        </div>
+      `
+    };
+
+    // 创建应用
+    const app = createApp(App);
+    app.use(vant);
+    app.mount('#app');
+  </script>
+</body>
+</html>

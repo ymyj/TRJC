@@ -1,0 +1,40 @@
+:root {
+  /* 主色调 */
+  --primary-color: #4A90E2;
+  --primary-gradient: linear-gradient(135deg, #5B9FE8 0%, #4A90E2 100%);
+  
+  /* 状态颜色 */
+  --pending-color: #FF9500;
+  --completed-color: #34C759;
+  --in-progress-color: #007AFF;
+  --to-submit-color: #FF3B30;
+  
+  /* 背景色 */
+  --bg-color: #F5F5F5;
+  --card-bg: #FFFFFF;
+  --header-bg: linear-gradient(135deg, #5B9FE8 0%, #4A90E2 50%, #3D7FD4 100%);
+  
+  /* 文字颜色 */
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --text-white: #FFFFFF;
+  
+  /* 边框和阴影 */
+  --border-color: #EEEEEE;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  
+  /* 间距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  
+  /* 圆角 */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 50%;
+}
