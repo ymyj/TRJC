@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DECIMAL, Date, DateTime, JSON, func
+from sqlalchemy import Column, Integer, String, DECIMAL, Date, DateTime, JSON, Text, func
 from sqlalchemy.dialects.mysql import TINYINT
 from app.database import Base
 
@@ -42,6 +42,9 @@ class TaskInfo(Base):
     RWLX = Column(String(20), comment="任务类型")
     SSQH = Column(String(50), comment="所属区划")
     FZR = Column(String(50), comment="负责人")
+    JHKSSJ = Column(String(50), comment="计划开始时间")
+    LXDH = Column(String(50), comment="联系电话")
+    RWMS = Column(Text, comment="任务描述")
     ZT = Column(String(20), default="draft", comment="状态")
     CJSJ = Column(DateTime, server_default=func.now(), comment="创建时间")
     SFSC = Column(TINYINT, default=0, comment="是否删除")
@@ -53,6 +56,19 @@ class TaskPlot(Base):
     ID = Column(Integer, primary_key=True, autoincrement=True, comment="主键")
     RWID = Column(Integer, comment="任务ID")
     DKID = Column(Integer, comment="地块ID")
+    SFSC = Column(TINYINT, default=0, comment="是否删除")
+
+
+class TaskPlotStatus(Base):
+    __tablename__ = "task_plot_status"
+
+    ID = Column(Integer, primary_key=True, autoincrement=True, comment="主键")
+    RWID = Column(Integer, comment="任务ID")
+    DKID = Column(Integer, comment="地块ID")
+    ZT = Column(String(20), default="pending", comment="状态：pending-待领取, sampling-待采样, transport-待运输, analysis-待分析, completed-已完成")
+    KCFSJ = Column(DateTime, comment="勘察完成时间")
+    CYFSJ = Column(DateTime, comment="采样完成时间")
+    CJSJ = Column(DateTime, server_default=func.now(), comment="创建时间")
     SFSC = Column(TINYINT, default=0, comment="是否删除")
 
 
@@ -166,4 +182,24 @@ class FarmlandDataset(Base):
     G = Column(DECIMAL(8, 2), comment="铬")
     GDZLDJ = Column(DECIMAL(10, 6), comment="耕地质量等级")
     ZLFJ = Column(String(20), comment="质量分级")
+    SFSC = Column(TINYINT, default=0, comment="是否删除")
+
+
+class AnalysisResult(Base):
+    __tablename__ = "analysis_result"
+
+    ID = Column(Integer, primary_key=True, autoincrement=True, comment="主键")
+    RWID = Column(Integer, comment="任务ID")
+    DKID = Column(Integer, comment="地块ID")
+    RZ = Column(DECIMAL(5, 2), comment="容重")
+    PHZ = Column(DECIMAL(4, 2), comment="pH值")
+    YJZ = Column(DECIMAL(8, 2), comment="有机质")
+    YXP = Column(DECIMAL(8, 2), comment="有效磷")
+    XJK = Column(DECIMAL(8, 2), comment="速效钾")
+    SRXYLZL = Column(DECIMAL(8, 2), comment="水溶性盐总量")
+    GE = Column(DECIMAL(8, 3), comment="镉")
+    ZG = Column(DECIMAL(8, 3), comment="总汞")
+    ZS = Column(DECIMAL(8, 2), comment="总砷")
+    QIAN = Column(DECIMAL(8, 2), comment="铅")
+    GE_CHROME = Column(DECIMAL(8, 2), comment="铬")
     SFSC = Column(TINYINT, default=0, comment="是否删除")

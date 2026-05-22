@@ -1,54 +1,66 @@
-import { UserHeader, UserHeaderStyle } from './components/UserHeader.js';
-import { TaskStats, TaskStatsStyle } from './components/TaskStats.js';
-import { TaskItem, TaskItemStyle } from './components/TaskItem.js';
-import { HomeView, HomeViewStyle } from './views/HomeView.js';
-import { SampleCollectionView, SampleCollectionViewStyle } from './views/SampleCollectionView.js';
-import * as api from './api/index.js';
+import { createApp } from 'vue'
+import { createRouter, createWebHashHistory } from 'vue-router'
+import Vant from 'vant'
+import 'vant/lib/index.css'
 
-const { createApp, ref } = Vue;
+import LoginView from './views/LoginView.js'
+import HomeView from './views/HomeView.js'
+import TaskListView from './views/TaskListView.js'
+import SampleCollectionView from './views/SampleCollectionView.js'
 
-window.TRJC = { api };
-
-const app = createApp({
-  components: {
-    UserHeader,
-    TaskStats,
-    TaskItem,
-    HomeView,
-    SampleCollectionView
+const routes = [
+  {
+    path: '/login',
+    name: 'Login',
+    component: LoginView,
+    meta: { requiresAuth: false }
   },
-  setup() {
-    const currentView = ref('home');
-
-    const navigate = (viewName) => {
-      currentView.value = viewName;
-    };
-
-    return {
-      currentView,
-      navigate
-    };
+  {
+    path: '/',
+    name: 'Home',
+    component: HomeView,
+    meta: { requiresAuth: true }
   },
-  template: `
-    <div id="app">
-      <home-view v-if="currentView === 'home'" @navigate="navigate" />
-      <sample-collection-view v-else-if="currentView === 'sample-collection'" :task-id="1" @navigate="navigate" />
-    </div>
-  `
-});
+  {
+    path: '/tasks',
+    name: 'TaskList',
+    component: TaskListView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/sample-collection/:taskId',
+    name: 'SampleCollection',
+    component: SampleCollectionView,
+    meta: { requiresAuth: true },
+    props: true
+  }
+]
 
-app.use(vant);
+const router = createRouter({
+  history: createWebHashHistory(),
+  routes
+})
 
-app.mount('#app');
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+  if (to.meta.requiresAuth === false) {
+    if (token && to.path === '/login') {
+      next('/')
+    } else {
+      next()
+    }
+  } else {
+    if (token) {
+      next()
+    } else {
+      next('/login')
+    }
+  }
+})
 
-const styles = [
-  UserHeaderStyle,
-  TaskStatsStyle,
-  TaskItemStyle,
-  HomeViewStyle,
-  SampleCollectionViewStyle
-];
+const app = createApp({})
 
-const styleElement = document.createElement('style');
-styleElement.textContent = styles.join('\n');
-document.head.appendChild(styleElement);
+app.use(router)
+app.use(Vant)
+
+app.mount('#app')

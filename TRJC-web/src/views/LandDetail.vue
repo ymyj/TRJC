@@ -232,7 +232,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { getSurveyRecords, getSampleRecords, getPlotDetail } from '../api'
+import { getSurveyRecords, getSampleRecords, getTaskPlotDetail } from '../api'
 
 const router = useRouter()
 const route = useRoute()
@@ -244,9 +244,8 @@ const sampleRecord = reactive({})
 
 const statusMap = {
   pending: { text: '待领取', class: 'status-pending' },
-  sampling: { text: '待采样', class: 'status-sampling' },
-  transport: { text: '待运输', class: 'status-transport' },
-  analysis: { text: '待分析', class: 'status-analysis' },
+  survey_done: { text: '勘察完成', class: 'status-sampling' },
+  sampling_done: { text: '采样完成', class: 'status-transport' },
   completed: { text: '已完成', class: 'status-completed' }
 }
 
@@ -256,20 +255,26 @@ const getStatusClass = (status) => {
 
 const fetchLandDetail = async () => {
   try {
-    const landId = route.params.id
-    const res = await getPlotDetail(landId)
+    const plotId = route.params.id
+    const taskId = route.query.taskId
+    if (!taskId) {
+      console.warn('缺少任务ID参数')
+      return
+    }
+    const res = await getTaskPlotDetail(taskId, plotId)
     if (res.data.code === 200) {
       const data = res.data.data
       Object.assign(landInfo, {
-        code: data.TBH,
-        unit: data.SSDY,
-        area: data.TBMJ,
-        district: data.SSQH,
-        longitude: data.JD,
-        latitude: data.WD,
-        status: data.ZT,
-        statusText: statusMap[data.ZT]?.text || data.ZT,
-        samplers: data.SYRY
+        taskName: data.taskName || '',
+        code: data.code || '',
+        unit: data.unit || '',
+        area: data.area || '',
+        district: data.district || '',
+        longitude: data.longitude || '',
+        latitude: data.latitude || '',
+        status: data.status || '',
+        statusText: data.statusLabel || '',
+        samplers: data.samplers || ''
       })
     }
   } catch (error) {
@@ -280,41 +285,42 @@ const fetchLandDetail = async () => {
 const fetchSurveyRecords = async () => {
   try {
     const taskId = route.query.taskId || route.params.id
+    const plotId = route.params.id
     const res = await getSurveyRecords(taskId)
     if (res.data.code === 200) {
       const list = res.data.data || []
-      if (list.length > 0) {
-        const data = list[0]
-        const locationParts = (data.DLWZ || '').split(' ')
+      const record = list.find(item => String(item.DKID) === String(plotId))
+      if (record) {
+        const locationParts = (record.DLWZ || '').split(' ')
         Object.assign(surveyRecord, {
-          projectName: data.XMMC,
-          code: data.TBH,
-          area: data.MJ,
+          projectName: record.XMMC,
+          code: record.TBH,
+          area: record.MJ,
           locationCity: locationParts[0] || '',
           locationCounty: locationParts[1] || '',
           locationVillage: locationParts.slice(2).join(' ') || '',
-          longitude: data.DLZB_JD,
-          latitude: data.DLZB_WD,
-          beforeType: data.BGQ,
-          changeTime: data.BGSJ,
-          useType: data.LYLX,
-          soilThickness: data.YXTCHD,
-          intrusionType: data.QRLXJHL,
-          gravelContent: data.LSHL,
-          slope: data.DXPD,
-          flatness: data.TMPZCD,
-          waterCondition: data.SZBZTJ,
-          roadCondition: data.DLTXTJ,
-          terrain: data.DXBW,
-          texture: data.ZDGX,
-          drainage: data.PSNL,
-          altitude: data.HBGD,
-          protection: data.NTFH,
-          plowThickness: data.GCHD,
-          surveyDate: data.KCRQ,
-          surveyor: data.DCRY,
-          unitRep: data.XMDWDB,
-          expert: data.TKZJ
+          longitude: record.DLZB_JD,
+          latitude: record.DLZB_WD,
+          beforeType: record.BGQ,
+          changeTime: record.BGSJ,
+          useType: record.LYLX,
+          soilThickness: record.YXTCHD,
+          intrusionType: record.QRLXJHL,
+          gravelContent: record.LSHL,
+          slope: record.DXPD,
+          flatness: record.TMPZCD,
+          waterCondition: record.SZBZTJ,
+          roadCondition: record.DLTXTJ,
+          terrain: record.DXBW,
+          texture: record.ZDGX,
+          drainage: record.PSNL,
+          altitude: record.HBGD,
+          protection: record.NTFH,
+          plowThickness: record.GCHD,
+          surveyDate: record.KCRQ,
+          surveyor: record.DCRY,
+          unitRep: record.XMDWDB,
+          expert: record.TKZJ
         })
       }
     }
@@ -326,35 +332,36 @@ const fetchSurveyRecords = async () => {
 const fetchSampleRecords = async () => {
   try {
     const taskId = route.query.taskId || route.params.id
+    const plotId = route.params.id
     const res = await getSampleRecords(taskId)
     if (res.data.code === 200) {
       const list = res.data.data || []
-      if (list.length > 0) {
-        const data = list[0]
-        const locationParts = (data.DLWZ || '').split(' ')
+      const record = list.find(item => String(item.DKID) === String(plotId))
+      if (record) {
+        const locationParts = (record.DLWZ || '').split(' ')
         Object.assign(sampleRecord, {
-          sampleCode: data.TRHHYPBH,
+          sampleCode: record.TRHHYPBH,
           locationCity: locationParts[0] || '',
           locationCounty: locationParts[1] || '',
           locationVillage: locationParts.slice(2).join(' ') || '',
-          point1Code: data.CYD1_BH,
-          point1Lon: data.CYD1_JD,
-          point1Lat: data.CYD1_WD,
-          point2Code: data.CYD2_BH,
-          point2Lon: data.CYD2_JD,
-          point2Lat: data.CYD2_WD,
-          point3Code: data.CYD3_BH,
-          point3Lon: data.CYD3_JD,
-          point3Lat: data.CYD3_WD,
-          depth1Code: data.CYSD_D1,
-          depth2Code: data.CYSD_D2,
-          depth3Code: data.CYSD_D3,
-          pointCount: data.CYDWSL,
-          sampleWeight: data.HHYPSL,
-          sampleDate: data.CYRQ,
-          sampler: data.SYRY,
-          unitRep: data.XMDWDB,
-          expert: data.TKZJ
+          point1Code: record.DLZB_D1BH,
+          point1Lon: record.DLZB_D1JD,
+          point1Lat: record.DLZB_D1WD,
+          point2Code: record.DLZB_D2BH,
+          point2Lon: record.DLZB_D2JD,
+          point2Lat: record.DLZB_D2WD,
+          point3Code: record.DLZB_D3BH,
+          point3Lon: record.DLZB_D3JD,
+          point3Lat: record.DLZB_D3WD,
+          depth1Code: record.CYSD_D1,
+          depth2Code: record.CYSD_D2,
+          depth3Code: record.CYSD_D3,
+          pointCount: record.CYDWSL,
+          sampleWeight: record.HHYPSL,
+          sampleDate: record.CYRQ,
+          sampler: record.CYRY,
+          unitRep: record.XMDWDB,
+          expert: record.TKZJ
         })
       }
     }

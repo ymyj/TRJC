@@ -8,6 +8,9 @@ class TaskInfoBase(BaseModel):
     RWLX: str
     SSQH: Optional[str] = None
     FZR: Optional[str] = None
+    JHKSSJ: Optional[str] = None
+    LXDH: Optional[str] = None
+    RWMS: Optional[str] = None
     plot_ids: Optional[List[int]] = None
 
 
@@ -20,6 +23,9 @@ class TaskInfoUpdate(BaseModel):
     RWLX: Optional[str] = None
     SSQH: Optional[str] = None
     FZR: Optional[str] = None
+    JHKSSJ: Optional[str] = None
+    LXDH: Optional[str] = None
+    RWMS: Optional[str] = None
     ZT: Optional[str] = None
     plot_ids: Optional[List[int]] = None
 
@@ -31,6 +37,9 @@ class TaskInfoResponse(BaseModel):
     RWLX: str
     SSQH: Optional[str] = None
     FZR: Optional[str] = None
+    JHKSSJ: Optional[str] = None
+    LXDH: Optional[str] = None
+    RWMS: Optional[str] = None
     ZT: str
     CJSJ: Optional[datetime] = None
     SFSC: int = 0

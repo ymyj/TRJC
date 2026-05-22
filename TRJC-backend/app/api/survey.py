@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from datetime import datetime
 from app.database import get_db
-from app.models import SurveyRecord
+from app.models import SurveyRecord, TaskPlotStatus, TaskPlot, TaskInfo
 from app.schemas.survey import SurveyRecordCreate, SurveyRecordUpdate, SurveyRecordResponse
+from app.utils.task_helper import try_complete_task
 
 router = APIRouter(prefix="/api/tasks/{task_id}/survey", tags=["勘察记录"])
 
@@ -79,7 +81,27 @@ def create_survey_record(task_id: int, data: SurveyRecordCreate, db: Session = D
         TKZJ=data.TKZJ
     )
     db.add(db_item)
+    
+    status_record = db.query(TaskPlotStatus).filter(
+        TaskPlotStatus.RWID == data.RWID,
+        TaskPlotStatus.DKID == data.DKID,
+        TaskPlotStatus.SFSC == 0
+    ).first()
+    
+    if status_record:
+        status_record.ZT = "transport"
+        status_record.KCFSJ = datetime.now()
+    else:
+        status_record = TaskPlotStatus(
+            RWID=data.RWID,
+            DKID=data.DKID,
+            ZT="transport",
+            KCFSJ=datetime.now()
+        )
+        db.add(status_record)
+    
     db.commit()
+    try_complete_task(db, data.RWID)
     db.refresh(db_item)
     return {"code": 200, "msg": "提交成功", "data": {"ID": db_item.ID}}
 

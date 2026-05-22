@@ -23,3 +23,7 @@ export function deletePlot(id) {
 export function getPlotDetail(id) {
   return api.get(`/api/plots/${id}`)
 }
+
+export function getTaskPlotDetail(taskId, plotId) {
+  return api.get(`/api/tasks/${taskId}/plots/${plotId}`)
+}

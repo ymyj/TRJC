@@ -1691,23 +1691,132 @@
     }
 
     .batch-collect-submit-btn {
-      width: 100%;
-      height: 44px;
-      border: none;
-      border-radius: 22px;
-      font-size: 16px;
-      font-weight: 500;
-      color: #fff;
-      background: var(--primary-color);
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
+        width: 100%;
+        height: 44px;
+        border: none;
+        border-radius: 22px;
+        font-size: 16px;
+        font-weight: 500;
+        color: #fff;
+        background: var(--primary-color);
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
 
-    .batch-collect-submit-btn:active {
-      opacity: 0.9;
-      transform: scale(0.98);
-    }
-  </style>
+      .batch-collect-submit-btn:active {
+        opacity: 0.9;
+        transform: scale(0.98);
+      }
+
+      /* Login Page 样式 */
+      .login-page {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .login-header {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+
+      .login-header .logo {
+        font-size: 28px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 8px;
+      }
+
+      .login-header .subtitle {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .login-form {
+        width: 100%;
+        max-width: 360px;
+        background: #fff;
+        border-radius: 16px;
+        padding: 32px 24px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      }
+
+      .login-form .form-item {
+        margin-bottom: 16px;
+      }
+
+      .login-form .form-input {
+        width: 100%;
+        padding: 14px 16px;
+        border: 1px solid #e8e8e8;
+        border-radius: 8px;
+        font-size: 14px;
+        color: var(--text-primary);
+        background: #fafafa;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+      }
+
+      .login-form .form-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        background: #fff;
+      }
+
+      .login-form .form-input::placeholder {
+        color: #bbb;
+      }
+
+      .login-form .error-msg {
+        color: #ff4d4f;
+        font-size: 13px;
+        margin-bottom: 12px;
+        text-align: center;
+      }
+
+      .login-form .login-btn {
+        width: 100%;
+        height: 48px;
+        border: none;
+        border-radius: 24px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #fff;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 8px;
+      }
+
+      .login-form .login-btn:active {
+        opacity: 0.9;
+        transform: scale(0.98);
+      }
+
+      .login-form .login-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+
+      .login-form .login-tip {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 12px;
+        color: #999;
+      }
+
+      /* Loading State 样式 */
+      .loading-state {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px 20px;
+      }
+    </style>
   <!-- 天地图API -->
   <script src="https://api.tianditu.gov.cn/api?v=4.0&tk=YOUR_TIANDITU_KEY"></script>
 </head>
@@ -1716,11 +1825,65 @@
   
   <!-- Vue 3 -->
   <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+  <!-- Axios -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <!-- Vant -->
   <script src="https://cdn.jsdelivr.net/npm/vant@4/lib/vant.min.js"></script>
   
   <script>
     const { createApp, ref, computed, onMounted } = Vue;
+
+    // API module
+    const api = axios.create({
+      baseURL: 'http://localhost:8000',
+      timeout: 10000,
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    // Request interceptor
+    api.interceptors.request.use(config => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    }, error => Promise.reject(error));
+
+    // Response interceptor
+    api.interceptors.response.use(
+      response => response,
+      error => {
+        if (error.response && error.response.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('userInfo');
+          localStorage.removeItem('currentUserId');
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    const TRJC = {
+      api: {
+        login: (data) => api.post('/api/auth/login', data),
+        logout: () => api.post('/api/auth/logout'),
+        getTaskList: (params) => api.get('/api/tasks', { params }),
+        getTaskStats: () => api.get('/api/tasks/stats'),
+        getTaskDetail: (id) => api.get(`/api/tasks/${id}`),
+        getTaskPlots: (taskId) => api.get(`/api/tasks/${taskId}/plots`),
+        updatePlotStatus: (taskId, plotId, data) => api.put(`/api/tasks/${taskId}/plots/${plotId}/status`, data),
+        getSurveyRecords: (taskId) => api.get(`/api/tasks/${taskId}/survey`),
+        createSurveyRecord: (taskId, data) => api.post(`/api/tasks/${taskId}/survey`, data),
+        getSampleRecords: (taskId) => api.get(`/api/tasks/${taskId}/samples`),
+        createSampleRecord: (taskId, data) => api.post(`/api/tasks/${taskId}/samples`, data),
+        getAnalysisResults: (taskId) => api.get(`/api/tasks/${taskId}/analysis`),
+        createAnalysisResult: (taskId, data) => api.post(`/api/tasks/${taskId}/analysis`, data),
+        getPersonnelList: (params) => api.get('/api/personnel', { params }),
+        getPlots: (params) => api.get('/api/plots', { params }),
+        getDatasets: (params) => api.get('/api/datasets', { params })
+      }
+    };
+
+    window.TRJC = TRJC;
 
     // UserHeader 组件
     const UserHeader = {
@@ -1783,8 +1946,9 @@
         task: { type: Object, required: true },
         index: { type: Number, default: 0 }
       },
+      emits: ['task-click'],
       template: `
-        <div :class="['task-item', 'animate-slide-in', 'list-item-' + ((index % 8) + 1)]" @click="$emit('click', task)">
+        <div :class="['task-item', 'animate-slide-in', 'list-item-' + ((index % 8) + 1)]" @click="$emit('task-click', task)">
           <div class="task-header">
             <div class="task-title">{{ task.title }}</div>
             <span :class="['status-tag', getStatusClass(task.status)]">
@@ -1834,11 +1998,79 @@
       }
     };
 
+    // 登录API
+    const loginApi = async (data) => {
+      return await TRJC.api.login(data);
+    };
+
+    // LoginView 组件
+    const LoginView = {
+      name: 'LoginView',
+      emits: ['login'],
+      setup(props, { emit }) {
+        const form = Vue.reactive({ username: '', password: '' });
+        const loading = Vue.ref(false);
+        const errorMsg = Vue.ref('');
+
+        const handleLogin = async () => {
+          if (!form.username || !form.password) {
+            errorMsg.value = '请填写手机号和密码';
+            return;
+          }
+          loading.value = true;
+          errorMsg.value = '';
+          try {
+            const res = await loginApi(form);
+            if (res.data.code === 200) {
+              const { token, user } = res.data.data;
+              localStorage.setItem('token', token);
+              localStorage.setItem('userInfo', JSON.stringify(user));
+              localStorage.setItem('currentUserId', user.ID);
+              emit('login');
+            } else {
+              errorMsg.value = res.data.msg || '登录失败';
+            }
+          } catch (err) {
+            if (err.response && err.response.status === 401) {
+              errorMsg.value = '用户名或密码错误';
+            } else {
+              errorMsg.value = '登录失败，请检查网络连接';
+            }
+          } finally {
+            loading.value = false;
+          }
+        };
+
+        return { form, loading, errorMsg, handleLogin };
+      },
+      template: `
+        <div class="login-page">
+          <div class="login-header">
+            <div class="logo">耕地质量监测</div>
+            <div class="subtitle">移动端数据采集系统</div>
+          </div>
+          <div class="login-form">
+            <div class="form-item">
+              <input type="text" v-model="form.username" placeholder="请输入手机号" class="form-input" />
+            </div>
+            <div class="form-item">
+              <input type="password" v-model="form.password" placeholder="请输入密码" class="form-input" @keyup.enter="handleLogin" />
+            </div>
+            <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
+            <button class="login-btn" @click="handleLogin" :disabled="loading">
+              {{ loading ? '登录中...' : '登 录' }}
+            </button>
+            <div class="login-tip">默认密码: 123456</div>
+          </div>
+        </div>
+      `
+    };
+
     // HomeView 组件
     const HomeView = {
       name: 'HomeView',
       components: { UserHeader, TaskStats, TaskItem },
-      emits: ['navigate'],
+      emits: ['navigate', 'logout'],
       template: `
         <div class="home-view">
           <user-header :user="user" @settings="onSettings" />
@@ -1854,75 +2086,126 @@
                 :key="task.id"
                 :task="task"
                 :index="index"
-                @click="onTaskClick"
+                @task-click="onTaskClick"
               />
+            </div>
+            <div v-if="recentTasks.length === 0 && !loading" class="empty-state" style="padding:40px 20px;text-align:center;color:#999;">
+              <van-icon name="todo-list-o" size="48" color="#ddd" />
+              <p style="margin-top:12px;">暂无分配任务</p>
+            </div>
+            <div v-if="loading" class="loading-state">
+              <van-loading size="24px">加载中...</van-loading>
             </div>
           </div>
         </div>
       `,
       setup(props, { emit }) {
-        const user = ref({
-          id: '1',
-          name: '张调查员',
-          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=inspector&backgroundColor=b6e3f4',
-          role: '外业调查员',
-          district: '东城区'
+        const user = Vue.ref({
+          id: '',
+          name: '',
+          avatar: '',
+          role: '',
+          district: ''
         });
 
-        const taskStats = ref({
-          pending: 8,
-          completed: 24,
-          toSubmit: 3
+        const taskStats = Vue.ref({
+          pending: 0,
+          completed: 0,
+          toSubmit: 0
         });
 
-        const recentTasks = ref([
-          {
-            id: '1',
-            title: '东城区地块A土壤采样任务',
-            taskNo: 'RW202400123',
-            type: 'routine',
-            typeLabel: '常规监测',
-            location: '东城区和平里街道',
-            deadline: '2024-03-20',
-            status: 'in_progress',
-            statusLabel: '进行中'
-          },
-          {
-            id: '2',
-            title: '西城区地块B土壤调查任务',
-            taskNo: 'RW202400124',
-            type: 'special',
-            typeLabel: '专项调查',
-            location: '西城区金融街街道',
-            deadline: '2024-03-22',
-            status: 'in_progress',
-            statusLabel: '进行中'
-          },
-          {
-            id: '3',
-            title: '海淀区地块C质量鉴定任务',
-            taskNo: 'RW202400125',
-            type: 'supplement',
-            typeLabel: '补充鉴定',
-            location: '海淀区中关村街道',
-            completedAt: '2024-03-15',
-            status: 'completed',
-            statusLabel: '已完成'
-          },
-          {
-            id: '4',
-            title: '海淀区地块C质量鉴定任务',
-            taskNo: 'RW202400125',
-            type: 'supplement',
-            typeLabel: '补充鉴定',
-            location: '海淀区中关村街道',
-            completedAt: '2024-03-15',
-            status: 'completed',
-            statusLabel: '已完成'
+        const recentTasks = Vue.ref([]);
+        const loading = Vue.ref(true);
+
+        const typeLabelMap = {
+          'routine': '常规监测',
+          'supplement': '补充鉴定',
+          'special': '专项监测',
+          'census': '普查任务',
+          'check': '质量核查'
+        };
+
+        const statusLabelMap = {
+          'draft': '待发布',
+          'pending': '待领取',
+          'processing': '进行中',
+          'completed': '已完成'
+        };
+
+        const mapTask = (item) => ({
+          id: item.ID,
+          title: item.RWMC,
+          taskNo: item.RWBH,
+          type: item.RWLX,
+          typeLabel: typeLabelMap[item.RWLX] || item.RWLX,
+          location: item.SSQH,
+          deadline: item.CJSJ ? item.CJSJ.split(' ')[0] : '',
+          status: item.ZT,
+          statusLabel: statusLabelMap[item.ZT] || item.ZT
+        });
+
+        const loadUserInfo = () => {
+          const info = localStorage.getItem('userInfo');
+          if (info) {
+            try {
+              const parsed = JSON.parse(info);
+              user.value = {
+                id: parsed.ID || '',
+                name: parsed.XM || '',
+                avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${parsed.XM}&backgroundColor=b6e3f4`,
+                role: parsed.GW || '',
+                district: parsed.SSQH || ''
+              };
+            } catch (e) {
+              console.error('解析用户信息失败', e);
+            }
           }
-        ]);
+        };
 
-        const onSettings = () => vant.showToast('打开设置');
+        const fetchTaskList = async () => {
+          try {
+            loading.value = true;
+            const userId = localStorage.getItem('currentUserId');
+            if (!userId) return;
+            const params = { page: 1, size: 10, ryid: parseInt(userId) };
+            const res = await TRJC.api.getTaskList(params);
+            if (res.data.code === 200) {
+              recentTasks.value = (res.data.data.list || []).map(item => mapTask(item));
+            }
+          } catch (error) {
+            console.error('获取任务列表失败:', error);
+          } finally {
+            loading.value = false;
+          }
+        };
+
+        const fetchTaskStats = async () => {
+          try {
+            const res = await TRJC.api.getTaskStats();
+            if (res.data.code === 200) {
+              taskStats.value = {
+                pending: res.data.data.pending || 0,
+                completed: res.data.data.completed || 0,
+                toSubmit: 0
+              };
+            }
+          } catch (error) {
+            console.error('获取任务统计失败:', error);
+          }
+        };
+
+        const onSettings = () => {
+          vant.Dialog.confirm({
+            title: '确认退出',
+            message: '确定要退出登录吗？',
+          }).then(() => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userInfo');
+            localStorage.removeItem('currentUserId');
+            emit('logout');
+          }).catch(() => {});
+        };
+
         const onStatClick = (type) => {
           const map = { 'pending': '待执行任务', 'completed': '已完成任务', 'toSubmit': '待提交数据' };
           vant.showToast(`查看${map[type]}`);
@@ -1932,7 +2215,13 @@
         };
         const viewAllTasks = () => emit('navigate', 'task-list');
 
-        return { user, taskStats, recentTasks, onSettings, onStatClick, onTaskClick, viewAllTasks };
+        Vue.onMounted(() => {
+          loadUserInfo();
+          fetchTaskList();
+          fetchTaskStats();
+        });
+
+        return { user, taskStats, recentTasks, loading, onSettings, onStatClick, onTaskClick, viewAllTasks };
       }
     };
 
@@ -1940,7 +2229,7 @@
     const TaskListView = {
       name: 'TaskListView',
       components: { UserHeader, TaskItem },
-      emits: ['navigate'],
+      emits: ['navigate', 'logout'],
       template: `
         <div class="task-list-view">
           <user-header :user="user" @settings="onSettings" />
@@ -1952,6 +2241,7 @@
                 v-model="searchKeyword"
                 placeholder="请输入任务名称"
                 class="search-input"
+                @input="onSearch"
               />
               <van-icon 
                 v-if="searchKeyword" 
@@ -1964,16 +2254,19 @@
             </div>
           </div>
           <div class="task-list-content">
-            <div class="task-list">
+            <div v-if="loading" class="loading-state">
+              <van-loading size="24px">加载中...</van-loading>
+            </div>
+            <div v-else class="task-list">
               <task-item 
                 v-for="(task, index) in filteredTasks" 
                 :key="task.id"
                 :task="task"
                 :index="index"
-                @click="onTaskClick"
+                @task-click="onTaskClick"
               />
             </div>
-            <div v-if="filteredTasks.length === 0" class="empty-state">
+            <div v-if="filteredTasks.length === 0 && !loading" class="empty-state">
               <van-icon name="search" size="48" color="#ccc" />
               <p>未找到相关任务</p>
             </div>
@@ -1981,108 +2274,61 @@
         </div>
       `,
       setup(props, { emit }) {
-        const user = ref({
-          id: '1',
-          name: '张调查员',
-          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=inspector&backgroundColor=b6e3f4',
-          role: '外业调查员',
-          district: '东城区'
+        const user = Vue.ref({
+          id: '',
+          name: '',
+          avatar: '',
+          role: '',
+          district: ''
         });
+        
+        const searchKeyword = Vue.ref('');
+        const allTasks = Vue.ref([]);
+        const loading = Vue.ref(true);
 
-        const searchKeyword = ref('');
+        const typeMap = {
+          routine: { text: '常规监测' },
+          supplement: { text: '补充鉴定' },
+          special: { text: '专项监测' },
+          census: { text: '普查任务' },
+          check: { text: '质量核查' }
+        }
 
-        const allTasks = ref([
-          {
-            id: '1',
-            title: '东城区地块A土壤采样任务',
-            taskNo: 'RW202400123',
-            type: 'routine',
-            typeLabel: '常规监测',
-            location: '东城区和平里街道',
-            deadline: '2024-03-20',
-            status: 'in_progress',
-            statusLabel: '进行中'
-          },
-          {
-            id: '2',
-            title: '西城区地块B土壤调查任务',
-            taskNo: 'RW202400124',
-            type: 'special',
-            typeLabel: '专项调查',
-            location: '西城区金融街街道',
-            deadline: '2024-03-22',
-            status: 'in_progress',
-            statusLabel: '进行中'
-          },
-          {
-            id: '3',
-            title: '海淀区地块C质量鉴定任务',
-            taskNo: 'RW202400125',
-            type: 'supplement',
-            typeLabel: '补充鉴定',
-            location: '海淀区中关村街道',
-            completedAt: '2024-03-15',
-            status: 'completed',
-            statusLabel: '已完成'
-          },
-          {
-            id: '4',
-            title: '海淀区地块C质量鉴定任务',
-            taskNo: 'RW202400125',
-            type: 'supplement',
-            typeLabel: '补充鉴定',
-            location: '海淀区中关村街道',
-            completedAt: '2024-03-15',
-            status: 'completed',
-            statusLabel: '已完成'
-          },
-          {
-            id: '5',
-            title: '朝阳区地块D土壤检测任务',
-            taskNo: 'RW202400126',
-            type: 'routine',
-            typeLabel: '常规监测',
-            location: '朝阳区望京街道',
-            deadline: '2024-03-25',
-            status: 'in_progress',
-            statusLabel: '进行中'
-          },
-          {
-            id: '6',
-            title: '丰台区地块E环境评估任务',
-            taskNo: 'RW202400127',
-            type: 'special',
-            typeLabel: '专项调查',
-            location: '丰台区方庄街道',
-            deadline: '2024-03-28',
-            status: 'in_progress',
-            statusLabel: '进行中'
-          },
-          {
-            id: '7',
-            title: '石景山区地块F土壤修复任务',
-            taskNo: 'RW202400128',
-            type: 'supplement',
-            typeLabel: '补充鉴定',
-            location: '石景山区八角街道',
-            completedAt: '2024-03-10',
-            status: 'completed',
-            statusLabel: '已完成'
-          },
-          {
-            id: '8',
-            title: '通州区地块G耕地质量调查',
-            taskNo: 'RW202400129',
-            type: 'routine',
-            typeLabel: '常规监测',
-            location: '通州区梨园街道',
-            deadline: '2024-04-01',
-            status: 'in_progress',
-            statusLabel: '进行中'
+        const statusMap = {
+          pending: { text: '待执行' },
+          processing: { text: '进行中' },
+          completed: { text: '已完成' }
+        }
+
+        const mapTask = (item) => ({
+          id: String(item.ID),
+          title: item.RWMC,
+          taskNo: item.RWBH,
+          type: item.RWLX,
+          typeLabel: typeMap[item.RWLX]?.text || item.RWLX,
+          location: item.SSQH,
+          deadline: item.CJSJ ? item.CJSJ.split(' ')[0] : '',
+          status: item.ZT === 'draft' ? 'pending' : item.ZT === 'processing' ? 'processing' : item.ZT,
+          statusLabel: statusMap[item.ZT]?.text || item.ZT
+        })
+        
+        const fetchTasks = async () => {
+          try {
+            loading.value = true;
+            const userId = localStorage.getItem('currentUserId');
+            if (!userId) return;
+            const res = await TRJC.api.getTaskList({ page: 1, size: 100, ryid: parseInt(userId) })
+            if (res.data.code === 200) {
+              allTasks.value = (res.data.data.list || []).map(mapTask)
+            }
+          } catch (error) {
+            console.error('获取任务列表失败:', error)
+          } finally {
+            loading.value = false;
           }
-        ]);
+        }
 
-        const filteredTasks = computed(() => {
+        const filteredTasks = Vue.computed(() => {
           if (!searchKeyword.value) return allTasks.value;
           const keyword = searchKeyword.value.toLowerCase();
           return allTasks.value.filter(task => 
@@ -2092,13 +2338,61 @@
           );
         });
 
-        const onSettings = () => vant.showToast('打开设置');
-        const clearSearch = () => { searchKeyword.value = ''; };
+        const loadUserInfo = () => {
+          const info = localStorage.getItem('userInfo');
+          if (info) {
+            try {
+              const parsed = JSON.parse(info);
+              user.value = {
+                id: parsed.ID || '',
+                name: parsed.XM || '',
+                avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${parsed.XM}&backgroundColor=b6e3f4`,
+                role: parsed.GW || '',
+                district: parsed.SSQH || ''
+              };
+            } catch (e) {
+              console.error('解析用户信息失败', e);
+            }
+          }
+        };
+        
+        const onSettings = () => {
+          vant.Dialog.confirm({
+            title: '确认退出',
+            message: '确定要退出登录吗？',
+          }).then(() => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userInfo');
+            localStorage.removeItem('currentUserId');
+            emit('logout');
+          }).catch(() => {});
+        };
+        
+        const onSearch = () => {};
+        
+        const clearSearch = () => {
+          searchKeyword.value = '';
+        };
+        
         const onTaskClick = (task) => {
           emit('navigate', 'plot-list', task);
         };
 
-        return { user, searchKeyword, filteredTasks, onSettings, clearSearch, onTaskClick };
+        Vue.onMounted(() => {
+          loadUserInfo();
+          fetchTasks();
+        });
+        
+        return {
+          user,
+          searchKeyword,
+          filteredTasks,
+          loading,
+          onSettings,
+          onSearch,
+          clearSearch,
+          onTaskClick
+        };
       }
     };
 
@@ -2129,9 +2423,8 @@
         const getStatusClass = (status) => {
           const map = {
             'pending': 'plot-status-pending',
-            'sampling': 'plot-status-sampling',
-            'transport': 'plot-status-transport',
-            'analysis': 'plot-status-analysis',
+            'survey_done': 'plot-status-survey',
+            'sampling_done': 'plot-status-sampling',
             'completed': 'plot-status-completed'
           };
           return map[status] || 'plot-status-pending';
@@ -2176,7 +2469,10 @@
             </div>
           </div>
           <div class="plot-list-content">
-            <div class="plot-list">
+            <div v-if="loading" class="loading-state">
+              <van-loading size="24px">加载中...</van-loading>
+            </div>
+            <div v-else class="plot-list">
               <plot-item 
                 v-for="(plot, index) in filteredPlots" 
                 :key="plot.id"
@@ -2185,9 +2481,9 @@
                 @click="onPlotClick"
               />
             </div>
-            <div v-if="filteredPlots.length === 0" class="empty-state">
+            <div v-if="filteredPlots.length === 0 && !loading" class="empty-state">
               <van-icon name="search" size="48" color="#ccc" />
-              <p>未找到相关地块</p>
+              <p>暂无关联地块</p>
             </div>
           </div>
           <div class="plot-list-bottom">
@@ -2204,57 +2500,8 @@
       `,
       setup(props, { emit }) {
         const searchKeyword = ref('');
-
-        const plots = ref([
-          {
-            id: '1',
-            code: 'TB2024001',
-            unit: '单元A',
-            location: '东城区和平里街道',
-            status: 'pending',
-            statusLabel: '待领取'
-          },
-          {
-            id: '2',
-            code: 'TB2024001',
-            unit: '单元A',
-            location: '西城区金融街街道',
-            status: 'sampling',
-            statusLabel: '待采样'
-          },
-          {
-            id: '3',
-            code: 'TB2024001',
-            unit: '单元A',
-            location: '海淀区中关村街道',
-            status: 'transport',
-            statusLabel: '待运输'
-          },
-          {
-            id: '4',
-            code: 'TB2024001',
-            unit: '单元A',
-            location: '海淀区中关村街道',
-            status: 'analysis',
-            statusLabel: '待分析'
-          },
-          {
-            id: '5',
-            code: 'TB2024001',
-            unit: '单元A',
-            location: '朝阳区望京街道',
-            status: 'completed',
-            statusLabel: '已完成'
-          },
-          {
-            id: '6',
-            code: 'TB2024001',
-            unit: '单元A',
-            location: '丰台区方庄街道',
-            status: 'pending',
-            statusLabel: '待领取'
-          }
-        ]);
+        const plots = ref([]);
+        const loading = ref(true);
 
         const filteredPlots = computed(() => {
           if (!searchKeyword.value) return plots.value;
@@ -2266,16 +2513,41 @@
           );
         });
 
+        const fetchPlots = async () => {
+          try {
+            if (!props.task || !props.task.id) {
+              console.warn('PlotListView: 任务信息缺失', props.task);
+              plots.value = [];
+              loading.value = false;
+              return;
+            }
+            loading.value = true;
+            const res = await TRJC.api.getTaskPlots(props.task.id);
+            if (res.data.code === 200) {
+              plots.value = res.data.data || [];
+            }
+          } catch (error) {
+            console.error('获取地块列表失败:', error);
+          } finally {
+            loading.value = false;
+          }
+        };
+
         const goBack = () => emit('navigate', 'task-list');
         const clearSearch = () => { searchKeyword.value = ''; };
         const onPlotClick = (plot) => {
-          // 根据状态跳转到对应的详情页
           if (plot.status === 'pending') {
             emit('navigate', 'plot-detail-pending', plot);
           } else if (plot.status === 'sampling') {
-            emit('navigate', 'plot-detail-sampling', plot);
-          } else {
+            emit('navigate', 'survey-record', { task: props.task, plot: plot });
+          } else if (plot.status === 'transport') {
+            emit('navigate', 'sample-collection', { task: props.task, plot: plot });
+          } else if (plot.status === 'analysis') {
+            emit('navigate', 'analysis-result', { task: props.task, plot: plot });
+          } else if (plot.status === 'completed') {
             emit('navigate', 'plot-detail', plot);
+          } else {
+            emit('navigate', 'plot-detail-pending', plot);
           }
         };
 
@@ -2287,7 +2559,25 @@
           emit('navigate', 'batch-analyze');
         };
 
-        return { searchKeyword, filteredPlots, goBack, clearSearch, onPlotClick, handleBatchCollect, handleBatchAnalyze };
+        Vue.watch(() => props.task, (newTask) => {
+          if (newTask && newTask.id) {
+            fetchPlots();
+          }
+        });
+
+        Vue.onMounted(() => {
+          console.log('PlotListView mounted, task:', props.task);
+          if (props.task && props.task.id) {
+            console.log('Fetching plots for task ID:', props.task.id);
+            fetchPlots();
+          } else {
+            console.warn('PlotListView: 任务信息缺失', props.task);
+            plots.value = [];
+            loading.value = false;
+          }
+        });
+
+        return { searchKeyword, filteredPlots, plots, loading, goBack, clearSearch, onPlotClick, handleBatchCollect, handleBatchAnalyze };
       }
     };
 
@@ -2579,7 +2869,8 @@
     const PlotDetailView = {
       name: 'PlotDetailView',
       props: {
-        plot: { type: Object, default: null }
+        plot: { type: Object, default: null },
+        task: { type: Object, default: null }
       },
       emits: ['navigate'],
       template: `
@@ -2645,25 +2936,32 @@
         </div>
       `,
       setup(props, { emit }) {
-        const plotDetail = ref({
-          taskName: '东城区耕地质量监测任务',
-          code: props.plot?.code || 'TB2024001',
-          unit: props.plot?.unit || '单元A',
-          area: '5000',
-          district: '东城区',
-          longitude: '116.3974',
-          latitude: '39.9093',
-          status: props.plot?.status || 'sampling',
-          statusLabel: props.plot?.statusLabel || '待采样',
-          samplers: '张三、李四'
+        const plotDetail = computed(() => {
+          const p = props.plot || {};
+          const t = props.task || {};
+          return {
+            taskName: p.taskName || t.name || '',
+            code: p.code || '',
+            unit: p.unit || '',
+            area: p.area || '',
+            district: p.location || '',
+            longitude: p.longitude || '',
+            latitude: p.latitude || '',
+            status: p.status || 'pending',
+            statusLabel: p.statusLabel || '待领取',
+            samplers: p.samplers || '',
+            hasSurvey: p.hasSurvey,
+            hasSample: p.hasSample,
+            surveyTime: p.surveyTime,
+            sampleTime: p.sampleTime,
+          };
         });
 
         const getStatusClass = (status) => {
           const map = {
             'pending': 'plot-status-pending',
-            'sampling': 'plot-status-sampling',
-            'transport': 'plot-status-transport',
-            'analysis': 'plot-status-analysis',
+            'survey_done': 'plot-status-survey',
+            'sampling_done': 'plot-status-sampling',
             'completed': 'plot-status-completed'
           };
           return map[status] || 'plot-status-pending';
@@ -2672,9 +2970,8 @@
         const actionButtonText = computed(() => {
           const map = {
             'pending': '领取',
-            'sampling': '勘察记录登记',
-            'transport': '样品采集记录',
-            'analysis': '分析结果录入',
+            'survey_done': '样品采集记录',
+            'sampling_done': '返回',
             'completed': '返回'
           };
           return map[plotDetail.value.status] || '领取';
@@ -2682,24 +2979,14 @@
 
         const goBack = () => emit('navigate', 'plot-list');
         const handleAction = () => {
-          // 待运输状态跳转到样品采集记录登记页面
-          if (plotDetail.value.status === 'transport') {
-            emit('navigate', 'sample-collection');
-            return;
-          }
-          
-          // 待分析状态跳转到分析结果登记页面
-          if (plotDetail.value.status === 'analysis') {
-            emit('navigate', 'analysis-result');
-            return;
-          }
-          
-          // 已完成状态返回地块列表页
-          if (plotDetail.value.status === 'completed') {
+          if (plotDetail.value.status === 'sampling_done' || plotDetail.value.status === 'completed') {
             emit('navigate', 'plot-list');
             return;
           }
-          
+          if (plotDetail.value.status === 'pending') {
+            emit('navigate', 'plot-detail-pending', props.plot);
+            return;
+          }
           vant.showToast('操作');
         };
 
@@ -2750,7 +3037,8 @@
     const PlotDetailPendingView = {
       name: 'PlotDetailPendingView',
       props: {
-        plot: { type: Object, default: null }
+        plot: { type: Object, default: null },
+        task: { type: Object, default: null }
       },
       emits: ['navigate'],
       template: `
@@ -2825,25 +3113,44 @@
       `,
       setup(props, { emit }) {
         const mapContainer = ref(null);
-        const plotDetail = ref({
-          taskName: '东城区耕地质量监测任务',
-          code: props.plot?.code || 'TB2024001',
-          unit: props.plot?.unit || '单元A',
-          area: '5000',
-          district: '东城区',
-          longitude: '116.3974',
-          latitude: '39.9093',
-          status: 'pending',
-          statusLabel: '待领取',
-          samplers: '张三、李四'
+        const plotDetail = computed(() => {
+          const p = props.plot || {};
+          const t = props.task || {};
+          return {
+            taskName: p.taskName || t.name || '',
+            code: p.code || '',
+            unit: p.unit || '',
+            area: p.area || '',
+            district: p.location || '',
+            longitude: p.longitude || '',
+            latitude: p.latitude || '',
+            status: p.status || 'pending',
+            statusLabel: p.statusLabel || '待领取',
+            samplers: p.samplers || '',
+          };
         });
 
         const goBack = () => emit('navigate', 'plot-list');
         const handleClaim = () => {
-          vant.showToast('领取成功');
-          setTimeout(() => {
-            emit('navigate', 'plot-list');
-          }, 1500);
+          const taskId = props.task?.id;
+          const plotId = props.plot?.id;
+          if (!taskId || !plotId) {
+            vant.showToast('缺少任务或地块信息');
+            return;
+          }
+          vant.showLoadingToast({ message: '领取中...', forbidClick: true });
+          TRJC.api.updatePlotStatus(taskId, plotId, { status: 'sampling' })
+            .then(() => {
+              vant.closeToast();
+              vant.showToast('领取成功');
+              setTimeout(() => {
+                emit('navigate', 'plot-list', { task: props.task, plot: props.plot, refresh: true });
+              }, 1500);
+            })
+            .catch(() => {
+              vant.closeToast();
+              vant.showToast('领取失败，请重试');
+            });
         };
 
         onMounted(() => {
@@ -2851,10 +3158,12 @@
           if (typeof T !== 'undefined' && mapContainer.value) {
             try {
               const map = new T.Map(mapContainer.value);
-              map.centerAndZoom(new T.LngLat(116.3974, 39.9093), 15);
+              const lng = parseFloat(plotDetail.value.longitude) || 116.3974;
+              const lat = parseFloat(plotDetail.value.latitude) || 39.9093;
+              map.centerAndZoom(new T.LngLat(lng, lat), 15);
               
               // 添加标记
-              const marker = new T.Marker(new T.LngLat(116.3974, 39.9093));
+              const marker = new T.Marker(new T.LngLat(lng, lat));
               map.addOverLay(marker);
               
               // 添加电子围栏（多边形）
@@ -2886,7 +3195,8 @@
     const PlotDetailSamplingView = {
       name: 'PlotDetailSamplingView',
       props: {
-        plot: { type: Object, default: null }
+        plot: { type: Object, default: null },
+        task: { type: Object, default: null }
       },
       emits: ['navigate'],
       template: `
@@ -2961,17 +3271,21 @@
       `,
       setup(props, { emit }) {
         const mapContainer = ref(null);
-        const plotDetail = ref({
-          taskName: '东城区耕地质量监测任务',
-          code: props.plot?.code || 'TB2024001',
-          unit: props.plot?.unit || '单元A',
-          area: '5000',
-          district: '东城区',
-          longitude: '116.3974',
-          latitude: '39.9093',
-          status: 'sampling',
-          statusLabel: '待采样',
-          samplers: '张三、李四'
+        const plotDetail = computed(() => {
+          const p = props.plot || {};
+          const t = props.task || {};
+          return {
+            taskName: p.taskName || t.name || '',
+            code: p.code || '',
+            unit: p.unit || '',
+            area: p.area || '',
+            district: p.location || '',
+            longitude: p.longitude || '',
+            latitude: p.latitude || '',
+            status: p.status || 'pending',
+            statusLabel: p.statusLabel || '待勘察',
+            samplers: p.samplers || '',
+          };
         });
 
         const goBack = () => emit('navigate', 'plot-list');
@@ -2983,14 +3297,16 @@
           if (typeof T !== 'undefined' && mapContainer.value) {
             try {
               const map = new T.Map(mapContainer.value);
-              map.centerAndZoom(new T.LngLat(116.3974, 39.9093), 15);
-              const marker = new T.Marker(new T.LngLat(116.3974, 39.9093));
+              const lng = parseFloat(plotDetail.value.longitude) || 116.3974;
+              const lat = parseFloat(plotDetail.value.latitude) || 39.9093;
+              map.centerAndZoom(new T.LngLat(lng, lat), 15);
+              const marker = new T.Marker(new T.LngLat(lng, lat));
               map.addOverLay(marker);
               const points = [
-                new T.LngLat(116.3964, 39.9103),
-                new T.LngLat(116.3984, 39.9103),
-                new T.LngLat(116.3984, 39.9083),
-                new T.LngLat(116.3964, 39.9083)
+                new T.LngLat(lng - 0.001, lat + 0.001),
+                new T.LngLat(lng + 0.001, lat + 0.001),
+                new T.LngLat(lng + 0.001, lat - 0.001),
+                new T.LngLat(lng - 0.001, lat - 0.001)
               ];
               const polygon = new T.Polygon(points, {
                 color: '#4A90E2',
@@ -3013,6 +3329,10 @@
     // SurveyRecordView 组件（勘察记录登记页面）
     const SurveyRecordView = {
       name: 'SurveyRecordView',
+      props: {
+        task: { type: Object, default: null },
+        plot: { type: Object, default: null }
+      },
       emits: ['navigate'],
       template: `
         <div class="survey-record-view">
@@ -3240,15 +3560,50 @@
         });
 
         const goBack = () => emit('navigate', 'plot-detail-sampling');
-        const handleSubmit = () => {
+        const handleSubmit = async () => {
           if (!isFormValid.value) {
             vant.showToast('请填写所有必填项');
             return;
           }
-          vant.showToast('提交成功');
-          setTimeout(() => {
-            emit('navigate', 'plot-list');
-          }, 1500);
+          try {
+            const taskId = props.task?.id;
+            const plotId = props.plot?.id;
+            if (!taskId || !plotId) {
+              vant.showToast('缺少任务或地块信息');
+              return;
+            }
+            const surveyDate = form.value.surveyDate.replace(/\//g, '-');
+            const changeDate = form.value.changeDate ? form.value.changeDate.replace(/\//g, '-') : null;
+            const surveyData = {
+              RWID: taskId,
+              DKID: plotId,
+              BGQ: form.value.landUseBefore,
+              BGSJ: changeDate,
+              LYLX: form.value.landUseType,
+              YXTCHD: form.value.soilThickness,
+              QRLXJHL: form.value.intrusiveType,
+              LSHL: form.value.gravelContent,
+              DXPD: form.value.slope,
+              TMPZCD: form.value.flatness,
+              SZBZTJ: form.value.waterResource,
+              DLTXTJ: form.value.roadCondition,
+              DXBW: form.value.terrainPosition === '其他' ? form.value.terrainPositionNote : form.value.terrainPosition,
+              ZDGX: form.value.textureStructure === '其他' ? form.value.textureStructureNote : form.value.textureStructure,
+              PSNL: form.value.drainageCapacity,
+              HBGD: Number(form.value.altitude),
+              NTFH: form.value.protectionLevel,
+              GCHD: Number(form.value.plowLayerThickness),
+              KCRQ: surveyDate
+            };
+            await TRJC.api.createSurveyRecord(taskId, surveyData);
+            vant.showToast('提交成功');
+            setTimeout(() => {
+              emit('navigate', 'plot-list', { task: props.task, plot: props.plot, refresh: true });
+            }, 1500);
+          } catch (error) {
+            console.error('提交勘察记录失败:', error);
+            vant.showToast('提交失败，请重试');
+          }
         };
 
         return { form, isFormValid, goBack, handleSubmit };
@@ -3258,6 +3613,10 @@
     // SampleCollectionView 组件（样品采集记录登记页面）
     const SampleCollectionView = {
       name: 'SampleCollectionView',
+      props: {
+        task: { type: Object, default: null },
+        plot: { type: Object, default: null }
+      },
       emits: ['navigate'],
       setup(props, { emit }) {
         const formData = Vue.reactive({
@@ -3274,61 +3633,65 @@
           emit('navigate', 'plot-detail');
         };
 
-        const handleSubmit = () => {
+        const handleSubmit = async () => {
           if (!formData.sampleCode) {
-            vant.showToast({
-              message: '请输入土壤混合样品编号',
-              position: 'top'
-            });
+            vant.showToast({ message: '请输入土壤混合样品编号', position: 'top' });
             return;
           }
           if (!formData.location) {
-            vant.showToast({
-              message: '请输入地理位置',
-              position: 'top'
-            });
+            vant.showToast({ message: '请输入地理位置', position: 'top' });
             return;
           }
           if (!formData.coordinates) {
-            vant.showToast({
-              message: '请输入地理坐标',
-              position: 'top'
-            });
+            vant.showToast({ message: '请输入地理坐标', position: 'top' });
             return;
           }
           if (!formData.depth) {
-            vant.showToast({
-              message: '请输入采样深度',
-              position: 'top'
-            });
+            vant.showToast({ message: '请输入采样深度', position: 'top' });
             return;
           }
           if (!formData.pointCount) {
-            vant.showToast({
-              message: '请输入采样点位数量',
-              position: 'top'
-            });
+            vant.showToast({ message: '请输入采样点位数量', position: 'top' });
             return;
           }
           if (!formData.weight) {
-            vant.showToast({
-              message: '请输入混合样品重量',
-              position: 'top'
-            });
+            vant.showToast({ message: '请输入混合样品重量', position: 'top' });
             return;
           }
           if (!formData.sampleDate) {
-            vant.showToast({
-              message: '请选择采样日期',
-              position: 'top'
-            });
+            vant.showToast({ message: '请选择采样日期', position: 'top' });
             return;
           }
-
-          vant.showToast({
-            message: '提交成功',
-            position: 'top'
-          });
+          try {
+            const taskId = props.task?.id;
+            const plotId = props.plot?.id;
+            if (!taskId || !plotId) {
+              vant.showToast({ message: '缺少任务或地块信息', position: 'top' });
+              return;
+            }
+            const sampleDate = formData.sampleDate.replace(/\//g, '-');
+            const sampleData = {
+              RWID: taskId,
+              DKID: plotId,
+              TRHHYPBH: formData.sampleCode,
+              DLWZ: formData.location,
+              DLZB_D1BH: '',
+              DLZB_D1JD: formData.coordinates,
+              DLZB_D1WD: formData.coordinates,
+              CYSD_D1: formData.depth,
+              CYDWSL: Number(formData.pointCount),
+              HHYPSL: Number(formData.weight),
+              CYRQ: sampleDate
+            };
+            await TRJC.api.createSampleRecord(taskId, sampleData);
+            vant.showToast({ message: '提交成功', position: 'top' });
+            setTimeout(() => {
+              emit('navigate', 'plot-list', { task: props.task, plot: props.plot, refresh: true });
+            }, 1500);
+          } catch (error) {
+            console.error('提交样品记录失败:', error);
+            vant.showToast({ message: '提交失败，请重试', position: 'top' });
+          }
         };
 
         return {
@@ -3433,6 +3796,10 @@
     // AnalysisResultView 组件（分析结果登记页面）
     const AnalysisResultView = {
       name: 'AnalysisResultView',
+      props: {
+        task: { type: Object, default: null },
+        plot: { type: Object, default: null }
+      },
       emits: ['navigate'],
       setup(props, { emit }) {
         const formData = Vue.reactive({
@@ -3453,11 +3820,38 @@
           emit('navigate', 'plot-detail');
         };
 
-        const handleSubmit = () => {
-          vant.showToast({
-            message: '提交成功',
-            position: 'top'
-          });
+        const handleSubmit = async () => {
+          try {
+            const taskId = props.task?.id;
+            const plotId = props.plot?.id;
+            if (!taskId || !plotId) {
+              vant.showToast({ message: '缺少任务或地块信息', position: 'top' });
+              return;
+            }
+            const analysisData = {
+              RWID: taskId,
+              DKID: plotId,
+              RZ: formData.bulkDensity ? Number(formData.bulkDensity) : null,
+              PHZ: formData.phValue ? Number(formData.phValue) : null,
+              YJZ: formData.organicMatter ? Number(formData.organicMatter) : null,
+              YXP: formData.availablePhosphorus ? Number(formData.availablePhosphorus) : null,
+              XJK: formData.availablePotassium ? Number(formData.availablePotassium) : null,
+              SRXYLZL: formData.waterSolubleSalt ? Number(formData.waterSolubleSalt) : null,
+              GE: formData.cadmium ? Number(formData.cadmium) : null,
+              ZG: formData.totalMercury ? Number(formData.totalMercury) : null,
+              ZS: formData.totalArsenic ? Number(formData.totalArsenic) : null,
+              QIAN: formData.lead ? Number(formData.lead) : null,
+              GE_CHROME: formData.chromium ? Number(formData.chromium) : null
+            };
+            await TRJC.api.createAnalysisResult(taskId, analysisData);
+            vant.showToast({ message: '提交成功', position: 'top' });
+            setTimeout(() => {
+              emit('navigate', 'plot-list', { task: props.task, plot: props.plot, refresh: true });
+            }, 1500);
+          } catch (error) {
+            console.error('提交分析结果失败:', error);
+            vant.showToast({ message: '提交失败，请重试', position: 'top' });
+          }
         };
 
         return {
@@ -3637,28 +4031,73 @@
 
     // 根组件
     const App = {
-      components: { HomeView, TaskListView, PlotListView, PlotDetailView, PlotDetailPendingView, PlotDetailSamplingView, SurveyRecordView, SampleCollectionView, AnalysisResultView, BatchCollectView, BatchAnalyzeView },
+      components: { LoginView, HomeView, TaskListView, PlotListView, PlotDetailView, PlotDetailPendingView, PlotDetailSamplingView, SurveyRecordView, SampleCollectionView, AnalysisResultView, BatchCollectView, BatchAnalyzeView },
       setup() {
-        const currentPage = ref('home');
-        const currentTask = ref(null);
-        const currentPlot = ref(null);
+        const isLoggedIn = Vue.ref(!!localStorage.getItem('token'));
+        const currentPage = Vue.ref(isLoggedIn.value ? 'home' : 'login');
+        const currentTask = Vue.ref(null);
+        const currentPlot = Vue.ref(null);
+        
+        const handleLogin = () => {
+          isLoggedIn.value = true;
+          currentPage.value = 'home';
+        };
+        
+        const handleLogout = () => {
+          isLoggedIn.value = false;
+          currentPage.value = 'login';
+          currentTask.value = null;
+          currentPlot.value = null;
+        };
+        
         const navigate = (page, data = null) => { 
           currentPage.value = page;
-          if (page === 'plot-list' && data) currentTask.value = data;
-          if ((page === 'plot-detail' || page === 'plot-detail-pending' || page === 'plot-detail-sampling') && data) currentPlot.value = data;
+          if (page === 'plot-list') {
+            if (data) {
+              if (data.task) {
+                currentTask.value = data.task;
+              } else if (data.id) {
+                currentTask.value = data;
+              }
+            }
+            if (data && data.refresh) {
+              Vue.nextTick(() => {
+                const plotListView = document.querySelector('plot-list-view');
+                if (plotListView && plotListView.__vue__ && plotListView.__vue__.fetchPlots) {
+                  plotListView.__vue__.fetchPlots();
+                }
+              });
+            }
+          }
+          if ((page === 'plot-detail' || page === 'plot-detail-pending' || page === 'plot-detail-sampling') && data) {
+            if (data.plot) currentPlot.value = data.plot;
+            else if (data.id && !data.RWMC) currentPlot.value = data;
+          }
+          if ((page === 'survey-record' || page === 'sample-collection' || page === 'analysis-result') && data) {
+            if (data.task) currentTask.value = data.task;
+            if (data.plot) currentPlot.value = data.plot;
+          }
         };
-        return { currentPage, currentTask, currentPlot, navigate };
+        
+        return { isLoggedIn, currentPage, currentTask, currentPlot, handleLogin, handleLogout, navigate };
       },
       template: `
         <div class="app-container">
+          <login-view 
+            v-if="currentPage === 'login'" 
+            @login="handleLogin"
+            class="page-enter"
+          />
           <home-view 
-            v-if="currentPage === 'home'" 
+            v-else-if="currentPage === 'home'" 
             @navigate="navigate"
+            @logout="handleLogout"
             class="page-enter"
           />
           <task-list-view 
             v-else-if="currentPage === 'task-list'" 
             @navigate="navigate"
+            @logout="handleLogout"
             class="page-enter"
           />
           <plot-list-view 
@@ -3670,33 +4109,42 @@
           <plot-detail-view 
             v-else-if="currentPage === 'plot-detail'" 
             :plot="currentPlot"
+            :task="currentTask"
             @navigate="navigate"
             class="page-enter"
           />
           <plot-detail-pending-view 
             v-else-if="currentPage === 'plot-detail-pending'" 
             :plot="currentPlot"
+            :task="currentTask"
             @navigate="navigate"
             class="page-enter"
           />
           <plot-detail-sampling-view 
             v-else-if="currentPage === 'plot-detail-sampling'" 
             :plot="currentPlot"
+            :task="currentTask"
             @navigate="navigate"
             class="page-enter"
           />
           <survey-record-view 
             v-else-if="currentPage === 'survey-record'" 
+            :task="currentTask"
+            :plot="currentPlot"
             @navigate="navigate"
             class="page-enter"
           />
           <sample-collection-view 
             v-else-if="currentPage === 'sample-collection'" 
+            :task="currentTask"
+            :plot="currentPlot"
             @navigate="navigate"
             class="page-enter"
           />
           <analysis-result-view 
             v-else-if="currentPage === 'analysis-result'" 
+            :task="currentTask"
+            :plot="currentPlot"
             @navigate="navigate"
             class="page-enter"
           />

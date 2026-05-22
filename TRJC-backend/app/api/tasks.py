@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional, List
 from app.database import get_db
-from app.models import TaskInfo, TaskPlot, TaskAssign, PlotInfo, PersonInfo, SurveyRecord, SampleRecord
+from app.models import TaskInfo, TaskPlot, TaskPlotStatus, TaskAssign, PlotInfo, PersonInfo, SurveyRecord, SampleRecord
 from app.schemas.task import TaskInfoCreate, TaskInfoUpdate, TaskInfoResponse, TaskStatsResponse
 from app.utils.code_generator import generate_task_number
 
@@ -87,6 +87,9 @@ def create_task(data: TaskInfoCreate, db: Session = Depends(get_db)):
         RWLX=data.RWLX,
         SSQH=ssql,
         FZR=data.FZR,
+        JHKSSJ=data.JHKSSJ,
+        LXDH=data.LXDH,
+        RWMS=data.RWMS,
         ZT="pending"
     )
     db.add(db_item)
@@ -165,10 +168,15 @@ def get_task_detail(task_id: int, db: Session = Depends(get_db)):
 
     plots = db.query(TaskPlot).filter(TaskPlot.RWID == task_id, TaskPlot.SFSC == 0).all()
     plot_ids = [p.DKID for p in plots]
+    
+    status_map = {s.DKID: s for s in db.query(TaskPlotStatus).filter(TaskPlotStatus.RWID == task_id, TaskPlotStatus.SFSC == 0).all()}
+    
     plot_details = []
     if plot_ids:
         plot_objs = db.query(PlotInfo).filter(PlotInfo.ID.in_(plot_ids), PlotInfo.SFSC == 0).all()
         for p in plot_objs:
+            status_record = status_map.get(p.ID)
+            status_code = status_record.ZT if status_record else "pending"
             plot_details.append({
                 "ID": p.ID,
                 "TBH": p.TBH,
@@ -178,7 +186,9 @@ def get_task_detail(task_id: int, db: Session = Depends(get_db)):
                 "JD": float(p.JD) if p.JD else None,
                 "WD": float(p.WD) if p.WD else None,
                 "WLZB": p.WLZB,
-                "CJSJ": p.CJSJ.strftime("%Y-%m-%d %H:%M:%S") if p.CJSJ else None
+                "CJSJ": p.CJSJ.strftime("%Y-%m-%d %H:%M:%S") if p.CJSJ else None,
+                "status": status_code,
+                "statusLabel": {"pending": "待领取", "sampling": "待采样", "transport": "待运输", "analysis": "待分析", "completed": "已完成"}.get(status_code, "待领取")
             })
 
     assignees = db.query(TaskAssign).filter(TaskAssign.RWID == task_id, TaskAssign.SFSC == 0).all()
@@ -203,9 +213,11 @@ def get_task_detail(task_id: int, db: Session = Depends(get_db)):
             "RWLX": item.RWLX,
             "SSQH": item.SSQH,
             "FZR": item.FZR,
+            "JHKSSJ": item.JHKSSJ,
+            "LXDH": item.LXDH,
+            "RWMS": item.RWMS,
             "ZT": item.ZT,
             "CJSJ": item.CJSJ.strftime("%Y-%m-%d %H:%M:%S") if item.CJSJ else None,
-            "contact": contact,
             "plot_ids": plot_ids,
             "plots": plot_details,
             "assignee_ids": assignee_ids,

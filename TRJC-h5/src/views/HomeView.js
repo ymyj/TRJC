@@ -1,147 +1,165 @@
-const HomeView = {
-  name: 'HomeView',
-  template: `
-    <div class="home-view">
-      <user-header 
-        :user="user" 
-        @settings="onSettings"
-      />
-      
-      <task-stats 
-        :stats="taskStats" 
-        @click="onStatClick"
-      />
-      
-      <div class="task-list-section">
-        <div class="section-header">
-          <h3 class="section-title">最近任务</h3>
-          <span class="view-all" @click="viewAllTasks">查看全部</span>
-        </div>
-        <div class="task-list">
-          <task-item 
-            v-for="(task, index) in recentTasks" 
-            :key="task.id"
-            :task="task"
-            :index="index"
-            @click="onTaskClick"
-          />
-        </div>
+<template>
+  <div class="home-view">
+    <user-header 
+      :user="user" 
+      @settings="onSettings"
+    />
+    
+    <task-stats 
+      :stats="taskStats" 
+      @click="onStatClick"
+    />
+    
+    <div class="task-list-section">
+      <div class="section-header">
+        <h3 class="section-title">最近任务</h3>
+        <span class="view-all" @click="viewAllTasks">查看全部</span>
+      </div>
+      <div class="task-list">
+        <task-item 
+          v-for="(task, index) in recentTasks" 
+          :key="task.id"
+          :task="task"
+          :index="index"
+          @click="onTaskClick"
+        />
       </div>
     </div>
-  `,
-  setup() {
-    const user = Vue.ref({
-      id: '1',
-      name: '张调查员',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=inspector&backgroundColor=b6e3f4',
-      role: '外业调查员',
-      district: '东城区'
-    });
+  </div>
+</template>
 
-    const taskStats = Vue.ref({
-      pending: 0,
-      completed: 0,
-      toSubmit: 0
-    });
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { getTaskList, getTaskStats } from '../api'
+import UserHeader from '../components/UserHeader.js'
+import TaskStats from '../components/TaskStats.js'
+import TaskItem from '../components/TaskItem.js'
 
-    const recentTasks = Vue.ref([]);
+const router = useRouter()
 
-    const typeLabelMap = {
-      'routine': '常规监测',
-      'supplement': '补充鉴定',
-      'special': '专项监测',
-      'census': '普查任务',
-      'check': '质量核查'
-    };
+const user = ref({
+  id: '',
+  name: '',
+  avatar: '',
+  role: '',
+  district: ''
+})
 
-    const statusLabelMap = {
-      'draft': '待发布',
-      'pending': '待领取',
-      'processing': '进行中',
-      'completed': '已完成'
-    };
+const taskStats = ref({
+  pending: 0,
+  completed: 0,
+  toSubmit: 0
+})
 
-    const mapTask = (item) => ({
-      id: item.ID,
-      title: item.RWMC,
-      taskNo: item.RWBH,
-      type: item.RWLX,
-      typeLabel: typeLabelMap[item.RWLX] || item.RWLX,
-      location: item.SSQH,
-      deadline: item.CJSJ ? item.CJSJ.split(' ')[0] : '',
-      status: item.ZT,
-      statusLabel: statusLabelMap[item.ZT] || item.ZT
-    });
+const recentTasks = ref([])
 
-    const fetchTaskList = async () => {
-      try {
-        // 从URL参数或localStorage获取当前用户ID，如果没有则使用默认值
-        const urlParams = new URLSearchParams(window.location.search);
-        const userId = urlParams.get('userId') || localStorage.getItem('currentUserId') || '1';
-        const params = { page: 1, size: 10, ryid: parseInt(userId) }
-        const res = await TRJC.api.getTaskList(params)
-        if (res.data.code === 200) {
-          recentTasks.value = (res.data.data.list || []).map(item => mapTask(item))
-        }
-      } catch (error) {
-        console.error('获取任务列表失败:', error)
+const typeLabelMap = {
+  'routine': '常规监测',
+  'supplement': '补充鉴定',
+  'special': '专项监测',
+  'census': '普查任务',
+  'check': '质量核查'
+}
+
+const statusLabelMap = {
+  'draft': '待发布',
+  'pending': '待领取',
+  'processing': '进行中',
+  'completed': '已完成'
+}
+
+const mapTask = (item) => ({
+  id: item.ID,
+  title: item.RWMC,
+  taskNo: item.RWBH,
+  type: item.RWLX,
+  typeLabel: typeLabelMap[item.RWLX] || item.RWLX,
+  location: item.SSQH,
+  deadline: item.CJSJ ? item.CJSJ.split(' ')[0] : '',
+  status: item.ZT,
+  statusLabel: statusLabelMap[item.ZT] || item.ZT
+})
+
+const loadUserInfo = () => {
+  const info = localStorage.getItem('userInfo')
+  if (info) {
+    try {
+      const parsed = JSON.parse(info)
+      user.value = {
+        id: parsed.ID || '',
+        name: parsed.XM || '',
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${parsed.XM}&backgroundColor=b6e3f4`,
+        role: parsed.GW || '',
+        district: parsed.SSQH || ''
       }
-    };
-
-    const fetchTaskStats = async () => {
-      try {
-        const res = await TRJC.api.getTaskStats()
-        if (res.data.code === 200) {
-          taskStats.value = {
-            pending: res.data.data.pending || 0,
-            completed: res.data.data.completed || 0,
-            toSubmit: 0
-          }
-        }
-      } catch (error) {
-        console.error('获取任务统计失败:', error)
-      }
-    };
-
-    const onSettings = () => {
-      vant.showToast('打开设置');
-    };
-
-    const onStatClick = (type) => {
-      const typeMap = {
-        'pending': '待执行任务',
-        'completed': '已完成任务',
-        'toSubmit': '待提交数据'
-      };
-      vant.showToast(`查看${typeMap[type]}`);
-    };
-
-    const onTaskClick = (task) => {
-      vant.showToast(`查看任务: ${task.title}`);
-    };
-
-    const viewAllTasks = () => {
-      vant.showToast('查看全部任务');
-    };
-
-    Vue.onMounted(() => {
-      fetchTaskList();
-      fetchTaskStats();
-    });
-
-    return {
-      user,
-      taskStats,
-      recentTasks,
-      onSettings,
-      onStatClick,
-      onTaskClick,
-      viewAllTasks
-    };
+    } catch (e) {
+      console.error('解析用户信息失败', e)
+    }
   }
-};
+}
 
-const HomeViewStyle = `
+const fetchTaskList = async () => {
+  try {
+    const userId = localStorage.getItem('currentUserId')
+    if (!userId) return
+    const params = { page: 1, size: 10, ryid: parseInt(userId) }
+    const res = await getTaskList(params)
+    if (res.data.code === 200) {
+      recentTasks.value = (res.data.data.list || []).map(item => mapTask(item))
+    }
+  } catch (error) {
+    console.error('获取任务列表失败:', error)
+  }
+}
+
+const fetchTaskStats = async () => {
+  try {
+    const res = await getTaskStats()
+    if (res.data.code === 200) {
+      taskStats.value = {
+        pending: res.data.data.pending || 0,
+        completed: res.data.data.completed || 0,
+        toSubmit: 0
+      }
+    }
+  } catch (error) {
+    console.error('获取任务统计失败:', error)
+  }
+}
+
+const onSettings = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('userInfo')
+  localStorage.removeItem('currentUserId')
+  router.push('/login')
+}
+
+const onStatClick = (type) => {
+  const typeMap = {
+    'pending': '待执行任务',
+    'completed': '已完成任务',
+    'toSubmit': '待提交数据'
+  }
+  vant.showToast(`查看${typeMap[type]}`)
+}
+
+const onTaskClick = (task) => {
+  vant.showToast(`查看任务: ${task.title}`)
+}
+
+const viewAllTasks = () => {
+  router.push('/tasks')
+}
+
+onMounted(() => {
+  loadUserInfo()
+  fetchTaskList()
+  fetchTaskStats()
+})
+</script>
+
+<style scoped>
 .home-view {
   min-height: 100vh;
   background-color: var(--bg-color);
@@ -176,6 +194,6 @@ const HomeViewStyle = `
   display: flex;
   flex-direction: column;
 }
-`;
+</style>
 
 export { HomeView, HomeViewStyle };

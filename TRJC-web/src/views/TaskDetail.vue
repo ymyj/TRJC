@@ -206,10 +206,10 @@ const fetchTaskDetail = async () => {
         type: data.RWLX || '',
         person: data.FZR || '',
         personAvatar: avatarColors[0],
-        contact: data.contact || '',
-        planStartTime: '',
+        contact: data.LXDH || '',
+        planStartTime: data.JHKSSJ || '',
         actualStartTime: '',
-        description: '',
+        description: data.RWMS || '',
         requirement: '',
         notice: '',
         createTime: data.CJSJ || '',
@@ -223,8 +223,8 @@ const fetchTaskDetail = async () => {
         district: item.SSQH,
         longitude: item.JD,
         latitude: item.WD,
-        status: 'pending',
-        statusText: '待采样'
+        status: item.status || 'pending',
+        statusText: item.statusLabel || '待领取'
       }))
     }
   } catch (error) {
@@ -237,7 +237,7 @@ const goBack = () => {
 }
 
 const viewLandDetail = (land) => {
-  router.push(`/land/detail/${land.id}`)
+  router.push({ name: 'LandDetail', params: { id: land.id }, query: { taskId: route.params.id } })
 }
 
 onMounted(() => {

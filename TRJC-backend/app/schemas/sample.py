@@ -20,9 +20,9 @@ class SampleRecordBase(BaseModel):
     CYSD_D1: Optional[str] = None
     CYSD_D2: Optional[str] = None
     CYSD_D3: Optional[str] = None
-    CYDWSL: Optional[int] = None
-    HHYPSL: Optional[float] = None
-    CYRQ: Optional[date] = None
+    CYDWSL: Optional[str] = None
+    HHYPSL: Optional[str] = None
+    CYRQ: Optional[str] = None
     CYRY: Optional[str] = None
     XMDWDB: Optional[str] = None
     TKZJ: Optional[str] = None

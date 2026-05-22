@@ -27,7 +27,7 @@
       <div class="form-row">
         <div class="form-item">
           <label class="form-label">计划开始时间</label>
-          <input type="text" class="form-input" placeholder="请选择开始时间" v-model="form.startTime">
+          <input type="date" class="form-input" v-model="form.startDate" @change="handleDateChange">
         </div>
         <div class="form-item">
           <label class="form-label">项目负责人<span class="required">*</span></label>
@@ -220,12 +220,21 @@ const form = reactive({
   name: '',
   type: '',
   startTime: '',
+  startDate: '',
   personId: '',
   phone: '',
   description: ''
 })
 
 const selectedLands = ref([])
+
+const handleDateChange = () => {
+  if (form.startDate) {
+    form.startTime = form.startDate + ' 09:00:00'
+  } else {
+    form.startTime = ''
+  }
+}
 
 const personnelList = ref([])
 const plotList = ref([])
@@ -322,6 +331,9 @@ const handlePublish = async () => {
     RWLX: form.type,
     SSQH: '',
     FZR: selectedPerson ? selectedPerson.XM : '',
+    JHKSSJ: form.startTime,
+    LXDH: form.phone,
+    RWMS: form.description,
     plot_ids: selectedLands.value.map(land => land.ID)
   }
 
