@@ -293,14 +293,14 @@ const fetchSurveyRecords = async () => {
       if (record) {
         const locationParts = (record.DLWZ || '').split(' ')
         Object.assign(surveyRecord, {
-          projectName: record.XMMC,
-          code: record.TBH,
-          area: record.MJ,
+          projectName: record.XMMC || landInfo.taskName || '',
+          code: record.TBH || landInfo.code || '',
+          area: record.MJ || landInfo.area || '',
           locationCity: locationParts[0] || '',
           locationCounty: locationParts[1] || '',
           locationVillage: locationParts.slice(2).join(' ') || '',
-          longitude: record.DLZB_JD,
-          latitude: record.DLZB_WD,
+          longitude: record.DLZB_JD || landInfo.longitude || '',
+          latitude: record.DLZB_WD || landInfo.latitude || '',
           beforeType: record.BGQ,
           changeTime: record.BGSJ,
           useType: record.LYLX,
@@ -374,8 +374,8 @@ const goBack = () => {
   router.back()
 }
 
-onMounted(() => {
-  fetchLandDetail()
+onMounted(async () => {
+  await fetchLandDetail()
   fetchSurveyRecords()
   fetchSampleRecords()
 })

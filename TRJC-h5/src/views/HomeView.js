@@ -31,7 +31,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getTaskList, getTaskStats } from '../api'
+import { getTaskList, getTaskStats, logout } from '../api'
 import UserHeader from '../components/UserHeader.js'
 import TaskStats from '../components/TaskStats.js'
 import TaskItem from '../components/TaskItem.js'
@@ -128,11 +128,18 @@ const fetchTaskStats = async () => {
   }
 }
 
-const onSettings = () => {
-  localStorage.removeItem('token')
-  localStorage.removeItem('userInfo')
-  localStorage.removeItem('currentUserId')
-  router.push('/login')
+const onSettings = async () => {
+  if (!confirm('确定要退出登录吗？')) return
+  try {
+    await logout()
+  } catch (error) {
+    console.error('退出登录请求失败:', error)
+  } finally {
+    localStorage.removeItem('token')
+    localStorage.removeItem('userInfo')
+    localStorage.removeItem('currentUserId')
+    router.push('/login')
+  }
 }
 
 const onStatClick = (type) => {

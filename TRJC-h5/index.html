@@ -2195,7 +2195,7 @@
         };
 
         const onSettings = () => {
-          vant.Dialog.confirm({
+          vant.showConfirmDialog({
             title: '确认退出',
             message: '确定要退出登录吗？',
           }).then(() => {
@@ -2357,7 +2357,7 @@
         };
         
         const onSettings = () => {
-          vant.Dialog.confirm({
+          vant.showConfirmDialog({
             title: '确认退出',
             message: '确定要退出登录吗？',
           }).then(() => {
@@ -3347,6 +3347,11 @@
               <div class="survey-form-title">基本信息</div>
               
               <div class="survey-form-item">
+                <label class="survey-form-label survey-form-label-required">地理位置</label>
+                <input type="text" v-model="form.location" placeholder="所在市(州)、县(市、区)、乡(镇、街道)、村的名称" class="survey-form-input" />
+              </div>
+
+              <div class="survey-form-item">
                 <label class="survey-form-label survey-form-label-required">变更前土地利用类型</label>
                 <input type="text" v-model="form.landUseBefore" placeholder="请输入变更前的土地具体用途信息" class="survey-form-input" />
               </div>
@@ -3519,6 +3524,7 @@
       `,
       setup(props, { emit }) {
         const form = ref({
+          location: '',
           landUseBefore: '',
           changeDate: '',
           landUseType: '',
@@ -3542,7 +3548,8 @@
         });
 
         const isFormValid = computed(() => {
-          return form.value.landUseBefore &&
+          return form.value.location &&
+                 form.value.landUseBefore &&
                  form.value.changeDate &&
                  form.value.landUseType &&
                  form.value.soilThickness &&
@@ -3577,6 +3584,7 @@
             const surveyData = {
               RWID: taskId,
               DKID: plotId,
+              DLWZ: form.value.location,
               BGQ: form.value.landUseBefore,
               BGSJ: changeDate,
               LYLX: form.value.landUseType,
