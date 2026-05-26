@@ -5,6 +5,7 @@ from app.database import get_db
 from app.models import TaskPlot, TaskPlotStatus, TaskInfo, PlotInfo, SurveyRecord, SampleRecord, TaskAssign, PersonInfo
 from app.utils.crypto import decrypt_data
 from app.utils.task_helper import try_complete_task
+from app.utils.dataset_helper import _create_dataset_from_completed_plot
 
 router = APIRouter(prefix="/api/tasks/{task_id}/plots", tags=["任务地块管理"])
 
@@ -163,6 +164,9 @@ def update_plot_status(task_id: int, plot_id: int, data: dict, db: Session = Dep
         db.add(status_record)
 
     db.commit()
+
+    if new_status == "completed":
+        _create_dataset_from_completed_plot(db, task_id, plot_id)
 
     try_complete_task(db, task_id)
 

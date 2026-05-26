@@ -79,27 +79,27 @@
             </div>
             <div class="detail-row">
               <div class="detail-label">有机质(g/kg)</div>
-              <div class="detail-value">{{ data.organicMatter || '30.5' }}</div>
+              <div class="detail-value">{{ data.organicMatter || '-' }}</div>
             </div>
             <div class="detail-row">
               <div class="detail-label">有效磷(mg/kg)</div>
-              <div class="detail-value">{{ data.availablePhosphorus || '29.6' }}</div>
+              <div class="detail-value">{{ data.availablePhosphorus || '-' }}</div>
             </div>
             <div class="detail-row">
               <div class="detail-label">速效钾(mg/kg)</div>
-              <div class="detail-value">{{ data.availablePotassium || '236' }}</div>
+              <div class="detail-value">{{ data.availablePotassium || '-' }}</div>
             </div>
             <div class="detail-row">
               <div class="detail-label">水溶性盐总量(g/kg)</div>
-              <div class="detail-value">{{ data.solubleSalt || '0.7' }}</div>
+              <div class="detail-value">{{ data.solubleSalt || '-' }}</div>
             </div>
             <div class="detail-row">
               <div class="detail-label">地类名称</div>
-              <div class="detail-value">{{ data.landType || '旱地' }}</div>
+              <div class="detail-value">{{ data.landType || '-' }}</div>
             </div>
             <div class="detail-row">
               <div class="detail-label">清洁程度</div>
-              <div class="detail-value">{{ data.cleanliness || '清洁' }}</div>
+              <div class="detail-value">{{ data.cleanliness || '-' }}</div>
             </div>
             <div class="detail-row">
               <div class="detail-label">备注</div>
@@ -107,31 +107,31 @@
             </div>
             <div class="detail-row">
               <div class="detail-label">镉(mg/kg)</div>
-              <div class="detail-value">{{ data.cadmium || '0.08' }}</div>
+              <div class="detail-value">{{ data.cadmium || '-' }}</div>
             </div>
             <div class="detail-row">
               <div class="detail-label">总汞(mg/kg)</div>
-              <div class="detail-value">{{ data.totalMercury || '0.094' }}</div>
+              <div class="detail-value">{{ data.totalMercury || '-' }}</div>
             </div>
             <div class="detail-row">
               <div class="detail-label">总砷(mg/kg)</div>
-              <div class="detail-value">{{ data.totalArsenic || '5.41' }}</div>
+              <div class="detail-value">{{ data.totalArsenic || '-' }}</div>
             </div>
             <div class="detail-row">
               <div class="detail-label">铅(mg/kg)</div>
-              <div class="detail-value">{{ data.lead || '25.1' }}</div>
+              <div class="detail-value">{{ data.lead || '-' }}</div>
             </div>
             <div class="detail-row">
               <div class="detail-label">铬(mg/kg)</div>
-              <div class="detail-value">{{ data.chromium || '64' }}</div>
+              <div class="detail-value">{{ data.chromium || '-' }}</div>
             </div>
             <div class="detail-row">
               <div class="detail-label">耕地质量等级</div>
-              <div class="detail-value">{{ data.qualityGrade || '0.883351664' }}</div>
+              <div class="detail-value">{{ data.qualityGrade || '-' }}</div>
             </div>
             <div class="detail-row">
               <div class="detail-label">质量分级</div>
-              <div class="detail-value">{{ data.qualityLevel || '三等' }}</div>
+              <div class="detail-value">{{ data.qualityLevel || '-' }}</div>
             </div>
           </div>
         </div>

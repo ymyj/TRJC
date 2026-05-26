@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional
+from datetime import date
 from app.database import get_db
 from app.models import FarmlandDataset
 from app.schemas.dataset import FarmlandDatasetCreate, FarmlandDatasetUpdate, FarmlandDatasetResponse
@@ -13,6 +14,8 @@ def get_dataset_list(
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1, le=100),
     keyword: Optional[str] = None,
+    plotNumber: Optional[str] = None,
+    sampleDate: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     query = db.query(FarmlandDataset).filter(FarmlandDataset.SFSC == 0)
@@ -20,20 +23,35 @@ def get_dataset_list(
     if keyword:
         query = query.filter(FarmlandDataset.RWMC.like(f"%{keyword}%"))
 
+    if plotNumber:
+        query = query.filter(FarmlandDataset.TBH.like(f"%{plotNumber}%"))
+
+    if sampleDate:
+        query = query.filter(FarmlandDataset.CYRQ == sampleDate)
+
     total = query.count()
     items = query.offset((page - 1) * size).limit(size).all()
 
     result = []
     for item in items:
         result.append({
-            "ID": item.ID,
-            "RWMC": item.RWMC,
-            "TBH": item.TBH,
-            "JD": float(item.JD) if item.JD else None,
-            "WD": float(item.WD) if item.WD else None,
-            "GDZLDJ": float(item.GDZLDJ) if item.GDZLDJ else None,
-            "ZLFJ": item.ZLFJ,
-            "CYRQ": item.CYRQ
+            "id": item.ID,
+            "taskName": item.RWMC,
+            "plotNumber": item.TBH,
+            "longitude": float(item.JD) if item.JD else None,
+            "latitude": float(item.WD) if item.WD else None,
+            "sampleDate": item.CYRQ.isoformat() if item.CYRQ else None,
+            "terrain": item.DXBW,
+            "soilThickness": float(item.YXTCHD) if item.YXTCHD else None,
+            "soilTexture": item.GCZD,
+            "bulkDensity": float(item.RZ) if item.RZ else None,
+            "textureStructure": item.ZDGX,
+            "biodiversity": item.SWDYX,
+            "forestNetwork": item.NTLW,
+            "obstacleFactor": item.ZAYS,
+            "irrigationCapacity": item.GGNL,
+            "drainageCapacity": item.PSNL,
+            "phValue": float(item.PHZ) if item.PHZ else None,
         })
 
     return {"code": 200, "data": {"list": result, "total": total, "page": page, "size": size}}

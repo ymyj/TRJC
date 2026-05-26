@@ -75,6 +75,13 @@ def create_analysis_result(task_id: int, data: AnalysisResultCreate, db: Session
     from app.utils.task_helper import try_complete_task
     try_complete_task(db, data.RWID)
     
+    try:
+        from app.utils.dataset_helper import _create_dataset_from_completed_plot
+        _create_dataset_from_completed_plot(db, data.RWID, data.DKID)
+        db.commit()
+    except Exception as e:
+        print(f"自动创建数据集记录失败: {e}")
+    
     db.refresh(db_item)
     return {"code": 200, "msg": "提交成功", "data": {"ID": db_item.ID}}
 

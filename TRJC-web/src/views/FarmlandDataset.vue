@@ -105,7 +105,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import DatasetDetailModal from '../components/DatasetDetailModal.vue'
-import { getDatasetList } from '../api'
+import { getDatasetList, getDatasetDetail } from '../api'
 
 const modalVisible = ref(false)
 const selectedData = ref({})
@@ -144,7 +144,7 @@ const fetchList = async () => {
     page: pagination.current,
     pageSize: pagination.pageSize
   }
-  if (filterForm.taskName) params.taskName = filterForm.taskName
+  if (filterForm.taskName) params.keyword = filterForm.taskName
   if (filterForm.plotNumber) params.plotNumber = filterForm.plotNumber
   if (filterForm.sampleDate) params.sampleDate = filterForm.sampleDate
 
@@ -168,9 +168,49 @@ const handleQuery = () => {
   fetchList()
 }
 
-const viewDetail = (item) => {
-  selectedData.value = item
-  modalVisible.value = true
+const viewDetail = async (item) => {
+  try {
+    const res = await getDatasetDetail(item.id)
+    if (res.data.code === 200) {
+      const d = res.data.data
+      selectedData.value = {
+        id: d.ID,
+        taskName: d.RWMC,
+        plotNumber: d.TBH,
+        longitude: d.JD,
+        latitude: d.WD,
+        sampleDate: d.CYRQ ? String(d.CYRQ) : '',
+        terrain: d.DXBW,
+        soilThickness: d.YXTCHD,
+        soilTexture: d.GCZD,
+        bulkDensity: d.RZ,
+        textureStructure: d.ZDGX,
+        biodiversity: d.SWDYX,
+        forestNetwork: d.NTLW,
+        obstacleFactor: d.ZAYS,
+        irrigationCapacity: d.GGNL,
+        drainageCapacity: d.PSNL,
+        phValue: d.PHZ,
+        organicMatter: d.YJZ,
+        availablePhosphorus: d.YXL,
+        availablePotassium: d.SXJ,
+        solubleSalt: d.SRXYLZL,
+        landType: d.DLMC,
+        cleanliness: d.JQCD,
+        remark: d.BZ,
+        cadmium: d.GD,
+        totalMercury: d.ZG,
+        totalArsenic: d.ZS,
+        lead: d.Q,
+        chromium: d.G,
+        qualityGrade: d.GDZLDJ,
+        qualityLevel: d.ZLFJ,
+      }
+      modalVisible.value = true
+    }
+  } catch (error) {
+    console.error('获取详情失败:', error)
+  }
 }
 
 const changePage = (page) => {

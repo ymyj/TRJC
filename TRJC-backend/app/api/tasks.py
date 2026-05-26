@@ -1,5 +1,7 @@
+import time
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from typing import Optional, List
 from app.database import get_db
 from app.models import TaskInfo, TaskPlot, TaskPlotStatus, TaskAssign, PlotInfo, PersonInfo, SurveyRecord, SampleRecord
@@ -16,7 +18,7 @@ def get_task_list(
     keyword: Optional[str] = None,
     zt: Optional[str] = None,
     ssqh: Optional[str] = None,
-    ryid: Optional[int] = None,  # 添加按人员ID过滤参数
+    ryid: Optional[int] = None,
     db: Session = Depends(get_db)
 ):
     base_query = db.query(TaskInfo).filter(TaskInfo.SFSC == 0)
@@ -28,7 +30,6 @@ def get_task_list(
     if ssqh:
         base_query = base_query.filter(TaskInfo.SSQH == ssqh)
 
-    # 如果提供了人员ID，则只返回分配给该人员的任务
     if ryid:
         assigned_task_ids = db.query(TaskAssign.RWID).filter(
             TaskAssign.RYID == ryid,
@@ -61,48 +62,68 @@ def get_task_list(
 @router.get("/stats", response_model=dict)
 def get_task_stats(db: Session = Depends(get_db)):
     total = db.query(TaskInfo).filter(TaskInfo.SFSC == 0).count()
+    draft = db.query(TaskInfo).filter(TaskInfo.SFSC == 0, TaskInfo.ZT == "draft").count()
     pending = db.query(TaskInfo).filter(TaskInfo.SFSC == 0, TaskInfo.ZT == "pending").count()
     processing = db.query(TaskInfo).filter(TaskInfo.SFSC == 0, TaskInfo.ZT == "processing").count()
     completed = db.query(TaskInfo).filter(TaskInfo.SFSC == 0, TaskInfo.ZT == "completed").count()
 
-    return {"code": 200, "data": {"total": total, "pending": pending, "processing": processing, "completed": completed}}
+    return {"code": 200, "data": {"total": total, "draft": draft, "pending": pending, "processing": processing, "completed": completed}}
 
 
 @router.post("", response_model=dict)
 def create_task(data: TaskInfoCreate, db: Session = Depends(get_db)):
-    task_no = generate_task_number(db)
+    for attempt in range(5):
+        task_no = generate_task_number(db)
 
-    ssql = data.SSQH
-    if not ssql and data.plot_ids:
-        from app.models import PlotInfo
-        plots = db.query(PlotInfo).filter(PlotInfo.ID.in_(data.plot_ids), PlotInfo.SFSC == 0).all()
-        if plots:
-            districts = list(set(p.SSQH for p in plots if p.SSQH))
-            if districts:
-                ssql = districts[0] if len(districts) == 1 else ",".join(districts)
+        ssql = data.SSQH
+        if not ssql and data.plot_ids:
+            plots = db.query(PlotInfo).filter(PlotInfo.ID.in_(data.plot_ids), PlotInfo.SFSC == 0).all()
+            if plots:
+                districts = list(set(p.SSQH for p in plots if p.SSQH))
+                if districts:
+                    ssql = districts[0] if len(districts) == 1 else ",".join(districts)
 
-    db_item = TaskInfo(
-        RWBH=task_no,
-        RWMC=data.RWMC,
-        RWLX=data.RWLX,
-        SSQH=ssql,
-        FZR=data.FZR,
-        JHKSSJ=data.JHKSSJ,
-        LXDH=data.LXDH,
-        RWMS=data.RWMS,
-        ZT="pending"
-    )
-    db.add(db_item)
+        db_item = TaskInfo(
+            RWBH=task_no,
+            RWMC=data.RWMC,
+            RWLX=data.RWLX,
+            SSQH=ssql,
+            FZR=data.FZR,
+            JHKSSJ=data.JHKSSJ,
+            LXDH=data.LXDH,
+            RWMS=data.RWMS,
+            ZT="draft"
+        )
+        db.add(db_item)
+        try:
+            db.commit()
+            db.refresh(db_item)
+
+            if data.plot_ids:
+                for plot_id in data.plot_ids:
+                    task_plot = TaskPlot(RWID=db_item.ID, DKID=plot_id)
+                    db.add(task_plot)
+                db.commit()
+
+            return {"code": 200, "msg": "创建成功", "data": {"ID": db_item.ID, "RWBH": task_no}}
+        except IntegrityError:
+            db.rollback()
+            db.expire_all()
+            if attempt == 4:
+                raise HTTPException(status_code=500, detail="任务编号生成失败，请重试")
+            time.sleep(0.05 * (attempt + 1))
+
+
+@router.post("/{task_id}/publish", response_model=dict)
+def publish_task(task_id: int, db: Session = Depends(get_db)):
+    task = db.query(TaskInfo).filter(TaskInfo.ID == task_id, TaskInfo.SFSC == 0).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="任务不存在")
+    if task.ZT != "draft":
+        raise HTTPException(status_code=400, detail="只有待发布状态的任务才能发布")
+    task.ZT = "pending"
     db.commit()
-    db.refresh(db_item)
-
-    if data.plot_ids:
-        for plot_id in data.plot_ids:
-            task_plot = TaskPlot(RWID=db_item.ID, DKID=plot_id)
-            db.add(task_plot)
-        db.commit()
-
-    return {"code": 200, "msg": "创建成功", "data": {"ID": db_item.ID, "RWBH": task_no}}
+    return {"code": 200, "msg": "发布成功"}
 
 
 @router.post("/{task_id}/assign", response_model=dict)
@@ -168,9 +189,9 @@ def get_task_detail(task_id: int, db: Session = Depends(get_db)):
 
     plots = db.query(TaskPlot).filter(TaskPlot.RWID == task_id, TaskPlot.SFSC == 0).all()
     plot_ids = [p.DKID for p in plots]
-    
+
     status_map = {s.DKID: s for s in db.query(TaskPlotStatus).filter(TaskPlotStatus.RWID == task_id, TaskPlotStatus.SFSC == 0).all()}
-    
+
     plot_details = []
     if plot_ids:
         plot_objs = db.query(PlotInfo).filter(PlotInfo.ID.in_(plot_ids), PlotInfo.SFSC == 0).all()

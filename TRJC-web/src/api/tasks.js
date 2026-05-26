@@ -27,3 +27,7 @@ export function getTaskDetail(id) {
 export function assignTask(id, data) {
   return api.post(`/api/tasks/${id}/assign`, data)
 }
+
+export function publishTask(id) {
+  return api.post(`/api/tasks/${id}/publish`)
+}

@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 from typing import Optional
 from app.database import get_db
-from app.models import PlotInfo
+from app.models import PlotInfo, PersonInfo
 from app.schemas.plot import PlotInfoCreate, PlotInfoUpdate, PlotInfoResponse, PlotOptionResponse
+from app.utils.crypto import decrypt_data
 
 router = APIRouter(prefix="/api/plots", tags=["地块管理"])
 
@@ -50,7 +51,8 @@ def get_plot_options(db: Session = Depends(get_db)):
 
 
 @router.post("", response_model=dict)
-def create_plot(data: PlotInfoCreate, db: Session = Depends(get_db)):
+def create_plot(data: PlotInfoCreate, request: Request, db: Session = Depends(get_db)):
+    user_id = request.state.user_id
     db_item = PlotInfo(
         TBH=data.TBH,
         SSDY=data.SSDY,
@@ -58,7 +60,8 @@ def create_plot(data: PlotInfoCreate, db: Session = Depends(get_db)):
         SSQH=data.SSQH,
         JD=data.JD,
         WD=data.WD,
-        WLZB=data.WLZB
+        WLZB=data.WLZB,
+        CJR=user_id
     )
     db.add(db_item)
     db.commit()
@@ -108,6 +111,12 @@ def get_plot_detail(plot_id: int, db: Session = Depends(get_db)):
     if not item:
         raise HTTPException(status_code=404, detail="地块不存在")
 
+    creator_name = ""
+    if item.CJR:
+        person = db.query(PersonInfo).filter(PersonInfo.ID == item.CJR, PersonInfo.SFSC == 0).first()
+        if person:
+            creator_name = decrypt_data(person.XM)
+
     return {
         "code": 200,
         "data": {
@@ -119,6 +128,7 @@ def get_plot_detail(plot_id: int, db: Session = Depends(get_db)):
             "JD": float(item.JD) if item.JD else None,
             "WD": float(item.WD) if item.WD else None,
             "WLZB": item.WLZB,
-            "CJSJ": item.CJSJ
+            "CJSJ": item.CJSJ,
+            "CJR": creator_name
         }
     }

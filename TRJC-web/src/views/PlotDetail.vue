@@ -114,10 +114,10 @@ const fetchPlotDetail = async () => {
     if (res.data.code === 200) {
       const data = res.data.data
       Object.assign(form, {
-        plotNumber: data.TBBH,
+        plotNumber: data.TBH,
         unit: data.SSDY,
         district: data.SSQH,
-        area: data.TBmj,
+        area: data.TBMJ,
         longitude: data.JD,
         latitude: data.WD,
         createTime: data.CJSJ,

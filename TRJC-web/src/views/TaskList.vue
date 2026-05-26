@@ -53,7 +53,7 @@
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
-            发布
+            新建
           </button>
         </div>
       </div>
@@ -135,7 +135,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getTaskList, getTaskStats } from '../api'
+import { getTaskList, getTaskStats, publishTask, deleteTask, updateTask } from '../api'
 
 const router = useRouter()
 
@@ -281,15 +281,30 @@ const viewDetail = (task) => {
   router.push(`/tasks/detail/${task.ID}`)
 }
 
-const handleAction = (task, action) => {
+const handleAction = async (task, action) => {
   if (action === 'assign') {
     router.push(`/tasks/assign/${task.ID}`)
   } else if (action === 'publish') {
-    console.log('发布任务', task)
+    try {
+      const res = await publishTask(task.ID)
+      if (res.data.code === 200) {
+        task.ZT = 'pending'
+        fetchList()
+      }
+    } catch (error) {
+      console.error('发布任务失败:', error)
+    }
   } else if (action === 'edit') {
-    console.log('编辑任务', task)
+    router.push(`/tasks/publish?editId=${task.ID}`)
   } else if (action === 'delete') {
-    console.log('删除任务', task)
+    try {
+      const res = await deleteTask(task.ID)
+      if (res.data.code === 200) {
+        fetchList()
+      }
+    } catch (error) {
+      console.error('删除任务失败:', error)
+    }
   }
 }
 

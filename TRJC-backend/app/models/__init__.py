@@ -29,6 +29,7 @@ class PlotInfo(Base):
     JD = Column(DECIMAL(10, 6), comment="经度")
     WD = Column(DECIMAL(10, 6), comment="纬度")
     WLZB = Column(JSON, comment="围栏坐标")
+    CJR = Column(Integer, comment="创建人ID")
     CJSJ = Column(DateTime, server_default=func.now(), comment="创建时间")
     SFSC = Column(TINYINT, default=0, comment="是否删除")
 

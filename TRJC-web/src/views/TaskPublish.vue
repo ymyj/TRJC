@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="page-header">
-      <h1 class="page-title">任务发布</h1>
+      <h1 class="page-title">{{ isEditMode ? '编辑任务' : '任务发布' }}</h1>
     </div>
 
     <div class="form-card">
@@ -116,7 +116,7 @@
 
       <div class="form-actions">
         <button class="btn btn-default btn-large" @click="handleCancel">取消</button>
-        <button class="btn btn-primary btn-large" @click="handlePublish">发布任务</button>
+        <button class="btn btn-primary btn-large" @click="handlePublish">{{ isEditMode ? '保存修改' : '发布任务' }}</button>
       </div>
     </div>
 
@@ -211,10 +211,13 @@
 
 <script setup>
 import { reactive, ref, computed, watch, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { getPlotList, getPersonnelForAssignment, createTask } from '../api'
+import { useRouter, useRoute } from 'vue-router'
+import { getPlotList, getPersonnelForAssignment, createTask, getTaskDetail, updateTask } from '../api'
 
 const router = useRouter()
+const route = useRoute()
+
+const isEditMode = computed(() => !!route.query.editId)
 
 const form = reactive({
   name: '',
@@ -337,12 +340,23 @@ const handlePublish = async () => {
     plot_ids: selectedLands.value.map(land => land.ID)
   }
 
-  const res = await createTask(data)
-  if (res.data.code === 200) {
-    alert('任务发布成功')
-    router.push('/tasks')
+  let res
+  if (isEditMode.value) {
+    res = await updateTask(route.query.editId, data)
+    if (res.data.code === 200) {
+      alert('任务更新成功')
+      router.push('/tasks')
+    } else {
+      alert('任务更新失败: ' + (res.data.message || '未知错误'))
+    }
   } else {
-    alert('任务发布失败: ' + (res.data.message || '未知错误'))
+    res = await createTask(data)
+    if (res.data.code === 200) {
+      alert('任务创建成功')
+      router.push('/tasks')
+    } else {
+      alert('任务创建失败: ' + (res.data.message || '未知错误'))
+    }
   }
 }
 
@@ -405,9 +419,40 @@ const deleteLand = (index) => {
   selectedLands.value.splice(index, 1)
 }
 
-onMounted(() => {
-  fetchPlotList()
-  fetchPersonnelList()
+onMounted(async () => {
+  await fetchPlotList()
+  await fetchPersonnelList()
+
+  if (isEditMode.value) {
+    const res = await getTaskDetail(route.query.editId)
+    if (res.data.code === 200) {
+      const d = res.data.data
+      form.name = d.RWMC
+      form.type = d.RWLX
+      form.startDate = d.JHKSSJ ? d.JHKSSJ.split(' ')[0] : ''
+      form.startTime = d.JHKSSJ
+      form.description = d.RWMS || ''
+
+      const person = personnelList.value.find(p => p.XM === d.FZR)
+      if (person) {
+        form.personId = person.ID
+        form.phone = person.LXFS || ''
+      }
+
+      if (d.plots && d.plots.length > 0) {
+        selectedLands.value = d.plots.map(p => ({
+          ID: p.ID,
+          TBH: p.TBH,
+          SSDY: p.SSDY,
+          TBMJ: p.TBMJ,
+          SSQH: p.SSQH,
+          JD: p.JD,
+          WD: p.WD,
+          CJSJ: p.CJSJ
+        }))
+      }
+    }
+  }
 })
 </script>
 
