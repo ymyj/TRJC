@@ -91,13 +91,65 @@
         </div>
       </div>
     </div>
+
+    <div v-if="showEditModal" class="modal-overlay" @click.self="closeEditModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">编辑图斑</h3>
+          <button class="modal-close" @click="closeEditModal">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-item">
+              <label class="form-label">图斑编号<span class="required">*</span></label>
+              <input type="text" class="form-input" placeholder="请输入图斑编号" v-model="editForm.TBH">
+            </div>
+            <div class="form-item">
+              <label class="form-label">所属单元<span class="required">*</span></label>
+              <input type="text" class="form-input" placeholder="请输入所属单元" v-model="editForm.SSDY">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-item">
+              <label class="form-label">所属区划<span class="required">*</span></label>
+              <select class="form-select" v-model="editForm.SSQH">
+                <option value="">请选择区划</option>
+                <option value="东城区">东城区</option>
+                <option value="西城区">西城区</option>
+                <option value="朝阳区">朝阳区</option>
+                <option value="海淀区">海淀区</option>
+                <option value="丰台区">丰台区</option>
+              </select>
+            </div>
+            <div class="form-item">
+              <label class="form-label">图斑面积（㎡）</label>
+              <input type="text" class="form-input" v-model="editForm.TBMJ" readonly>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-item">
+              <label class="form-label">经度</label>
+              <input type="text" class="form-input" v-model="editForm.JD" readonly>
+            </div>
+            <div class="form-item">
+              <label class="form-label">纬度</label>
+              <input type="text" class="form-input" v-model="editForm.WD" readonly>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-default" @click="closeEditModal">取消</button>
+          <button class="btn btn-primary" @click="confirmEdit">确定</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getPlotList, deletePlot } from '../api'
+import { getPlotList, getPlotDetail, updatePlot, deletePlot } from '../api'
 
 const router = useRouter()
 
@@ -107,6 +159,17 @@ const filterForm = reactive({
 })
 
 const plotList = ref([])
+
+const showEditModal = ref(false)
+const editId = ref(null)
+const editForm = reactive({
+  TBH: '',
+  SSDY: '',
+  SSQH: '',
+  TBMJ: '',
+  JD: '',
+  WD: ''
+})
 
 const pagination = reactive({
   current: 1,
@@ -154,8 +217,59 @@ const viewDetail = (item) => {
   router.push(`/map/plot/detail/${item.ID}`)
 }
 
-const handleEdit = (item) => {
-  console.log('编辑', item)
+const handleEdit = async (item) => {
+  try {
+    const res = await getPlotDetail(item.ID)
+    if (res.data.code === 200) {
+      const data = res.data.data
+      editId.value = item.ID
+      editForm.TBH = data.TBH || ''
+      editForm.SSDY = data.SSDY || ''
+      editForm.SSQH = data.SSQH || ''
+      editForm.TBMJ = data.TBMJ || ''
+      editForm.JD = data.JD || ''
+      editForm.WD = data.WD || ''
+      showEditModal.value = true
+    }
+  } catch (error) {
+    console.error('获取地块详情失败:', error)
+    alert('获取地块信息失败')
+  }
+}
+
+const closeEditModal = () => {
+  showEditModal.value = false
+  editId.value = null
+  editForm.TBH = ''
+  editForm.SSDY = ''
+  editForm.SSQH = ''
+  editForm.TBMJ = ''
+  editForm.JD = ''
+  editForm.WD = ''
+}
+
+const confirmEdit = async () => {
+  if (!editForm.TBH || !editForm.SSDY || !editForm.SSQH) {
+    alert('请填写必填项')
+    return
+  }
+  try {
+    const data = {
+      TBH: editForm.TBH,
+      SSDY: editForm.SSDY,
+      SSQH: editForm.SSQH,
+      TBMJ: editForm.TBMJ ? parseFloat(editForm.TBMJ) : null,
+      JD: editForm.JD ? parseFloat(editForm.JD) : null,
+      WD: editForm.WD ? parseFloat(editForm.WD) : null
+    }
+    await updatePlot(editId.value, data)
+    alert('更新成功')
+    closeEditModal()
+    fetchList()
+  } catch (error) {
+    console.error('更新失败:', error)
+    alert('更新失败')
+  }
 }
 
 const handleDelete = async (item) => {
@@ -294,6 +408,32 @@ onMounted(() => {
 .btn-primary:hover {
   background-color: #4096ff;
 }
+
+.btn {
+  height: 36px;
+  padding: 0 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-default {
+  background-color: #fff;
+  border: 1px solid #d9d9d9;
+  color: #595959;
+}
+
+.btn-default:hover {
+  border-color: #4096ff;
+  color: #4096ff;
+}
+
 .list-section {
   background-color: #fff;
   border-radius: 8px;
@@ -406,5 +546,119 @@ onMounted(() => {
   text-align: center;
   color: #8c8c8c;
   padding: 40px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #fff;
+  border-radius: 8px;
+  width: 600px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #8c8c8c;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: #595959;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.modal-body .form-row {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.modal-body .form-row:last-child {
+  margin-bottom: 0;
+}
+
+.modal-body .form-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal-body .form-label {
+  font-size: 14px;
+  color: #262626;
+  font-weight: 500;
+}
+
+.modal-body .form-label .required {
+  color: #ff4d4f;
+  margin-left: 4px;
+}
+
+.modal-body .form-input,
+.modal-body .form-select {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #262626;
+  background-color: #fff;
+  transition: all 0.3s;
+}
+
+.modal-body .form-input[readonly] {
+  background-color: #f5f5f5;
+  color: #8c8c8c;
+}
+
+.modal-body .form-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #f0f0f0;
 }
 </style>

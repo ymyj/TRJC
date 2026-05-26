@@ -208,7 +208,7 @@ const fetchTaskDetail = async () => {
         personAvatar: avatarColors[0],
         contact: data.LXDH || '',
         planStartTime: data.JHKSSJ || '',
-        actualStartTime: '',
+        actualStartTime: data.actual_start_time || '暂无数据',
         description: data.RWMS || '',
         requirement: '',
         notice: '',

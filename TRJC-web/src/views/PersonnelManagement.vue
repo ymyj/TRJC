@@ -59,7 +59,6 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th style="width: 40px;"><input type="checkbox" class="checkbox" v-model="selectAll"></th>
             <th>姓名</th>
             <th>联系方式</th>
             <th>岗位</th>
@@ -72,7 +71,6 @@
         </thead>
         <tbody>
           <tr v-for="person in personList" :key="person.ID">
-            <td><input type="checkbox" class="checkbox" v-model="person.selected"></td>
             <td>
               <div class="person-info">
                 <span class="user-avatar" :style="{ background: person.avatarColor }">{{ person.XM ? person.XM.charAt(0) : '' }}</span>
@@ -118,27 +116,27 @@
       </div>
     </div>
 
-    <div v-if="showAddModal" class="modal-overlay" @click.self="closeAddModal">
+    <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
       <div class="modal-content">
         <div class="modal-header">
-          <h3 class="modal-title">新增人员</h3>
-          <button class="modal-close" @click="closeAddModal">×</button>
+          <h3 class="modal-title">{{ isEdit ? '编辑人员' : '新增人员' }}</h3>
+          <button class="modal-close" @click="closeModal">×</button>
         </div>
         <div class="modal-body">
           <div class="form-row">
             <div class="form-item">
               <label class="form-label">姓名<span class="required">*</span></label>
-              <input type="text" class="form-input" placeholder="请输入姓名" v-model="addForm.XM">
+              <input type="text" class="form-input" placeholder="请输入姓名" v-model="form.XM">
             </div>
             <div class="form-item">
               <label class="form-label">联系方式<span class="required">*</span></label>
-              <input type="text" class="form-input" placeholder="请输入联系方式" v-model="addForm.LXFS">
+              <input type="text" class="form-input" placeholder="请输入联系方式" v-model="form.LXFS">
             </div>
           </div>
           <div class="form-row">
             <div class="form-item">
               <label class="form-label">岗位</label>
-              <select class="form-select" v-model="addForm.GW">
+              <select class="form-select" v-model="form.GW">
                 <option value="">请选择岗位</option>
                 <option value="项目经理">项目经理</option>
                 <option value="技术员">技术员</option>
@@ -148,7 +146,7 @@
             </div>
             <div class="form-item">
               <label class="form-label">所属区划</label>
-              <select class="form-select" v-model="addForm.SSQH">
+              <select class="form-select" v-model="form.SSQH">
                 <option value="">请选择区划</option>
                 <option value="东城区">东城区</option>
                 <option value="西城区">西城区</option>
@@ -161,11 +159,11 @@
           <div class="form-row">
             <div class="form-item">
               <label class="form-label">所属部门</label>
-              <input type="text" class="form-input" placeholder="请输入所属部门" v-model="addForm.SSBM">
+              <input type="text" class="form-input" placeholder="请输入所属部门" v-model="form.SSBM">
             </div>
             <div class="form-item">
               <label class="form-label">人员状态<span class="required">*</span></label>
-              <select class="form-select" v-model="addForm.RYZT">
+              <select class="form-select" v-model="form.RYZT">
                 <option value="active">在职</option>
                 <option value="inactive">离职</option>
               </select>
@@ -173,8 +171,8 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-default" @click="closeAddModal">取消</button>
-          <button class="btn btn-primary" @click="confirmAdd">确定</button>
+          <button class="btn btn-default" @click="closeModal">取消</button>
+          <button class="btn btn-primary" @click="confirmSubmit">确定</button>
         </div>
       </div>
     </div>
@@ -182,8 +180,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
-import { getPersonnelList, createPersonnel, deletePersonnel } from '../api'
+import { ref, reactive, onMounted } from 'vue'
+import { getPersonnelList, getPersonnelDetail, createPersonnel, updatePersonnel, deletePersonnel } from '../api'
 
 const filterForm = reactive({
   keyword: '',
@@ -192,11 +190,12 @@ const filterForm = reactive({
   ryzt: ''
 })
 
-const selectAll = ref(false)
 const personList = ref([])
 
-const showAddModal = ref(false)
-const addForm = reactive({
+const showModal = ref(false)
+const isEdit = ref(false)
+const editId = ref(null)
+const form = reactive({
   XM: '',
   LXFS: '',
   GW: '',
@@ -234,13 +233,13 @@ const fetchList = async () => {
       size: pagination.pageSize,
       keyword: filterForm.keyword || undefined,
       gw: filterForm.gw || undefined,
-      ssqh: filterForm.ssqh || undefined
+      ssqh: filterForm.ssqh || undefined,
+      ryzt: filterForm.ryzt || undefined
     }
     const res = await getPersonnelList(params)
     if (res.data.code === 200) {
       personList.value = (res.data.data.list || []).map((item, index) => ({
         ...item,
-        selected: false,
         avatarColor: avatarColors[index % avatarColors.length]
       }))
       pagination.total = res.data.data.total || 0
@@ -267,37 +266,66 @@ const handleQuery = () => {
 }
 
 const handleAdd = () => {
-  showAddModal.value = true
+  isEdit.value = false
+  editId.value = null
+  resetForm()
+  showModal.value = true
 }
 
-const closeAddModal = () => {
-  showAddModal.value = false
-  addForm.XM = ''
-  addForm.LXFS = ''
-  addForm.GW = ''
-  addForm.SSQH = ''
-  addForm.SSBM = ''
-  addForm.RYZT = 'active'
+const closeModal = () => {
+  showModal.value = false
+  resetForm()
 }
 
-const confirmAdd = async () => {
-  if (!addForm.XM || !addForm.LXFS) {
+const resetForm = () => {
+  form.XM = ''
+  form.LXFS = ''
+  form.GW = ''
+  form.SSQH = ''
+  form.SSBM = ''
+  form.RYZT = 'active'
+}
+
+const confirmSubmit = async () => {
+  if (!form.XM || !form.LXFS) {
     alert('请填写必填项')
     return
   }
   try {
-    await createPersonnel(addForm)
-    alert('添加成功')
-    closeAddModal()
+    if (isEdit.value) {
+      await updatePersonnel(editId.value, form)
+      alert('更新成功')
+    } else {
+      await createPersonnel(form)
+      alert('添加成功')
+    }
+    closeModal()
     fetchList()
   } catch (error) {
-    console.error('添加失败:', error)
-    alert('添加失败')
+    console.error(isEdit.value ? '更新失败:' : '添加失败:', error)
+    alert(isEdit.value ? '更新失败' : '添加失败')
   }
 }
 
-const handleEdit = (person) => {
-  console.log('编辑', person)
+const handleEdit = async (person) => {
+  try {
+    const res = await getPersonnelDetail(person.ID)
+    if (res.data.code === 200) {
+      const data = res.data.data
+      isEdit.value = true
+      editId.value = person.ID
+      form.XM = data.XM || ''
+      form.LXFS = data.LXFS || ''
+      form.GW = data.GW || ''
+      form.SSQH = data.SSQH || ''
+      form.SSBM = data.SSBM || ''
+      form.RYZT = data.RYZT || 'active'
+      showModal.value = true
+    }
+  } catch (error) {
+    console.error('获取人员详情失败:', error)
+    alert('获取人员信息失败')
+  }
 }
 
 const handleDelete = async (person) => {

@@ -15,17 +15,25 @@ def get_personnel_list(
     size: int = Query(10, ge=1, le=100),
     keyword: Optional[str] = None,
     gw: Optional[str] = None,
+    ssqh: Optional[str] = None,
+    ryzt: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     query = db.query(PersonInfo).filter(PersonInfo.SFSC == 0)
 
-    if keyword:
-        query = query.filter(PersonInfo.XM.like(f"%{keyword}%"))
     if gw:
         query = query.filter(PersonInfo.GW == gw)
+    if ssqh:
+        query = query.filter(PersonInfo.SSQH == ssqh)
+    if ryzt:
+        query = query.filter(PersonInfo.RYZT == ryzt)
 
     total = query.count()
     items = query.offset((page - 1) * size).limit(size).all()
+
+    if keyword:
+        items = [item for item in items if keyword in decrypt_data(item.XM)]
+        total = len(items)
 
     result = []
     for item in items:

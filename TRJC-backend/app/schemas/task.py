@@ -53,3 +53,16 @@ class TaskStatsResponse(BaseModel):
     pending: int = 0
     processing: int = 0
     completed: int = 0
+
+
+class TaskAttachmentResponse(BaseModel):
+    ID: int
+    RWID: int
+    FILE_NAME: str
+    FILE_PATH: str
+    FILE_SIZE: Optional[int] = None
+    FILE_TYPE: Optional[str] = None
+    CJSJ: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True

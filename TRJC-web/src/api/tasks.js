@@ -31,3 +31,23 @@ export function assignTask(id, data) {
 export function publishTask(id) {
   return api.post(`/api/tasks/${id}/publish`)
 }
+
+export function uploadAttachment(taskId, file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return api.post(`/api/tasks/${taskId}/attachments`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}
+
+export function getAttachments(taskId) {
+  return api.get(`/api/tasks/${taskId}/attachments`)
+}
+
+export function deleteAttachment(attachmentId) {
+  return api.delete(`/api/attachments/${attachmentId}`)
+}
+
+export function downloadAttachment(attachmentId) {
+  return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/attachments/${attachmentId}/download`
+}

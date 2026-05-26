@@ -57,17 +57,20 @@
         <div class="form-item" style="flex: 2;">
           <label class="form-label">相关附件</label>
           <div class="upload-section">
-            <div class="upload-area" @click="handleUpload">
-              <div class="upload-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="17 8 12 3 7 8"></polyline>
-                  <line x1="12" y1="3" x2="12" y2="15"></line>
-                </svg>
+            <p class="upload-tip">支持添加最多20个附件</p>
+            <div class="upload-area" @click="triggerUpload" @dragover.prevent @drop.prevent="handleDrop">
+              <div class="upload-icon">↑</div>
+              <p class="upload-text">拖拽文件到此处或 <span class="upload-link">点击选择文件</span></p>
+              <p class="upload-hint">支持PDF、Word、Excel、图片格式，单个文件不超过50MB</p>
+              <button class="upload-btn" type="button">选择文件</button>
+              <input ref="fileInput" type="file" class="file-input" multiple @change="handleUpload" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
+            </div>
+            <div v-if="uploadedFiles.length > 0" class="file-list">
+              <div v-for="(file, index) in uploadedFiles" :key="index" class="file-item">
+                <span class="file-name">{{ file.name }}</span>
+                <span class="file-size">{{ formatFileSize(file.size) }}</span>
+                <button class="file-remove" @click="removeFile(index)">删除</button>
               </div>
-              <div class="upload-text">拖拽文件到此处上传，或点击选择文件</div>
-              <div class="upload-hint">支持PDF、Word、Excel、图片等格式，单个文件不超过50MB</div>
-              <button class="upload-btn" @click.stop>选择文件</button>
             </div>
           </div>
         </div>
@@ -212,7 +215,7 @@
 <script setup>
 import { reactive, ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { getPlotList, getPersonnelForAssignment, createTask, getTaskDetail, updateTask } from '../api'
+import { getPlotList, getPersonnelForAssignment, createTask, getTaskDetail, updateTask, uploadAttachment, getAttachments, deleteAttachment } from '../api'
 
 const router = useRouter()
 const route = useRoute()
@@ -230,6 +233,13 @@ const form = reactive({
 })
 
 const selectedLands = ref([])
+const fileInput = ref(null)
+const uploading = ref(false)
+const uploadedFiles = ref([])
+
+const triggerUpload = () => {
+  fileInput.value.click()
+}
 
 const handleDateChange = () => {
   if (form.startDate) {
@@ -360,8 +370,69 @@ const handlePublish = async () => {
   }
 }
 
-const handleUpload = () => {
-  console.log('上传文件')
+const handleUpload = async (event) => {
+  const files = event.target.files || []
+  if (files.length === 0) return
+  await processFiles(files)
+  event.target.value = ''
+}
+
+const handleDrop = async (event) => {
+  const files = event.dataTransfer.files || []
+  if (files.length === 0) return
+  await processFiles(files)
+}
+
+const processFiles = async (files) => {
+  if (!form.ID) {
+    alert('请先保存任务后再上传附件')
+    return
+  }
+
+  if (uploadedFiles.value.length + files.length > 20) {
+    alert('最多支持20个附件')
+    return
+  }
+
+  uploading.value = true
+  for (const file of files) {
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'image/jpeg', 'image/png', 'image/gif']
+    if (!allowedTypes.includes(file.type)) {
+      alert(`不支持的文件类型: ${file.name}`)
+      continue
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      alert(`文件大小超过50MB限制: ${file.name}`)
+      continue
+    }
+    try {
+      const res = await uploadAttachment(form.ID, file)
+      uploadedFiles.value.push({ id: res.data.data.ID, name: res.data.data.FILE_NAME, size: file.size })
+    } catch (error) {
+      alert(`上传失败: ${file.name}`)
+    }
+  }
+  uploading.value = false
+}
+
+const removeFile = async (index) => {
+  const file = uploadedFiles.value[index]
+  if (!file.id) {
+    uploadedFiles.value.splice(index, 1)
+    return
+  }
+  try {
+    await deleteAttachment(file.id)
+    uploadedFiles.value.splice(index, 1)
+  } catch (error) {
+    alert('删除失败')
+  }
+}
+
+const formatFileSize = (bytes) => {
+  if (bytes < 1024) return bytes + ' B'
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB'
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB'
 }
 
 const handleSelectLand = () => {
@@ -427,6 +498,7 @@ onMounted(async () => {
     const res = await getTaskDetail(route.query.editId)
     if (res.data.code === 200) {
       const d = res.data.data
+      form.ID = d.ID
       form.name = d.RWMC
       form.type = d.RWLX
       form.startDate = d.JHKSSJ ? d.JHKSSJ.split(' ')[0] : ''
@@ -449,6 +521,15 @@ onMounted(async () => {
           JD: p.JD,
           WD: p.WD,
           CJSJ: p.CJSJ
+        }))
+      }
+
+      const attRes = await getAttachments(route.query.editId)
+      if (attRes.data.code === 200) {
+        uploadedFiles.value = attRes.data.data.map(f => ({
+          id: f.ID,
+          name: f.FILE_NAME,
+          size: f.FILE_SIZE
         }))
       }
     }
@@ -540,6 +621,11 @@ onMounted(async () => {
   color: #8c8c8c;
 }
 
+.upload-icon {
+  font-size: 24px;
+  color: #8c8c8c;
+}
+
 .upload-text {
   font-size: 14px;
   color: #262626;
@@ -549,24 +635,68 @@ onMounted(async () => {
 .upload-hint {
   font-size: 12px;
   color: #8c8c8c;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .upload-btn {
-  display: inline-block;
-  padding: 8px 20px;
-  border: 1px solid #d9d9d9;
+  display: block;
+  margin: 0 auto;
+  padding: 8px 24px;
+  border: 1px solid #1677ff;
   border-radius: 6px;
-  background-color: #fff;
-  color: #595959;
+  background-color: #1677ff;
+  color: #fff;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .upload-btn:hover {
-  border-color: #1677ff;
-  color: #1677ff;
+  background-color: #4096ff;
+  border-color: #4096ff;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-list {
+  margin-top: 16px;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #fafafa;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.file-name {
+  flex: 1;
+  font-size: 14px;
+  color: #262626;
+}
+
+.file-size {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-right: 12px;
+}
+
+.file-remove {
+  padding: 4px 12px;
+  border: none;
+  background-color: #ff4d4f;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.file-remove:hover {
+  background-color: #ff7875;
 }
 
 /* 地块选择区域 */

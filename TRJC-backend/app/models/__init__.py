@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DECIMAL, Date, DateTime, JSON, Text, func
+from sqlalchemy import Column, Integer, String, DECIMAL, Date, DateTime, JSON, Text, func, BigInteger
 from sqlalchemy.dialects.mysql import TINYINT
 from app.database import Base
 
@@ -80,6 +80,19 @@ class TaskAssign(Base):
     RWID = Column(Integer, comment="任务ID")
     RYID = Column(Integer, comment="人员ID")
     FPSJ = Column(DateTime, server_default=func.now(), comment="分配时间")
+    SFSC = Column(TINYINT, default=0, comment="是否删除")
+
+
+class TaskAttachment(Base):
+    __tablename__ = "task_attachment"
+
+    ID = Column(Integer, primary_key=True, autoincrement=True, comment="主键")
+    RWID = Column(Integer, comment="任务ID")
+    FILE_NAME = Column(String(255), comment="原始文件名")
+    FILE_PATH = Column(String(500), comment="存储路径")
+    FILE_SIZE = Column(BigInteger, comment="文件大小(字节)")
+    FILE_TYPE = Column(String(50), comment="文件类型")
+    CJSJ = Column(DateTime, server_default=func.now(), comment="创建时间")
     SFSC = Column(TINYINT, default=0, comment="是否删除")
 
 

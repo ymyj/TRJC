@@ -28,11 +28,11 @@
           <label class="filter-label">所属区划</label>
           <select class="form-select" v-model="filterForm.area">
             <option value="">全部区划</option>
-            <option value="dongcheng">东城区</option>
-            <option value="xicheng">西城区</option>
-            <option value="chaoyang">朝阳区</option>
-            <option value="haidian">海淀区</option>
-            <option value="fengtai">丰台区</option>
+            <option value="东城区">东城区</option>
+            <option value="西城区">西城区</option>
+            <option value="朝阳区">朝阳区</option>
+            <option value="海淀区">海淀区</option>
+            <option value="丰台区">丰台区</option>
           </select>
         </div>
         <div class="filter-item">
@@ -41,7 +41,11 @@
         </div>
         <div class="filter-item">
           <label class="filter-label">创建时间</label>
-          <input type="text" class="form-input" placeholder="请选择时间范围" v-model="filterForm.time">
+          <div class="date-range">
+            <input type="date" class="form-input date-input" v-model="filterForm.startTime">
+            <span class="date-separator">至</span>
+            <input type="date" class="form-input date-input" v-model="filterForm.endTime">
+          </div>
         </div>
       </div>
       <div class="filter-row">
@@ -68,7 +72,6 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th style="width: 40px;"><input type="checkbox" class="checkbox" v-model="selectAll"></th>
             <th>任务名称</th>
             <th>任务类型</th>
             <th>所属区划</th>
@@ -80,7 +83,6 @@
         </thead>
         <tbody>
           <tr v-for="task in taskList" :key="task.RWBH">
-            <td><input type="checkbox" class="checkbox" v-model="task.selected"></td>
             <td>
               <div class="task-info">
                 <span class="task-name">{{ task.RWBH }} - {{ task.RWMC }}</span>
@@ -144,11 +146,11 @@ const filterForm = reactive({
   type: '',
   area: '',
   person: '',
-  time: ''
+  startTime: '',
+  endTime: ''
 })
 
 const viewMode = ref('list')
-const selectAll = ref(false)
 const taskList = ref([])
 
 const pagination = reactive({
@@ -230,8 +232,11 @@ const fetchList = async () => {
     size: pagination.pageSize
   }
   if (filterForm.status) params.zt = filterForm.status
+  if (filterForm.type) params.rwlx = filterForm.type
   if (filterForm.area) params.ssqh = filterForm.area
-  if (filterForm.person) params.keyword = filterForm.person
+  if (filterForm.person) params.fzr = filterForm.person
+  if (filterForm.startTime) params.start_time = filterForm.startTime
+  if (filterForm.endTime) params.end_time = filterForm.endTime + ' 23:59:59'
 
   const res = await getTaskList(params)
   if (res.data.code === 200) {
@@ -264,7 +269,8 @@ const resetFilter = () => {
   filterForm.type = ''
   filterForm.area = ''
   filterForm.person = ''
-  filterForm.time = ''
+  filterForm.startTime = ''
+  filterForm.endTime = ''
   fetchList()
 }
 
@@ -457,6 +463,21 @@ onMounted(() => {
 .pagination-info {
   font-size: 13px;
   color: #595959;
+}
+
+.date-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-input {
+  width: 140px;
+}
+
+.date-separator {
+  font-size: 13px;
+  color: #8c8c8c;
 }
 
 /* 待发布状态样式 */
