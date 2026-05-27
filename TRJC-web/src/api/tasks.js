@@ -28,6 +28,10 @@ export function assignTask(id, data) {
   return api.post(`/api/tasks/${id}/assign`, data)
 }
 
+export function assignPlot(taskId, plotId, data) {
+  return api.post(`/api/tasks/${taskId}/plots/${plotId}/assign`, data)
+}
+
 export function publishTask(id) {
   return api.post(`/api/tasks/${id}/publish`)
 }

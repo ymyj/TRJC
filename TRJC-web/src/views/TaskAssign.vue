@@ -151,7 +151,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { getTaskDetail, getPersonnelForAssignment, assignTask } from '../api'
+import { getTaskDetail, getPersonnelForAssignment, assignPlot } from '../api'
 
 const router = useRouter()
 const route = useRoute()
@@ -221,12 +221,7 @@ const fetchTaskDetail = async () => {
     const data = res.data.data
     taskInfo.value = data
     plotList.value = data.plots || []
-    allAssignments.value = {}
-    if (data.plots && data.assignee_ids) {
-      data.plots.forEach(plot => {
-        allAssignments.value[plot.ID] = data.assignee_ids
-      })
-    }
+    allAssignments.value = data.plot_assignments || {}
   }
 }
 
@@ -286,7 +281,7 @@ const confirmAssign = async () => {
   const personnelIds = selectedPersons.map(p => p.ID)
 
   try {
-    const res = await assignTask(taskId.value, personnelIds)
+    const res = await assignPlot(taskId.value, currentPlot.value.ID, personnelIds)
     if (res.data.code === 200) {
       allAssignments.value[currentPlot.value.ID] = personnelIds
       alert('分配成功')

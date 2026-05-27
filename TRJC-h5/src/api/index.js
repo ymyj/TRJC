@@ -35,3 +35,8 @@ export function getSampleRecords(taskId) {
 export function createSampleRecord(taskId, data) {
   return api.post(`/api/tasks/${taskId}/samples`, data)
 }
+
+export function getTaskPlots(taskId, ryid) {
+  const params = ryid ? { ryid } : {};
+  return api.get(`/api/tasks/${taskId}/plots`, { params });
+}

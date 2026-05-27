@@ -236,6 +236,7 @@ const selectedLands = ref([])
 const fileInput = ref(null)
 const uploading = ref(false)
 const uploadedFiles = ref([])
+const pendingFiles = ref([])
 
 const triggerUpload = () => {
   fileInput.value.click()
@@ -362,6 +363,34 @@ const handlePublish = async () => {
   } else {
     res = await createTask(data)
     if (res.data.code === 200) {
+      const taskId = res.data.data.ID
+      if (pendingFiles.value.length > 0) {
+        uploading.value = true
+        const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'image/jpeg', 'image/png', 'image/gif']
+        const failedFiles = []
+        for (const file of pendingFiles.value) {
+          if (!allowedTypes.includes(file.type) || file.size > 50 * 1024 * 1024) {
+            failedFiles.push(file.name)
+            continue
+          }
+          try {
+            const attRes = await uploadAttachment(taskId, file)
+            uploadedFiles.value = uploadedFiles.value.map(f => {
+              if (f.name === file.name && f.id === null) {
+                return { id: attRes.data.data.ID, name: attRes.data.data.FILE_NAME, size: file.size }
+              }
+              return f
+            })
+          } catch (error) {
+            failedFiles.push(file.name)
+          }
+        }
+        pendingFiles.value = []
+        uploading.value = false
+        if (failedFiles.length > 0) {
+          alert(`任务创建成功，但部分附件上传失败: ${failedFiles.join(', ')}`)
+        }
+      }
       alert('任务创建成功')
       router.push('/tasks')
     } else {
@@ -384,34 +413,47 @@ const handleDrop = async (event) => {
 }
 
 const processFiles = async (files) => {
-  if (!form.ID) {
-    alert('请先保存任务后再上传附件')
-    return
-  }
-
   if (uploadedFiles.value.length + files.length > 20) {
     alert('最多支持20个附件')
     return
   }
 
   uploading.value = true
-  for (const file of files) {
-    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'image/jpeg', 'image/png', 'image/gif']
-    if (!allowedTypes.includes(file.type)) {
-      alert(`不支持的文件类型: ${file.name}`)
-      continue
+  
+  const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'image/jpeg', 'image/png', 'image/gif']
+  
+  if (form.ID) {
+    for (const file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        alert(`不支持的文件类型: ${file.name}`)
+        continue
+      }
+      if (file.size > 50 * 1024 * 1024) {
+        alert(`文件大小超过50MB限制: ${file.name}`)
+        continue
+      }
+      try {
+        const res = await uploadAttachment(form.ID, file)
+        uploadedFiles.value.push({ id: res.data.data.ID, name: res.data.data.FILE_NAME, size: file.size })
+      } catch (error) {
+        alert(`上传失败: ${file.name}`)
+      }
     }
-    if (file.size > 50 * 1024 * 1024) {
-      alert(`文件大小超过50MB限制: ${file.name}`)
-      continue
-    }
-    try {
-      const res = await uploadAttachment(form.ID, file)
-      uploadedFiles.value.push({ id: res.data.data.ID, name: res.data.data.FILE_NAME, size: file.size })
-    } catch (error) {
-      alert(`上传失败: ${file.name}`)
+  } else {
+    for (const file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        alert(`不支持的文件类型: ${file.name}`)
+        continue
+      }
+      if (file.size > 50 * 1024 * 1024) {
+        alert(`文件大小超过50MB限制: ${file.name}`)
+        continue
+      }
+      pendingFiles.value.push(file)
+      uploadedFiles.value.push({ id: null, name: file.name, size: file.size, fileObj: file })
     }
   }
+  
   uploading.value = false
 }
 
@@ -419,6 +461,10 @@ const removeFile = async (index) => {
   const file = uploadedFiles.value[index]
   if (!file.id) {
     uploadedFiles.value.splice(index, 1)
+    const pendingIndex = pendingFiles.value.indexOf(file.fileObj)
+    if (pendingIndex > -1) {
+      pendingFiles.value.splice(pendingIndex, 1)
+    }
     return
   }
   try {

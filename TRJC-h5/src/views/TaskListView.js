@@ -92,10 +92,7 @@ const TaskListView = {
     const fetchTasks = async () => {
       try {
         loading.value = true
-        // 从URL参数或localStorage获取当前用户ID，如果没有则使用默认值
-        const urlParams = new URLSearchParams(window.location.search);
-        const userId = urlParams.get('userId') || localStorage.getItem('currentUserId') || '1';
-        const res = await TRJC.api.getTaskList({ page: 1, size: 100, ryid: parseInt(userId) })
+        const res = await TRJC.api.getTaskList({ page: 1, size: 100 })
         if (res.data.code === 200) {
           allTasks.value = (res.data.data.list || []).map(mapTask)
         }
