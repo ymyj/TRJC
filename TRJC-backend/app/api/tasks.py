@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import func
+from sqlalchemy import func, case
 from typing import Optional, List
 from app.database import get_db
 from app.models import TaskInfo, TaskPlot, TaskPlotStatus, TaskAssign, PlotInfo, PersonInfo, SurveyRecord, SampleRecord, TaskAttachment
@@ -47,11 +47,18 @@ def get_task_list(
         base_query = base_query.filter(TaskInfo.CJSJ <= end_time)
 
     if ryid:
-        assigned_task_ids = db.query(TaskAssign.RWID).filter(
+        assigned_tasks = db.query(TaskAssign.RWID, TaskAssign.FPSJ).filter(
             TaskAssign.RYID == ryid,
             TaskAssign.SFSC == 0
-        ).subquery()
-        base_query = base_query.filter(TaskInfo.ID.in_(assigned_task_ids))
+        ).order_by(TaskAssign.FPSJ.desc()).all()
+        assigned_task_ids = [row[0] for row in assigned_tasks]
+        if assigned_task_ids:
+            base_query = base_query.filter(TaskInfo.ID.in_(assigned_task_ids))
+            ordered_ids = list(dict.fromkeys(assigned_task_ids))
+            case_stmt = case(*[(TaskInfo.ID == tid, idx) for idx, tid in enumerate(ordered_ids)], else_=len(ordered_ids))
+            base_query = base_query.order_by(case_stmt)
+        else:
+            base_query = base_query.filter(TaskInfo.ID == -1)
 
     query = base_query
     total = query.count()
@@ -59,7 +66,7 @@ def get_task_list(
 
     result = []
     for item in items:
-        assignees = db.query(TaskAssign).filter(TaskAssign.RWID == item.ID, TaskAssign.SFSC == 0).all()
+        assignees = db.query(TaskAssign.RYID).filter(TaskAssign.RWID == item.ID, TaskAssign.SFSC == 0).distinct().all()
         result.append({
             "ID": item.ID,
             "RWBH": item.RWBH,
@@ -76,12 +83,20 @@ def get_task_list(
 
 
 @router.get("/stats", response_model=dict)
-def get_task_stats(db: Session = Depends(get_db)):
-    total = db.query(TaskInfo).filter(TaskInfo.SFSC == 0).count()
-    draft = db.query(TaskInfo).filter(TaskInfo.SFSC == 0, TaskInfo.ZT == "draft").count()
-    pending = db.query(TaskInfo).filter(TaskInfo.SFSC == 0, TaskInfo.ZT == "pending").count()
-    processing = db.query(TaskInfo).filter(TaskInfo.SFSC == 0, TaskInfo.ZT == "processing").count()
-    completed = db.query(TaskInfo).filter(TaskInfo.SFSC == 0, TaskInfo.ZT == "completed").count()
+def get_task_stats(ryid: Optional[int] = Query(None), db: Session = Depends(get_db)):
+    base_query = db.query(TaskInfo).filter(TaskInfo.SFSC == 0)
+    if ryid:
+        assigned_task_ids = db.query(TaskAssign.RWID).filter(
+            TaskAssign.RYID == ryid,
+            TaskAssign.SFSC == 0
+        ).subquery()
+        base_query = base_query.filter(TaskInfo.ID.in_(assigned_task_ids))
+
+    total = base_query.count()
+    draft = base_query.filter(TaskInfo.ZT == "draft").count()
+    pending = base_query.filter(TaskInfo.ZT == "pending").count()
+    processing = base_query.filter(TaskInfo.ZT == "processing").count()
+    completed = base_query.filter(TaskInfo.ZT == "completed").count()
 
     return {"code": 200, "data": {"total": total, "draft": draft, "pending": pending, "processing": processing, "completed": completed}}
 
@@ -142,16 +157,46 @@ def publish_task(task_id: int, db: Session = Depends(get_db)):
     return {"code": 200, "msg": "发布成功"}
 
 
+@router.post("/{task_id}/plots/{plot_id}/assign", response_model=dict)
+def assign_plot(task_id: int, plot_id: int, personnel_ids: List[int], db: Session = Depends(get_db)):
+    task = db.query(TaskInfo).filter(TaskInfo.ID == task_id, TaskInfo.SFSC == 0).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="任务不存在")
+
+    task_plot = db.query(TaskPlot).filter(TaskPlot.RWID == task_id, TaskPlot.DKID == plot_id, TaskPlot.SFSC == 0).first()
+    if not task_plot:
+        raise HTTPException(status_code=404, detail="地块不在该任务中")
+
+    db.query(TaskAssign).filter(
+        TaskAssign.RWID == task_id,
+        TaskAssign.DKID == plot_id,
+        TaskAssign.SFSC == 0
+    ).update({"SFSC": 1})
+
+    for person_id in personnel_ids:
+        assign = TaskAssign(RWID=task_id, DKID=plot_id, RYID=person_id)
+        db.add(assign)
+
+    task.ZT = "processing"
+    db.commit()
+    return {"code": 200, "msg": "分配成功"}
+
+
 @router.post("/{task_id}/assign", response_model=dict)
 def assign_task(task_id: int, personnel_ids: List[int], db: Session = Depends(get_db)):
     task = db.query(TaskInfo).filter(TaskInfo.ID == task_id, TaskInfo.SFSC == 0).first()
     if not task:
         raise HTTPException(status_code=404, detail="任务不存在")
 
-    for person_id in personnel_ids:
-        existing = db.query(TaskAssign).filter(TaskAssign.RWID == task_id, TaskAssign.RYID == person_id, TaskAssign.SFSC == 0).first()
-        if not existing:
-            assign = TaskAssign(RWID=task_id, RYID=person_id)
+    plots = db.query(TaskPlot).filter(TaskPlot.RWID == task_id, TaskPlot.SFSC == 0).all()
+    for plot in plots:
+        db.query(TaskAssign).filter(
+            TaskAssign.RWID == task_id,
+            TaskAssign.DKID == plot.DKID,
+            TaskAssign.SFSC == 0
+        ).update({"SFSC": 1})
+        for person_id in personnel_ids:
+            assign = TaskAssign(RWID=task_id, DKID=plot.DKID, RYID=person_id)
             db.add(assign)
 
     task.ZT = "processing"
@@ -198,13 +243,23 @@ def delete_task(task_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/{task_id}", response_model=dict)
-def get_task_detail(task_id: int, db: Session = Depends(get_db)):
+def get_task_detail(task_id: int, ryid: Optional[int] = Query(None, description="按用户过滤地块"), db: Session = Depends(get_db)):
     item = db.query(TaskInfo).filter(TaskInfo.ID == task_id, TaskInfo.SFSC == 0).first()
     if not item:
         raise HTTPException(status_code=404, detail="任务不存在")
 
     plots = db.query(TaskPlot).filter(TaskPlot.RWID == task_id, TaskPlot.SFSC == 0).all()
     plot_ids = [p.DKID for p in plots]
+
+    if ryid:
+        assigned_plot_ids = db.query(TaskAssign.DKID).filter(
+            TaskAssign.RWID == task_id,
+            TaskAssign.RYID == ryid,
+            TaskAssign.SFSC == 0
+        ).all()
+        assigned_plot_ids = [row[0] for row in assigned_plot_ids]
+        plots = [p for p in plots if p.DKID in assigned_plot_ids]
+        plot_ids = assigned_plot_ids
 
     status_map = {s.DKID: s for s in db.query(TaskPlotStatus).filter(TaskPlotStatus.RWID == task_id, TaskPlotStatus.SFSC == 0).all()}
 
@@ -228,8 +283,14 @@ def get_task_detail(task_id: int, db: Session = Depends(get_db)):
                 "statusLabel": {"pending": "待领取", "sampling": "待采样", "transport": "待运输", "analysis": "待分析", "completed": "已完成"}.get(status_code, "待领取")
             })
 
-    assignees = db.query(TaskAssign).filter(TaskAssign.RWID == task_id, TaskAssign.SFSC == 0).all()
-    assignee_ids = [a.RYID for a in assignees]
+    plot_assignments = {}
+    for p in plot_objs:
+        assigns = db.query(TaskAssign).filter(
+            TaskAssign.RWID == task_id,
+            TaskAssign.DKID == p.ID,
+            TaskAssign.SFSC == 0
+        ).all()
+        plot_assignments[p.ID] = [a.RYID for a in assigns]
 
     contact = None
     if item.FZR:
@@ -263,7 +324,7 @@ def get_task_detail(task_id: int, db: Session = Depends(get_db)):
             "CJSJ": item.CJSJ.strftime("%Y-%m-%d %H:%M:%S") if item.CJSJ else None,
             "plot_ids": plot_ids,
             "plots": plot_details,
-            "assignee_ids": assignee_ids,
+            "plot_assignments": plot_assignments,
             "survey_id": survey.ID if survey else None,
             "sample_id": sample.ID if sample else None,
             "actual_start_time": earliest_survey_time.strftime("%Y-%m-%d %H:%M:%S") if earliest_survey_time else None

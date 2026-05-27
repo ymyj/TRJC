@@ -78,6 +78,7 @@ class TaskAssign(Base):
 
     ID = Column(Integer, primary_key=True, autoincrement=True, comment="主键")
     RWID = Column(Integer, comment="任务ID")
+    DKID = Column(Integer, comment="地块ID")
     RYID = Column(Integer, comment="人员ID")
     FPSJ = Column(DateTime, server_default=func.now(), comment="分配时间")
     SFSC = Column(TINYINT, default=0, comment="是否删除")

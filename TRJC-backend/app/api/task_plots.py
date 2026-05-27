@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from datetime import datetime
 from app.database import get_db
@@ -6,17 +6,31 @@ from app.models import TaskPlot, TaskPlotStatus, TaskInfo, PlotInfo, SurveyRecor
 from app.utils.crypto import decrypt_data
 from app.utils.task_helper import try_complete_task
 from app.utils.dataset_helper import _create_dataset_from_completed_plot
+from typing import Optional
 
 router = APIRouter(prefix="/api/tasks/{task_id}/plots", tags=["任务地块管理"])
 
 
 @router.get("", response_model=dict)
-def get_task_plots(task_id: int, db: Session = Depends(get_db)):
+def get_task_plots(task_id: int, ryid: Optional[int] = Query(None, description="按用户过滤地块"), db: Session = Depends(get_db)):
+    print(f"[DEBUG] get_task_plots: task_id={task_id}, ryid={ryid}")
     task = db.query(TaskInfo).filter(TaskInfo.ID == task_id, TaskInfo.SFSC == 0).first()
     if not task:
         raise HTTPException(status_code=404, detail="任务不存在")
 
     task_plots = db.query(TaskPlot).filter(TaskPlot.RWID == task_id, TaskPlot.SFSC == 0).all()
+    print(f"[DEBUG] task_plots count: {len(task_plots)}")
+
+    if ryid:
+        assigned_plot_ids = db.query(TaskAssign.DKID).filter(
+            TaskAssign.RWID == task_id,
+            TaskAssign.RYID == ryid,
+            TaskAssign.SFSC == 0
+        ).all()
+        assigned_plot_ids = set(row[0] for row in assigned_plot_ids)
+        print(f"[DEBUG] assigned_plot_ids for ryid={ryid}: {assigned_plot_ids}")
+        task_plots = [tp for tp in task_plots if tp.DKID in assigned_plot_ids]
+        print(f"[DEBUG] filtered task_plots count: {len(task_plots)}")
     status_map = {s.DKID: s for s in db.query(TaskPlotStatus).filter(TaskPlotStatus.RWID == task_id, TaskPlotStatus.SFSC == 0).all()}
 
     result = []
@@ -39,8 +53,12 @@ def get_task_plots(task_id: int, db: Session = Depends(get_db)):
         survey_record = db.query(SurveyRecord).filter(SurveyRecord.RWID == task_id, SurveyRecord.DKID == tp.DKID, SurveyRecord.SFSC == 0).first()
         sample_record = db.query(SampleRecord).filter(SampleRecord.RWID == task_id, SampleRecord.DKID == tp.DKID, SampleRecord.SFSC == 0).first()
 
-        # 从 TaskAssign 获取采样人员
-        assigns = db.query(TaskAssign).filter(TaskAssign.RWID == task_id, TaskAssign.SFSC == 0).all()
+        # 从 TaskAssign 获取采样人员（按地块过滤）
+        assigns = db.query(TaskAssign).filter(
+            TaskAssign.RWID == task_id,
+            TaskAssign.DKID == tp.DKID,
+            TaskAssign.SFSC == 0
+        ).all()
         samplers = []
         for a in assigns:
             person = db.query(PersonInfo).filter(PersonInfo.ID == a.RYID, PersonInfo.SFSC == 0).first()
@@ -97,7 +115,11 @@ def get_task_plot_detail(task_id: int, plot_id: int, db: Session = Depends(get_d
         "completed": "已完成"
     }
 
-    assigns = db.query(TaskAssign).filter(TaskAssign.RWID == task_id, TaskAssign.SFSC == 0).all()
+    assigns = db.query(TaskAssign).filter(
+        TaskAssign.RWID == task_id,
+        TaskAssign.DKID == plot_id,
+        TaskAssign.SFSC == 0
+    ).all()
     samplers = []
     for a in assigns:
         person = db.query(PersonInfo).filter(PersonInfo.ID == a.RYID, PersonInfo.SFSC == 0).first()
