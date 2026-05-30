@@ -99,7 +99,14 @@ router.beforeEach((to, from, next) => {
     }
   } else {
     if (token) {
-      next()
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+      if (userInfo.GW !== '项目经理') {
+        localStorage.removeItem('token')
+        localStorage.removeItem('userInfo')
+        next('/login')
+      } else {
+        next()
+      }
     } else {
       next('/login')
     }
