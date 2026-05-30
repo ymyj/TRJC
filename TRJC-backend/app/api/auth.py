@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
@@ -64,7 +64,7 @@ def get_current_user(
 
 
 @router.post("/login", response_model=dict)
-def login(request: LoginRequest, db: Session = Depends(get_db)):
+def login(login_data: LoginRequest, db: Session = Depends(get_db), request: Request = None):
     users = db.query(PersonInfo).filter(PersonInfo.SFSC == 0).all()
 
     user = None
@@ -72,7 +72,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         try:
             decrypted_username = decrypt_data(u.YHM) if u.YHM else None
             decrypted_phone = decrypt_data(u.LXFS) if u.LXFS else None
-            if decrypted_username == request.username or decrypted_phone == request.username:
+            if decrypted_username == login_data.username or decrypted_phone == login_data.username:
                 user = u
                 break
         except Exception:
@@ -84,8 +84,16 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     if not user.MM:
         raise HTTPException(status_code=401, detail="用户名或密码错误")
 
-    if not verify_password(request.password, user.MM):
+    if not verify_password(login_data.password, user.MM):
         raise HTTPException(status_code=401, detail="用户名或密码错误")
+
+    login_source = request.headers.get("X-Login-Source", "h5") if request else "h5"
+
+    if login_source == "web" and user.GW != "项目经理":
+        raise HTTPException(
+            status_code=403,
+            detail="仅项目经理可登录Web端，请使用移动端登录"
+        )
 
     token = create_access_token(data={"sub": str(user.ID)})
 
@@ -100,7 +108,8 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
                 "LXFS": decrypt_data(user.LXFS),
                 "GW": user.GW,
                 "SSQH": user.SSQH,
-                "SSBM": user.SSBM
+                "SSBM": user.SSBM,
+                "isAdmin": user.GW == "项目经理"
             }
         }
     }
