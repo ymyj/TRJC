@@ -40,3 +40,7 @@ export function getTaskPlots(taskId, ryid) {
   const params = ryid ? { ryid } : {};
   return api.get(`/api/tasks/${taskId}/plots`, { params });
 }
+
+export function updatePlotStatus(taskId, plotId, data) {
+  return api.post(`/api/tasks/${taskId}/plots/${plotId}/status`, data);
+}

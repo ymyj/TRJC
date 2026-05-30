@@ -62,6 +62,16 @@
           <span class="map-tip">点击【绘制围栏】在地图中绘制多边形区域，双击完成绘制。</span>
         </div>
         <div class="map-actions">
+          <div class="map-search-wrapper">
+            <input type="text" class="map-search-input" placeholder="请输入城市名进行定位" v-model="searchKeyword" @keyup.enter="handleSearch">
+            <button class="btn btn-search" @click="handleSearch">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              搜索
+            </button>
+          </div>
           <button class="btn btn-default" @click="clearDraw">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="3 6 5 6 21 6"></polyline>
@@ -104,6 +114,7 @@ import { createPlot } from '../api'
 const router = useRouter()
 const mapContainer = ref(null)
 const mapLoaded = ref(false)
+const searchKeyword = ref('')
 
 const form = reactive({
   plotNumber: '',
@@ -119,10 +130,50 @@ let polygonTool = null
 let currentPolygon = null
 let currentPoints = []
 
+const handleSearch = async () => {
+  if (!searchKeyword.value.trim()) {
+    alert('请输入要搜索的城市名称')
+    return
+  }
+  if (!map) {
+    alert('地图正在加载中，请稍后再试')
+    return
+  }
+  
+  const result = await searchPlace(searchKeyword.value.trim())
+  if (result) {
+    map.centerAndZoom(new T.LngLat(result.lng, result.lat), 10)
+  }
+}
+
+const searchPlace = async (keyword) => {
+  try {
+    const url = 'https://api.tianditu.gov.cn/geocoder?ds={"keyWord":"' + keyword + '"}&tk=d5cbd0c27896bb8f535dc57ecef2718c'
+    
+    const response = await fetch(url)
+    const data = await response.json()
+    
+    if (data.status === '0' && data.location) {
+      return {
+        lng: parseFloat(data.location.lon),
+        lat: parseFloat(data.location.lat),
+        name: keyword
+      }
+    } else {
+      alert(`未找到 "${keyword}" 相关地点，请尝试输入其他城市名称`)
+      return null
+    }
+  } catch (error) {
+    console.error('搜索请求失败:', error)
+    alert('搜索失败，请检查网络连接')
+    return null
+  }
+}
+
 const initMap = () => {
   if (typeof T === 'undefined') {
     const script = document.createElement('script')
-    script.src = 'https://api.tianditu.gov.cn/api?v=4.0&tk=174705aebfe31b79b3587279e211cb9a'
+    script.src = 'https://api.tianditu.gov.cn/api?v=4.0&tk=d5cbd0c27896bb8f535dc57ecef2718c'
     script.onload = () => {
       createMap()
     }
@@ -141,12 +192,12 @@ const createMap = () => {
     map = new T.Map('tianditu-map')
     map.centerAndZoom(new T.LngLat(116.4074, 39.9042), 12)
     const vecLayer = new T.TileLayer(
-      'https://t0.tianditu.gov.cn/vec_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=174705aebfe31b79b3587279e211cb9a',
+      'https://t0.tianditu.gov.cn/vec_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=d5cbd0c27896bb8f535dc57ecef2718c',
       { minZoom: 1, maxZoom: 18 }
     )
     map.addLayer(vecLayer)
     const cvaLayer = new T.TileLayer(
-      'https://t0.tianditu.gov.cn/cva_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=174705aebfe31b79b3587279e211cb9a',
+      'https://t0.tianditu.gov.cn/cva_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=d5cbd0c27896bb8f535dc57ecef2718c',
       { minZoom: 1, maxZoom: 18 }
     )
     map.addLayer(cvaLayer)
@@ -459,6 +510,59 @@ onUnmounted(() => {
 .map-actions {
   display: flex;
   gap: 12px;
+  align-items: center;
+}
+
+.map-search-wrapper {
+  display: flex;
+  gap: 8px;
+}
+
+.map-search-input {
+  width: 220px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #262626;
+  background-color: #fff;
+  transition: all 0.3s;
+}
+
+.map-search-input:hover {
+  border-color: #4096ff;
+}
+
+.map-search-input:focus {
+  outline: none;
+  border-color: #1677ff;
+  box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.1);
+}
+
+.map-search-input::placeholder {
+  color: #bfbfbf;
+}
+
+.btn-search {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 1px solid #1677ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-color: #fff;
+  color: #1677ff;
+}
+
+.btn-search:hover {
+  background-color: #1677ff;
+  color: #fff;
 }
 
 .map-container {

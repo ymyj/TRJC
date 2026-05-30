@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 from typing import Optional
 from app.database import get_db
-from app.models import PlotInfo, PersonInfo
+from app.models import PlotInfo, PersonInfo, TaskAssign, TaskPlot, TaskInfo, TaskPlotStatus
 from app.schemas.plot import PlotInfoCreate, PlotInfoUpdate, PlotInfoResponse, PlotOptionResponse
 from app.utils.crypto import decrypt_data
 
@@ -17,7 +17,7 @@ def get_plot_list(
     ssqh: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
-    query = db.query(PlotInfo).filter(PlotInfo.SFSC == 0)
+    query = db.query(PlotInfo).filter(PlotInfo.SFSC == 0).order_by(PlotInfo.CJSJ.desc())
 
     if keyword:
         query = query.filter(PlotInfo.TBH.like(f"%{keyword}%"))
@@ -106,7 +106,7 @@ def delete_plot(plot_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/{plot_id}", response_model=dict)
-def get_plot_detail(plot_id: int, db: Session = Depends(get_db)):
+def get_plot_detail(plot_id: int, ryid: Optional[int] = Query(None, description="人员 ID"), task_id: Optional[int] = Query(None, description="任务 ID"), db: Session = Depends(get_db)):
     item = db.query(PlotInfo).filter(PlotInfo.ID == plot_id, PlotInfo.SFSC == 0).first()
     if not item:
         raise HTTPException(status_code=404, detail="地块不存在")
@@ -116,6 +116,77 @@ def get_plot_detail(plot_id: int, db: Session = Depends(get_db)):
         person = db.query(PersonInfo).filter(PersonInfo.ID == item.CJR, PersonInfo.SFSC == 0).first()
         if person:
             creator_name = decrypt_data(person.XM)
+
+    # 获取采样人员（只显示第一个）
+    assigns = db.query(TaskAssign).filter(
+        TaskAssign.DKID == plot_id,
+        TaskAssign.SFSC == 0
+    ).all()
+    sampler_name = ""
+    if assigns:
+        person = db.query(PersonInfo).filter(PersonInfo.ID == assigns[0].RYID, PersonInfo.SFSC == 0).first()
+        if person:
+            sampler_name = decrypt_data(person.XM)
+
+    # 获取任务名称和状态（优先使用传入的 task_id）
+    task_name = ""
+    status = "pending"
+    status_label = "待领取"
+    
+    if task_id:
+        # 如果传入了 task_id，直接使用该任务
+        task_plot = db.query(TaskPlot).filter(
+            TaskPlot.RWID == task_id,
+            TaskPlot.DKID == plot_id,
+            TaskPlot.SFSC == 0
+        ).first()
+        if task_plot:
+            task = db.query(TaskInfo).filter(TaskInfo.ID == task_id, TaskInfo.SFSC == 0).first()
+            if task:
+                task_name = task.RWMC
+            
+            task_plot_status = db.query(TaskPlotStatus).filter(
+                TaskPlotStatus.RWID == task_id,
+                TaskPlotStatus.DKID == plot_id,
+                TaskPlotStatus.SFSC == 0
+            ).first()
+            if task_plot_status:
+                status = task_plot_status.ZT
+                status_map = {
+                    "pending": "待领取",
+                    "sampling": "待采样",
+                    "transport": "待运输",
+                    "analysis": "待分析",
+                    "completed": "已完成"
+                }
+                status_label = status_map.get(status, "待领取")
+    else:
+        # 未传入 task_id，查询第一个任务
+        task_plots = db.query(TaskPlot).filter(
+            TaskPlot.DKID == plot_id,
+            TaskPlot.SFSC == 0
+        ).all()
+        task_plot = task_plots[0] if task_plots else None
+        if task_plot:
+            task = db.query(TaskInfo).filter(TaskInfo.ID == task_plot.RWID, TaskInfo.SFSC == 0).first()
+            if task:
+                task_name = task.RWMC
+            
+            task_plot_status = db.query(TaskPlotStatus).filter(
+                TaskPlotStatus.RWID == task_plot.RWID,
+                TaskPlotStatus.DKID == plot_id,
+                TaskPlotStatus.SFSC == 0
+            ).first()
+            if task_plot_status:
+                status = task_plot_status.ZT
+                status_map = {
+                    "pending": "待领取",
+                    "sampling": "待采样",
+                    "transport": "待运输",
+                    "analysis": "待分析",
+                    "completed": "已完成"
+                }
+                status_label = status_map.get(status, "待领取")
 
     return {
         "code": 200,
@@ -129,6 +200,10 @@ def get_plot_detail(plot_id: int, db: Session = Depends(get_db)):
             "WD": float(item.WD) if item.WD else None,
             "WLZB": item.WLZB,
             "CJSJ": item.CJSJ,
-            "CJR": creator_name
+            "CJR": creator_name,
+            "samplerNames": sampler_name,
+            "taskName": task_name,
+            "status": status,
+            "statusLabel": status_label
         }
     }

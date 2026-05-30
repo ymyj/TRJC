@@ -12,6 +12,17 @@ WHITELIST = [
     "/health",
 ]
 
+# 支持带前缀的路径（如 /trjcai/api/auth/login）
+WHITELIST_PREFIXES = ["/trjcai"]
+
+def _get_whitelist_patterns():
+    """生成所有可能的白名单路径模式"""
+    patterns = list(WHITELIST)
+    for prefix in WHITELIST_PREFIXES:
+        for path in WHITELIST:
+            patterns.append(f"{prefix}{path}")
+    return patterns
+
 
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -41,4 +52,5 @@ class AuthMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
     def _is_whitelisted(self, path: str) -> bool:
-        return any(path.startswith(prefix) for prefix in WHITELIST)
+        patterns = _get_whitelist_patterns()
+        return any(path.startswith(prefix) for prefix in patterns)

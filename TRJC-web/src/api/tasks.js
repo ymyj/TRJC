@@ -53,5 +53,5 @@ export function deleteAttachment(attachmentId) {
 }
 
 export function downloadAttachment(attachmentId) {
-  return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/attachments/${attachmentId}/download`
+  return `${import.meta.env.VITE_API_BASE_URL || 'https://xx7x.star7.cn:8090/trjcai/'}/api/attachments/${attachmentId}/download`
 }

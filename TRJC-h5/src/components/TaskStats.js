@@ -7,20 +7,29 @@ const TaskStats = {
     }
   },
   template: `
-    <div class="task-stats-card animate-fade-in">
-      <div class="stats-title">今日任务统计</div>
+    <div class="task-stats-section">
+      <div class="section-label">
+        <span class="label-bar"></span>
+        <span class="label-text">今日任务统计</span>
+      </div>
       <div class="stats-grid">
-        <div class="stat-item" @click="onStatClick('pending')">
-          <div class="stat-number" style="color: var(--pending-color)">{{ stats.pending }}</div>
-          <div class="stat-label">待执行任务</div>
+        <div class="stat-card stat-card-inprogress" @click="onStatClick('in_progress')">
+          <div class="stat-icon-wrapper">
+            <van-icon name="replay" size="20" color="#4A90E2" />
+          </div>
+          <div class="stat-content">
+            <span class="stat-title">进行中</span>
+            <span class="stat-value">{{ stats.inProgress }}</span>
+          </div>
         </div>
-        <div class="stat-item" @click="onStatClick('completed')">
-          <div class="stat-number" style="color: var(--completed-color)">{{ stats.completed }}</div>
-          <div class="stat-label">已完成任务</div>
-        </div>
-        <div class="stat-item" @click="onStatClick('toSubmit')">
-          <div class="stat-number" style="color: var(--to-submit-color)">{{ stats.toSubmit }}</div>
-          <div class="stat-label">待提交数据</div>
+        <div class="stat-card stat-card-completed" @click="onStatClick('completed')">
+          <div class="stat-icon-wrapper">
+            <van-icon name="checked" size="20" color="#34C759" />
+          </div>
+          <div class="stat-content">
+            <span class="stat-title">已完成</span>
+            <span class="stat-value">{{ stats.completed }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -35,52 +44,91 @@ const TaskStats = {
 };
 
 const TaskStatsStyle = `
-.task-stats-card {
-  background: var(--card-bg);
-  border-radius: var(--radius-md);
-  margin: 12px 16px;
-  padding: 16px;
-  box-shadow: var(--shadow-sm);
+.task-stats-section {
+  margin: 0 16px 16px;
 }
 
-.stats-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 16px;
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.label-bar {
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  background: #4A90E2;
+}
+
+.label-text {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1A1A1A;
 }
 
 .stats-grid {
-  display: flex;
-  justify-content: space-around;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
 
-.stat-item {
-  flex: 1;
-  text-align: center;
-  padding: 16px 8px;
-  background: #FAFAFA;
-  border-radius: var(--radius-sm);
+.stat-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 12px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
-.stat-item:active {
+.stat-card:active {
   transform: scale(0.98);
-  background: #F0F0F0;
 }
 
-.stat-number {
-  font-size: 32px;
+.stat-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-card-pending .stat-icon-wrapper {
+  background: #FFF3E0;
+}
+
+.stat-card-completed .stat-icon-wrapper {
+  background: #E8F5E9;
+}
+
+.stat-card-submit .stat-icon-wrapper {
+  background: #FFEBEE;
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.stat-title {
+  font-size: 12px;
+  color: #999;
+}
+
+.stat-value {
+  font-size: 24px;
   font-weight: 700;
-  line-height: 1;
-  margin-bottom: 8px;
-}
-
-.stat-label {
-  font-size: 13px;
-  color: var(--text-secondary);
+  color: #1A1A1A;
+  line-height: 1.1;
 }
 `;
 

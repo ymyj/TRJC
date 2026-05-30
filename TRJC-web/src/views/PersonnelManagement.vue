@@ -125,6 +125,23 @@
         <div class="modal-body">
           <div class="form-row">
             <div class="form-item">
+              <label class="form-label">用户名<span class="required">*</span></label>
+              <input type="text" class="form-input" placeholder="请输入用户名" v-model="form.YHM">
+            </div>
+            <div class="form-item">
+              <label class="form-label">密码<span class="required" v-if="!isEdit">*</span></label>
+              <input 
+                type="password" 
+                class="form-input" 
+                :placeholder="isEdit ? '' : '请输入密码'" 
+                v-model="passwordDisplay"
+                @input="onPasswordInput"
+                @focus="onPasswordFocus"
+              >
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-item">
               <label class="form-label">姓名<span class="required">*</span></label>
               <input type="text" class="form-input" placeholder="请输入姓名" v-model="form.XM">
             </div>
@@ -195,9 +212,13 @@ const personList = ref([])
 const showModal = ref(false)
 const isEdit = ref(false)
 const editId = ref(null)
+const passwordDisplay = ref('')
+
 const form = reactive({
+  YHM: '',
   XM: '',
   LXFS: '',
+  password: '',
   GW: '',
   SSQH: '',
   SSBM: '',
@@ -278,22 +299,48 @@ const closeModal = () => {
 }
 
 const resetForm = () => {
+  form.YHM = ''
   form.XM = ''
   form.LXFS = ''
+  form.password = ''
   form.GW = ''
   form.SSQH = ''
   form.SSBM = ''
   form.RYZT = 'active'
+  passwordDisplay.value = ''
+}
+
+const onPasswordFocus = (e) => {
+  if (isEdit.value && passwordDisplay.value === '********') {
+    e.target.select()
+  }
+}
+
+const onPasswordInput = () => {
+  if (isEdit.value && passwordDisplay.value === '********') {
+    passwordDisplay.value = ''
+    form.password = ''
+    return
+  }
+  form.password = passwordDisplay.value
 }
 
 const confirmSubmit = async () => {
-  if (!form.XM || !form.LXFS) {
-    alert('请填写必填项')
+  if (!form.XM || !form.LXFS || !form.YHM) {
+    alert('请填写必填项（用户名、姓名、联系方式）')
+    return
+  }
+  if (!isEdit.value && !form.password) {
+    alert('请填写密码')
     return
   }
   try {
     if (isEdit.value) {
-      await updatePersonnel(editId.value, form)
+      const submitData = { ...form }
+      if (!passwordDisplay.value) {
+        delete submitData.password
+      }
+      await updatePersonnel(editId.value, submitData)
       alert('更新成功')
     } else {
       await createPersonnel(form)
@@ -314,8 +361,11 @@ const handleEdit = async (person) => {
       const data = res.data.data
       isEdit.value = true
       editId.value = person.ID
+      form.YHM = data.YHM || ''
       form.XM = data.XM || ''
       form.LXFS = data.LXFS || ''
+      form.password = ''
+      passwordDisplay.value = '********'
       form.GW = data.GW || ''
       form.SSQH = data.SSQH || ''
       form.SSBM = data.SSBM || ''

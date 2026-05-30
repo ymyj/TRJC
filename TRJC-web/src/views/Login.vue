@@ -8,12 +8,12 @@
 
       <form class="login-form" @submit.prevent="handleLogin">
         <div class="form-group">
-          <label class="form-label">手机号</label>
+          <label class="form-label">用户名</label>
           <input
             type="text"
             class="form-input"
             v-model="form.username"
-            placeholder="请输入手机号"
+            placeholder="请输入用户名"
             required
           >
         </div>
@@ -37,7 +37,6 @@
       </form>
 
       <div class="login-footer">
-        <p>默认密码: 123456</p>
       </div>
     </div>
   </div>
@@ -60,7 +59,7 @@ const errorMsg = ref('')
 
 const handleLogin = async () => {
   if (!form.username || !form.password) {
-    errorMsg.value = '请填写手机号和密码'
+    errorMsg.value = '请填写用户名和密码'
     return
   }
 

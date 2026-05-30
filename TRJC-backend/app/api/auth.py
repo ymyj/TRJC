@@ -66,12 +66,13 @@ def get_current_user(
 @router.post("/login", response_model=dict)
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     users = db.query(PersonInfo).filter(PersonInfo.SFSC == 0).all()
-    
+
     user = None
     for u in users:
         try:
-            decrypted_phone = decrypt_data(u.LXFS)
-            if decrypted_phone == request.username:
+            decrypted_username = decrypt_data(u.YHM) if u.YHM else None
+            decrypted_phone = decrypt_data(u.LXFS) if u.LXFS else None
+            if decrypted_username == request.username or decrypted_phone == request.username:
                 user = u
                 break
         except Exception:
@@ -80,7 +81,8 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=401, detail="用户名或密码错误")
 
-    decrypted_phone = decrypt_data(user.LXFS)
+    if not user.MM:
+        raise HTTPException(status_code=401, detail="用户名或密码错误")
 
     if not verify_password(request.password, user.MM):
         raise HTTPException(status_code=401, detail="用户名或密码错误")
@@ -95,7 +97,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
             "user": {
                 "ID": user.ID,
                 "XM": decrypt_data(user.XM),
-                "LXFS": decrypted_phone,
+                "LXFS": decrypt_data(user.LXFS),
                 "GW": user.GW,
                 "SSQH": user.SSQH,
                 "SSBM": user.SSBM

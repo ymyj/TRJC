@@ -7,6 +7,7 @@ class PersonInfo(Base):
     __tablename__ = "person_info"
 
     ID = Column(Integer, primary_key=True, autoincrement=True, comment="主键")
+    YHM = Column(String(100), comment="用户名-加密存储")
     XM = Column(String(200), comment="姓名-加密存储")
     LXFS = Column(String(200), comment="联系方式-加密存储")
     MM = Column(String(200), comment="密码-bcrypt加密存储")

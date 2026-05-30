@@ -4,7 +4,7 @@ from typing import Optional
 from app.database import get_db
 from app.models import PersonInfo
 from app.schemas.personnel import PersonInfoCreate, PersonInfoUpdate, PersonInfoResponse, PersonInfoListResponse
-from app.utils.crypto import encrypt_data, decrypt_data, mask_name, mask_phone
+from app.utils.crypto import encrypt_data, decrypt_data, mask_phone, hash_password
 
 router = APIRouter(prefix="/api/personnel", tags=["人员管理"])
 
@@ -19,7 +19,10 @@ def get_personnel_list(
     ryzt: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
-    query = db.query(PersonInfo).filter(PersonInfo.SFSC == 0)
+    query = db.query(PersonInfo).filter(PersonInfo.SFSC == 0).order_by(PersonInfo.CJSJ.desc())
+
+    if keyword:
+        query = query.filter(PersonInfo.XM.contains(keyword))
 
     if gw:
         query = query.filter(PersonInfo.GW == gw)
@@ -31,15 +34,11 @@ def get_personnel_list(
     total = query.count()
     items = query.offset((page - 1) * size).limit(size).all()
 
-    if keyword:
-        items = [item for item in items if keyword in decrypt_data(item.XM)]
-        total = len(items)
-
     result = []
     for item in items:
         item_dict = {
             "ID": item.ID,
-            "XM": mask_name(decrypt_data(item.XM)),
+            "XM": item.XM,
             "LXFS": mask_phone(decrypt_data(item.LXFS)),
             "GW": item.GW,
             "SSQH": item.SSQH,
@@ -55,7 +54,7 @@ def get_personnel_list(
 @router.get("/options", response_model=dict)
 def get_personnel_options(db: Session = Depends(get_db)):
     items = db.query(PersonInfo).filter(PersonInfo.SFSC == 0, PersonInfo.RYZT == "active").all()
-    result = [{"ID": item.ID, "XM": decrypt_data(item.XM), "GW": item.GW, "SSQH": item.SSQH} for item in items]
+    result = [{"ID": item.ID, "XM": item.XM, "GW": item.GW, "SSQH": item.SSQH} for item in items]
     return {"code": 200, "data": result}
 
 
@@ -74,7 +73,7 @@ def get_personnel_for_assignment(
     for item in items:
         item_dict = {
             "ID": item.ID,
-            "XM": decrypt_data(item.XM),
+            "XM": item.XM,
             "LXFS": decrypt_data(item.LXFS),
             "GW": item.GW,
             "SSQH": item.SSQH,
@@ -88,8 +87,10 @@ def get_personnel_for_assignment(
 @router.post("", response_model=dict)
 def create_personnel(data: PersonInfoCreate, db: Session = Depends(get_db)):
     db_item = PersonInfo(
-        XM=encrypt_data(data.XM),
+        YHM=encrypt_data(data.YHM) if data.YHM else None,
+        XM=data.XM,
         LXFS=encrypt_data(data.LXFS),
+        MM=hash_password(data.password) if data.password else None,
         GW=data.GW,
         SSQH=data.SSQH,
         SSBM=data.SSBM,
@@ -107,10 +108,14 @@ def update_personnel(person_id: int, data: PersonInfoUpdate, db: Session = Depen
     if not item:
         raise HTTPException(status_code=404, detail="人员不存在")
 
+    if data.YHM is not None:
+        item.YHM = encrypt_data(data.YHM)
     if data.XM is not None:
-        item.XM = encrypt_data(data.XM)
+        item.XM = data.XM
     if data.LXFS is not None:
         item.LXFS = encrypt_data(data.LXFS)
+    if data.password is not None:
+        item.MM = hash_password(data.password)
     if data.GW is not None:
         item.GW = data.GW
     if data.SSQH is not None:
@@ -145,7 +150,8 @@ def get_personnel_detail(person_id: int, db: Session = Depends(get_db)):
         "code": 200,
         "data": {
             "ID": item.ID,
-            "XM": decrypt_data(item.XM),
+            "YHM": decrypt_data(item.YHM) if item.YHM else "",
+            "XM": item.XM,
             "LXFS": decrypt_data(item.LXFS),
             "GW": item.GW,
             "SSQH": item.SSQH,

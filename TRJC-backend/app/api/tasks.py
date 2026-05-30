@@ -59,6 +59,8 @@ def get_task_list(
             base_query = base_query.order_by(case_stmt)
         else:
             base_query = base_query.filter(TaskInfo.ID == -1)
+    else:
+        base_query = base_query.order_by(TaskInfo.CJSJ.desc())
 
     query = base_query
     total = query.count()

@@ -123,13 +123,13 @@ const fetchPlotDetail = async () => {
         createTime: data.CJSJ,
         creator: data.CJR
       })
-      if (data.fence_points && data.fence_points.length > 0) {
+      if (data.WLZB && data.WLZB.length > 0) {
         fencePoints.length = 0
-        data.fence_points.forEach(point => {
+        data.WLZB.forEach(point => {
           fencePoints.push({ lng: point.lng, lat: point.lat })
         })
       }
-      initMap()
+      createMap()
     }
   } catch (error) {
     console.error('获取图斑详情失败:', error)
@@ -138,39 +138,12 @@ const fetchPlotDetail = async () => {
 
 const fencePoints = []
 
-const initMap = () => {
-  if (typeof T === 'undefined') {
-    const script = document.createElement('script')
-    script.src = 'https://api.tianditu.gov.cn/api?v=4.0&tk=174705aebfe31b79b3587279e211cb9a'
-    script.onload = () => {
-      createMap()
-    }
-    script.onerror = () => {
-      console.error('天地图加载失败')
-      showFallbackMap()
-    }
-    document.head.appendChild(script)
-  } else {
-    createMap()
-  }
-}
-
 const createMap = () => {
   try {
     map = new T.Map('tianditu-map-detail')
     const centerLng = parseFloat(form.longitude)
     const centerLat = parseFloat(form.latitude)
     map.centerAndZoom(new T.LngLat(centerLng, centerLat), 15)
-    const vecLayer = new T.TileLayer(
-      'https://t0.tianditu.gov.cn/vec_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=174705aebfe31b79b3587279e211cb9a',
-      { minZoom: 1, maxZoom: 18 }
-    )
-    map.addLayer(vecLayer)
-    const cvaLayer = new T.TileLayer(
-      'https://t0.tianditu.gov.cn/cva_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=174705aebfe31b79b3587279e211cb9a',
-      { minZoom: 1, maxZoom: 18 }
-    )
-    map.addLayer(cvaLayer)
     map.addControl(new T.Control.Zoom())
     map.addControl(new T.Control.Scale())
     drawFence()

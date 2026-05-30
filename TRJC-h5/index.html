@@ -15,7 +15,7 @@
     
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background-color: #F5F5F5;
+      background-color: #F5F8FF;
       -webkit-font-smoothing: antialiased;
     }
     
@@ -30,9 +30,9 @@
       --completed-color: #34C759;
       --in-progress-color: #007AFF;
       --to-submit-color: #FF3B30;
-      --bg-color: #F5F5F5;
+      --bg-color: #F5F8FF;
       --card-bg: #FFFFFF;
-      --header-bg: linear-gradient(135deg, #5B9FE8 0%, #4A90E2 50%, #3D7FD4 100%);
+      --header-bg: linear-gradient(135deg, #5B9FE8 0%, #4A90E2 100%);
       --text-primary: #333333;
       --text-secondary: #666666;
       --text-tertiary: #999999;
@@ -95,30 +95,30 @@
     .status-tag {
       display: inline-flex;
       align-items: center;
-      padding: 4px 10px;
-      border-radius: 4px;
+      padding: 4px 12px;
+      border-radius: 12px;
       font-size: 12px;
       font-weight: 500;
     }
 
     .status-pending {
-      color: var(--pending-color);
-      background-color: rgba(255, 149, 0, 0.1);
+      color: #FF9500;
+      background-color: rgba(255, 149, 0, 0.12);
     }
 
     .status-completed {
-      color: var(--completed-color);
-      background-color: rgba(52, 199, 89, 0.1);
+      color: #34C759;
+      background-color: rgba(52, 199, 89, 0.12);
     }
 
     .status-in-progress {
-      color: var(--in-progress-color);
-      background-color: rgba(0, 122, 255, 0.1);
+      color: #4A90E2;
+      background-color: rgba(74, 144, 226, 0.12);
     }
 
     .status-to-submit {
-      color: var(--to-submit-color);
-      background-color: rgba(255, 59, 48, 0.1);
+      color: #FF3B30;
+      background-color: rgba(255, 59, 48, 0.12);
     }
 
     /* 地块状态标签样式 */
@@ -158,81 +158,54 @@
 
     /* UserHeader 样式 */
     .user-header {
-      background: var(--header-bg);
-      padding: 20px 16px;
+      background: linear-gradient(135deg, #5B9FE8 0%, #4A90E2 100%);
+      padding: 12px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-radius: 0 0 20px 20px;
     }
 
-    .user-info {
+    .user-header-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .user-header-left {
       display: flex;
       align-items: center;
       gap: 12px;
     }
 
-    .avatar {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      overflow: hidden;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      flex-shrink: 0;
-    }
-
-    .avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .user-details {
+    .menu-icon {
+      width: 24px;
+      height: 24px;
       display: flex;
       flex-direction: column;
+      justify-content: center;
       gap: 4px;
+      cursor: pointer;
     }
 
-    .user-name-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .menu-icon span {
+      display: block;
+      height: 2px;
+      background: #fff;
+      border-radius: 2px;
     }
 
-    .user-name {
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--text-white);
-    }
-
-    .online-dot {
-      width: 10px;
-      height: 10px;
-      background-color: #4CD964;
+    .user-avatar-circle {
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-    }
-
-    .user-role {
-      font-size: 14px;
-      color: rgba(255, 255, 255, 0.85);
-    }
-
-    .settings-btn {
-      width: 40px;
-      height: 40px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
       display: flex;
       align-items: center;
       justify-content: center;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .settings-btn:active {
-      transform: scale(0.95);
-      background: rgba(255, 255, 255, 0.3);
     }
 
     /* TaskStats 样式 */
@@ -244,44 +217,54 @@
       box-shadow: var(--shadow-sm);
     }
 
-    .stats-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 16px;
-    }
-
     .stats-grid {
-      display: flex;
-      justify-content: space-around;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
       gap: 12px;
     }
 
     .stat-item {
-      flex: 1;
-      text-align: center;
-      padding: 16px 8px;
-      background: #FAFAFA;
-      border-radius: var(--radius-sm);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 12px;
+      background: #F8FAFF;
+      border-radius: var(--radius-md);
       cursor: pointer;
       transition: all 0.3s ease;
     }
 
     .stat-item:active {
       transform: scale(0.98);
-      background: #F0F0F0;
+      background: #EFF4FF;
     }
 
-    .stat-number {
-      font-size: 32px;
-      font-weight: 700;
-      line-height: 1;
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       margin-bottom: 8px;
     }
 
+    .stat-number {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
     .stat-label {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--text-secondary);
+    }
+
+    .stat-subtitle {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      margin-top: 2px;
     }
 
     /* TaskItem 样式 */
@@ -290,7 +273,8 @@
       border-radius: var(--radius-md);
       padding: 16px;
       margin-bottom: 12px;
-      box-shadow: var(--shadow-sm);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      border-left: 4px solid #4A90E2;
       cursor: pointer;
       transition: all 0.3s ease;
       opacity: 0;
@@ -301,11 +285,28 @@
       box-shadow: var(--shadow-md);
     }
 
+    .task-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .task-item-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text-primary);
+      flex: 1;
+      line-height: 1.4;
+      margin-right: 12px;
+    }
+
     .task-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
     }
 
     .task-title {
@@ -314,6 +315,262 @@
       color: var(--text-primary);
       flex: 1;
       line-height: 1.4;
+      margin-right: 8px;
+    }
+
+    .task-info-grid, .task-info-grid-2x2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .task-info-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .task-info-icon {
+      color: #4A90E2;
+      font-size: 16px;
+    }
+
+    .task-info-content {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .task-info-label {
+      font-size: 11px;
+      color: var(--text-tertiary);
+    }
+
+    .task-info-value {
+      font-size: 13px;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .task-info-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .task-info-icon-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .task-info-block-label {
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+
+    .task-info-block-value {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      line-height: 1.4;
+    }
+
+    /* HomeTaskItem 首页任务卡片样式 */
+    .home-task-item {
+      display: flex;
+      align-items: stretch;
+      background: var(--card-bg);
+      border-radius: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+
+    .home-task-item:active {
+      transform: scale(0.99);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    .home-task-left-accent {
+      width: 4px;
+      background: #4A90E2;
+      flex-shrink: 0;
+      border-radius: 2px 0 0 2px;
+    }
+
+    .home-task-completed {
+      border-left: none;
+    }
+
+    .home-task-body {
+      flex: 1;
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .home-task-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .home-task-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text-primary);
+      flex: 1;
+      margin-right: 12px;
+    }
+
+    .home-status-tag {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .home-tag-progress {
+      background: rgba(74, 144, 226, 0.1);
+      color: #4A90E2;
+    }
+
+    .home-tag-completed {
+      background: rgba(52, 199, 89, 0.1);
+      color: #34C759;
+    }
+
+    .home-task-info-simple {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .home-task-info-full {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .home-info-row {
+      display: flex;
+      gap: 20px;
+    }
+
+    .home-info-item {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .home-info-content {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .home-info-label {
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+
+    .home-info-value {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      line-height: 1.4;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .home-action-btn-row {
+      padding-top: 12px;
+      border-top: 1px solid #F0F4FF;
+      margin-top: 4px;
+    }
+
+    .home-detail-btn {
+      width: 100%;
+      height: 40px;
+      border: none;
+      border-radius: 20px;
+      background: #F5F8FF;
+      color: #4A90E2;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .home-detail-btn:active {
+      background: #E8F0FE;
+    }
+
+    .home-arrow-icon {
+      flex-shrink: 0;
+      margin-right: 16px;
+      align-self: center;
+      color: var(--text-tertiary);
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .task-action-btn-row {
+      padding-top: 12px;
+      border-top: 1px solid #F0F4FF;
+    }
+
+    .task-detail-btn {
+      width: 100%;
+      height: 40px;
+      border: none;
+      border-radius: 20px;
+      background: #F5F8FF;
+      color: #4A90E2;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .task-detail-btn:active {
+      background: #E8F0FE;
+    }
+
+    .task-action-btn {
+      flex: 1;
+      height: 36px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .task-action-btn.primary {
+      background: #4A90E2;
+      color: #fff;
+    }
+
+    .task-action-btn.secondary {
+      background: #F5F8FF;
+      color: #4A90E2;
+    }
+
+    .task-action-btn:active {
+      opacity: 0.9;
+      transform: scale(0.98);
     }
 
     .task-meta {
@@ -363,6 +620,189 @@
       padding-bottom: 20px;
     }
 
+    .top-banner {
+      background: linear-gradient(135deg, #5B9FE8 0%, #4A90E2 50%, #3A7FD4 100%);
+      position: relative;
+      overflow: hidden;
+      padding: 16px;
+      padding-bottom: 40px;
+    }
+
+    .top-banner::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 24px;
+      background: var(--bg-color);
+      border-radius: 24px 24px 0 0;
+    }
+
+    .top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 1;
+    }
+
+    .nav-left {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .nav-right {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-right .user-avatar-circle {
+      background: rgba(255, 255, 255, 0.85);
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .welcome-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 1;
+      margin-top: 16px;
+    }
+
+    .welcome-content {
+      flex: 1;
+    }
+
+    .welcome-greeting {
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .welcome-sub {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .welcome-illustration {
+      flex-shrink: 0;
+      opacity: 0.5;
+    }
+
+    /* 统计卡片 */
+    .stats-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      margin: -16px 16px 12px;
+      padding: 0;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      position: relative;
+      z-index: 1;
+    }
+
+    .stats-inner {
+      display: flex;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .stat-block {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex: 1;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 12px;
+      transition: background 0.2s ease;
+    }
+
+    .stat-block:active {
+      background: #F8FAFF;
+    }
+
+    .stat-icon-block {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .stat-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .stat-num {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .stat-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .stat-desc {
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+
+    .stats-divider {
+      width: 1px;
+      height: 50px;
+      background: #EEEEEE;
+      flex-shrink: 0;
+    }
+
+    /* 通知栏 */
+    .notice-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin: 0 16px 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .notice-text {
+      flex: 1;
+      font-size: 13px;
+      color: #666;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     .task-list-section {
       margin: 0 16px;
     }
@@ -375,14 +815,27 @@
       padding-top: 8px;
     }
 
-    .section-title {
-      font-size: 17px;
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-label-bar {
+      width: 4px;
+      height: 18px;
+      background: #4A90E2;
+      border-radius: 2px;
+    }
+
+    .section-label-text {
+      font-size: 16px;
       font-weight: 600;
       color: var(--text-primary);
     }
 
     .view-all {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--primary-color);
       cursor: pointer;
     }
@@ -397,6 +850,42 @@
       min-height: 100vh;
       background-color: var(--bg-color);
       padding-bottom: 20px;
+    }
+
+    .task-list-view-header {
+      background: linear-gradient(135deg, #5B9FE8 0%, #4A90E2 100%);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+    }
+
+    .header-back {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      cursor: pointer;
+      margin-right: 12px;
+    }
+
+    .header-back:active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .header-title {
+      flex: 1;
+      text-align: center;
+      margin-right: 36px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .task-count {
+      font-size: 12px;
+      color: var(--text-tertiary);
     }
 
     .search-bar {
@@ -1875,29 +2364,50 @@
       /* Login Page 样式 */
       .login-page {
         min-height: 100vh;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #F5F8FF;
         display: flex;
         flex-direction: column;
         align-items: center;
+        padding: 0;
+      }
+
+      .login-top-bar {
+        width: 100%;
+        height: 240px;
+        background: linear-gradient(135deg, #5B9FE8 0%, #4A90E2 100%);
+        border-radius: 0 0 40px 40px;
+        display: flex;
+        align-items: flex-start;
         justify-content: center;
-        padding: 20px;
+        padding-top: 60px;
+        margin-bottom: -60px;
       }
 
       .login-header {
         text-align: center;
-        margin-bottom: 40px;
       }
 
       .login-header .logo {
-        font-size: 28px;
+        font-size: 24px;
         font-weight: 700;
         color: #fff;
-        margin-bottom: 8px;
+        margin-bottom: 4px;
       }
 
       .login-header .subtitle {
-        font-size: 14px;
-        color: rgba(255, 255, 255, 0.8);
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      .login-logo-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 12px auto;
       }
 
       .login-form {
@@ -1906,7 +2416,8 @@
         background: #fff;
         border-radius: 16px;
         padding: 32px 24px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 4px 20px rgba(74, 144, 226, 0.1);
+        margin: 0 24px;
       }
 
       .login-form .form-item {
@@ -1950,7 +2461,7 @@
         font-size: 16px;
         font-weight: 600;
         color: #fff;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #5B9FE8 0%, #4A90E2 100%);
         cursor: pointer;
         transition: all 0.3s ease;
         margin-top: 8px;
@@ -1982,7 +2493,7 @@
       }
     </style>
   <!-- 天地图API -->
-  <script src="https://api.tianditu.gov.cn/api?v=4.0&tk=YOUR_TIANDITU_KEY"></script>
+  <script src="https://api.tianditu.gov.cn/api?v=4.0&tk=d5cbd0c27896bb8f535dc57ecef2718c"></script>
 </head>
 <body>
   <div id="app"></div>
@@ -1999,7 +2510,7 @@
 
     // API module
     const api = axios.create({
-      baseURL: 'http://localhost:8000',
+      baseURL: 'http://localhost:8000/trjcai',  // 服务器地址: https://xx7x.star7.cn:8090/trjcai/
       timeout: 10000,
       headers: { 'Content-Type': 'application/json' }
     });
@@ -2037,7 +2548,7 @@
           const params = ryid ? { ryid } : {};
           return api.get(`/api/tasks/${taskId}/plots`, { params });
         },
-        updatePlotStatus: (taskId, plotId, data) => api.put(`/api/tasks/${taskId}/plots/${plotId}/status`, data),
+        updatePlotStatus: (taskId, plotId, data) => api.post(`/api/tasks/${taskId}/plots/${plotId}/status`, data),
         getSurveyRecords: (taskId) => api.get(`/api/tasks/${taskId}/survey`),
         createSurveyRecord: (taskId, data) => api.post(`/api/tasks/${taskId}/survey`, data),
         getSampleRecords: (taskId) => api.get(`/api/tasks/${taskId}/samples`),
@@ -2046,6 +2557,11 @@
         createAnalysisResult: (taskId, data) => api.post(`/api/tasks/${taskId}/analysis`, data),
         getPersonnelList: (params) => api.get('/api/personnel', { params }),
         getPlots: (params) => api.get('/api/plots', { params }),
+        getPlotDetail: (plotId, taskId = null) => {
+          const params = {};
+          if (taskId) params.task_id = taskId;
+          return api.get(`/api/plots/${plotId}`, { params });
+        },
         getDatasets: (params) => api.get('/api/datasets', { params })
       }
     };
@@ -2060,20 +2576,16 @@
       },
       template: `
         <div class="user-header">
-          <div class="user-info">
-            <div class="avatar">
-              <img :src="user.avatar" alt="avatar">
+          <div class="user-header-left">
+            <div class="menu-icon" @click="$emit('settings')">
+              <span></span>
+              <span></span>
+              <span></span>
             </div>
-            <div class="user-details">
-              <div class="user-name-row">
-                <span class="user-name">{{ user.name }}</span>
-                <span class="online-dot"></span>
-              </div>
-              <div class="user-role">{{ user.role }} · {{ user.district }}</div>
-            </div>
+            <div class="user-header-title">耕地质量监测</div>
           </div>
-          <div class="settings-btn" @click="$emit('settings')">
-            <van-icon name="setting-o" size="24" color="#fff" />
+          <div class="user-avatar-circle" @click="$emit('settings')">
+            {{ user.name ? user.name.charAt(0) : 'U' }}
           </div>
         </div>
       `
@@ -2087,26 +2599,112 @@
       },
       template: `
         <div class="task-stats-card animate-fade-in">
-          <div class="stats-title">今日任务统计</div>
           <div class="stats-grid">
-            <div class="stat-item" @click="$emit('click', 'pending')">
-              <div class="stat-number" style="color: var(--pending-color)">{{ stats.pending }}</div>
-              <div class="stat-label">待执行任务</div>
+            <div class="stat-item" @click="$emit('click', 'in_progress')">
+              <div class="stat-icon" style="background: rgba(74, 144, 226, 0.12); color: #4A90E2;">
+                <van-icon name="todo-list-o" size="20" />
+              </div>
+              <div class="stat-number" style="color: #4A90E2;">{{ stats.inProgress }}</div>
+              <div class="stat-label">进行中</div>
             </div>
             <div class="stat-item" @click="$emit('click', 'completed')">
-              <div class="stat-number" style="color: var(--completed-color)">{{ stats.completed }}</div>
-              <div class="stat-label">已完成任务</div>
-            </div>
-            <div class="stat-item" @click="$emit('click', 'toSubmit')">
-              <div class="stat-number" style="color: var(--to-submit-color)">{{ stats.toSubmit }}</div>
-              <div class="stat-label">待提交数据</div>
+              <div class="stat-icon" style="background: rgba(52, 199, 89, 0.12); color: #34C759;">
+                <van-icon name="checked" size="20" />
+              </div>
+              <div class="stat-number" style="color: #34C759;">{{ stats.completed }}</div>
+              <div class="stat-label">已完成</div>
             </div>
           </div>
         </div>
       `
     };
 
-    // TaskItem 组件
+    // HomeTaskItem 组件（首页专用任务卡片）
+    const HomeTaskItem = {
+      name: 'HomeTaskItem',
+      props: {
+        task: { type: Object, required: true },
+        index: { type: Number, default: 0 }
+      },
+      emits: ['task-click'],
+      template: `
+        <div 
+          :class="['home-task-item', task.status === 'completed' ? 'home-task-completed' : 'home-task-progress', 'animate-slide-in', 'list-item-' + ((index % 8) + 1)]"
+          @click="$emit('task-click', task)"
+        >
+          <div v-if="task.status !== 'completed'" class="home-task-left-accent"></div>
+          <div class="home-task-body">
+            <div class="home-task-header">
+              <div class="home-task-title">{{ task.title }}</div>
+              <span :class="['home-status-tag', task.status === 'completed' ? 'home-tag-completed' : 'home-tag-progress']">
+                {{ task.statusLabel }}
+              </span>
+            </div>
+            <div v-if="task.status === 'completed'" class="home-task-info-simple">
+              <div class="home-info-row">
+                <div class="home-info-item">
+                  <van-icon name="label-o" size="16" color="#999" />
+                  <div class="home-info-content">
+                    <span class="home-info-label">任务编号</span>
+                    <span class="home-info-value">{{ task.taskNo || '未指定' }}</span>
+                  </div>
+                </div>
+                <div class="home-info-item">
+                  <van-icon name="folder-o" size="16" color="#999" />
+                  <div class="home-info-content">
+                    <span class="home-info-label">任务类型</span>
+                    <span class="home-info-value">{{ task.typeLabel || '未指定' }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-else class="home-task-info-full">
+              <div class="home-info-row">
+                <div class="home-info-item">
+                  <van-icon name="label-o" size="16" color="#4A90E2" />
+                  <div class="home-info-content">
+                    <span class="home-info-label">任务编号</span>
+                    <span class="home-info-value">{{ task.taskNo || '未指定' }}</span>
+                  </div>
+                </div>
+                <div class="home-info-item">
+                  <van-icon name="folder-o" size="16" color="#4A90E2" />
+                  <div class="home-info-content">
+                    <span class="home-info-label">任务类型</span>
+                    <span class="home-info-value">{{ task.typeLabel || '未指定' }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="home-info-row">
+                <div class="home-info-item">
+                  <van-icon name="calendar-o" size="16" color="#4A90E2" />
+                  <div class="home-info-content">
+                    <span class="home-info-label">采样时间</span>
+                    <span class="home-info-value">{{ task.deadline || '未指定' }}</span>
+                  </div>
+                </div>
+                <div class="home-info-item">
+                  <van-icon name="user-o" size="16" color="#4A90E2" />
+                  <div class="home-info-content">
+                    <span class="home-info-label">负责人</span>
+                    <span class="home-info-value">{{ task.leader || '未指定' }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="home-action-btn-row">
+                <button class="home-detail-btn" @click.stop="$emit('task-click', task)">任务详情</button>
+              </div>
+            </div>
+          </div>
+          <van-icon v-if="task.status === 'completed'" name="arrow" size="16" color="#BBB" class="home-arrow-icon" />
+        </div>
+      `,
+      setup() {
+        return {};
+      }
+    };
+
+    // TaskItem 组件（全部任务列表页用）
     const TaskItem = {
       name: 'TaskItem',
       props: {
@@ -2116,25 +2714,44 @@
       emits: ['task-click'],
       template: `
         <div :class="['task-item', 'animate-slide-in', 'list-item-' + ((index % 8) + 1)]" @click="$emit('task-click', task)">
-          <div class="task-header">
-            <div class="task-title">{{ task.title }}</div>
+          <div class="task-item-header">
+            <div class="task-item-title">{{ task.title }}</div>
             <span :class="['status-tag', getStatusClass(task.status)]">
               {{ task.statusLabel }}
             </span>
           </div>
-          <div class="task-meta">
-            <span class="task-no">任务编号：{{ task.taskNo }}</span>
-            <span class="task-type">· {{ task.typeLabel }}</span>
+          <div class="task-info-grid-2x2">
+            <div class="task-info-block">
+              <div class="task-info-icon-row">
+                <van-icon name="label-o" size="16" color="#4A90E2" />
+                <span class="task-info-block-label">任务编号</span>
+              </div>
+              <div class="task-info-block-value">{{ task.taskNo || '未指定' }}</div>
+            </div>
+            <div class="task-info-block">
+              <div class="task-info-icon-row">
+                <van-icon name="folder-o" size="16" color="#4A90E2" />
+                <span class="task-info-block-label">任务类型</span>
+              </div>
+              <div class="task-info-block-value">{{ task.typeLabel || '未指定' }}</div>
+            </div>
+            <div class="task-info-block">
+              <div class="task-info-icon-row">
+                <van-icon name="calendar-o" size="16" color="#4A90E2" />
+                <span class="task-info-block-label">采样时间</span>
+              </div>
+              <div class="task-info-block-value">{{ task.deadline || '未指定' }}</div>
+            </div>
+            <div class="task-info-block">
+              <div class="task-info-icon-row">
+                <van-icon name="user-o" size="16" color="#4A90E2" />
+                <span class="task-info-block-label">负责人</span>
+              </div>
+              <div class="task-info-block-value">{{ task.leader || '未指定' }}</div>
+            </div>
           </div>
-          <div class="task-footer">
-            <div class="task-location">
-              <van-icon name="location-o" size="14" color="#999" />
-              <span>{{ task.location }}</span>
-            </div>
-            <div class="task-time" :class="{ 'urgent': isUrgent }">
-              <van-icon name="clock-o" size="14" :color="isUrgent ? '#FF3B30' : '#999'" />
-              <span>{{ timeLabel }}：{{ timeValue }}</span>
-            </div>
+          <div class="task-action-btn-row">
+            <button class="task-detail-btn" @click.stop="$emit('task-click', task)">任务详情</button>
           </div>
         </div>
       `,
@@ -2144,7 +2761,8 @@
             'pending': 'status-pending',
             'in_progress': 'status-in-progress',
             'completed': 'status-completed',
-            'to_submit': 'status-to-submit'
+            'to_submit': 'status-to-submit',
+            'processing': 'status-in-progress'
           };
           return map[status] || 'status-pending';
         };
@@ -2181,7 +2799,7 @@
 
         const handleLogin = async () => {
           if (!form.username || !form.password) {
-            errorMsg.value = '请填写手机号和密码';
+            errorMsg.value = '请填写用户名和密码';
             return;
           }
           loading.value = true;
@@ -2212,13 +2830,18 @@
       },
       template: `
         <div class="login-page">
-          <div class="login-header">
-            <div class="logo">耕地质量监测</div>
-            <div class="subtitle">移动端数据采集系统</div>
+          <div class="login-top-bar">
+            <div class="login-header">
+              <div class="login-logo-icon">
+                <van-icon name="records" size="32" color="#fff" />
+              </div>
+              <div class="logo">耕地质量监测</div>
+              <div class="subtitle">移动端数据采集系统</div>
+            </div>
           </div>
           <div class="login-form">
             <div class="form-item">
-              <input type="text" v-model="form.username" placeholder="请输入手机号" class="form-input" />
+              <input type="text" v-model="form.username" placeholder="请输入用户名" class="form-input" />
             </div>
             <div class="form-item">
               <input type="password" v-model="form.password" placeholder="请输入密码" class="form-input" @keyup.enter="handleLogin" />
@@ -2227,7 +2850,6 @@
             <button class="login-btn" @click="handleLogin" :disabled="loading">
               {{ loading ? '登录中...' : '登 录' }}
             </button>
-            <div class="login-tip">默认密码: 123456</div>
           </div>
         </div>
       `
@@ -2236,27 +2858,77 @@
     // HomeView 组件
     const HomeView = {
       name: 'HomeView',
-      components: { UserHeader, TaskStats, TaskItem },
+      components: { HomeTaskItem },
       emits: ['navigate', 'logout'],
       template: `
         <div class="home-view">
-          <user-header :user="user" @settings="onSettings" />
-          <task-stats :stats="taskStats" @click="onStatClick" />
+          <div class="top-banner">
+            <div class="top-nav animate-fade-in">
+              <div class="nav-left">
+                <van-icon name="wap-nav" size="22" color="#fff" />
+              </div>
+              <span class="nav-title">耕地质量监测</span>
+              <div class="nav-right">
+                <div class="user-avatar-circle" @click="onSettings">
+                  <van-icon name="user-o" size="18" color="#4A90E2" />
+                </div>
+              </div>
+            </div>
+            <div class="welcome-section animate-fade-in">
+              <div class="welcome-content">
+                <div class="welcome-greeting">你好，{{ user.name || '用户' }}</div>
+                <div class="welcome-sub">欢迎使用耕地质量监测系统</div>
+              </div>
+              <div class="welcome-illustration">
+                <van-icon name="wap-home-o" size="56" color="rgba(255,255,255,0.4)" />
+              </div>
+            </div>
+          </div>
+          
+          <div class="stats-card animate-fade-in">
+            <div class="stats-inner">
+              <div class="stat-block" @click="onStatClick('in_progress')">
+                <div class="stat-icon-block" style="background: rgba(74, 144, 226, 0.12);">
+                  <van-icon name="todo-list-o" size="24" color="#4A90E2" />
+                </div>
+                <div class="stat-info">
+                  <div class="stat-num" style="color: #4A90E2;">{{ taskStats.inProgress }}</div>
+                  <div class="stat-title">进行中</div>
+                  <div class="stat-desc">今日任务进行中 {{ taskStats.todayInProgress }} 个</div>
+                </div>
+              </div>
+              <div class="stats-divider"></div>
+              <div class="stat-block" @click="onStatClick('completed')">
+                <div class="stat-icon-block" style="background: rgba(52, 199, 89, 0.12);">
+                  <van-icon name="checked" size="24" color="#34C759" />
+                </div>
+                <div class="stat-info">
+                  <div class="stat-num" style="color: #34C759;">{{ taskStats.completed }}</div>
+                  <div class="stat-title">已完成</div>
+                  <div class="stat-desc">今日任务已完成 {{ taskStats.todayCompleted }} 个</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <div class="task-list-section">
             <div class="section-header">
-              <h3 class="section-title">最近任务</h3>
-              <span class="view-all" @click="viewAllTasks">查看全部</span>
+              <div class="section-label">
+                <div class="section-label-bar"></div>
+                <span class="section-label-text">最近任务</span>
+              </div>
+              <span class="view-all" @click="viewAllTasks">查看全部 <van-icon name="arrow" size="12" /></span>
             </div>
             <div class="task-list">
-              <task-item 
-                v-for="(task, index) in recentTasks" 
+              <home-task-item 
+                v-for="(task, index) in displayedTasks" 
                 :key="task.id"
                 :task="task"
                 :index="index"
                 @task-click="onTaskClick"
               />
             </div>
-            <div v-if="recentTasks.length === 0 && !loading" class="empty-state" style="padding:40px 20px;text-align:center;color:#999;">
+            <div v-if="displayedTasks.length === 0 && !loading" class="empty-state" style="padding:40px 20px;text-align:center;color:#999;">
               <van-icon name="todo-list-o" size="48" color="#ddd" />
               <p style="margin-top:12px;">暂无分配任务</p>
             </div>
@@ -2275,14 +2947,23 @@
           district: ''
         });
 
-        const taskStats = Vue.ref({
-          pending: 0,
-          completed: 0,
-          toSubmit: 0
-        });
-
         const recentTasks = Vue.ref([]);
         const loading = Vue.ref(true);
+
+        const taskStats = Vue.computed(() => {
+          const todayStr = new Date().toLocaleDateString('sv-SE');
+          const todayTasks = recentTasks.value.filter(t => {
+            if (!t.deadline) return false;
+            const taskDate = t.deadline.substring(0, 10);
+            return taskDate === todayStr;
+          });
+          return {
+            inProgress: recentTasks.value.filter(t => t.status === 'in_progress').length,
+            completed: recentTasks.value.filter(t => t.status === 'completed').length,
+            todayInProgress: todayTasks.filter(t => t.status === 'in_progress').length,
+            todayCompleted: todayTasks.filter(t => t.status === 'completed').length
+          };
+        });
 
         const typeLabelMap = {
           'routine': '常规监测',
@@ -2305,10 +2986,11 @@
           taskNo: item.RWBH,
           type: item.RWLX,
           typeLabel: typeLabelMap[item.RWLX] || item.RWLX,
+          leader: item.FZR || '',
           location: item.SSQH,
-          deadline: item.CJSJ ? item.CJSJ.split(' ')[0] : '',
-          status: item.ZT,
-          statusLabel: statusLabelMap[item.ZT] || item.ZT
+          deadline: item.CJSJ ? item.CJSJ.substring(0, 10) : '',
+          status: item.ZT === 'draft' ? 'pending' : item.ZT === 'processing' ? 'in_progress' : item.ZT,
+          statusLabel: item.ZT === 'draft' ? '待领取' : item.ZT === 'processing' ? '进行中' : statusLabelMap[item.ZT] || item.ZT
         });
 
         const loadUserInfo = () => {
@@ -2346,20 +3028,14 @@
           }
         };
 
-        const fetchTaskStats = async () => {
-          try {
-            const res = await TRJC.api.getTaskStats();
-            if (res.data.code === 200) {
-              taskStats.value = {
-                pending: res.data.data.pending || 0,
-                completed: res.data.data.completed || 0,
-                toSubmit: 0
-              };
-            }
-          } catch (error) {
-            console.error('获取任务统计失败:', error);
-          }
-        };
+        const displayedTasks = Vue.computed(() => {
+          const inProgress = recentTasks.value.find(t => t.status === 'in_progress');
+          const completed = recentTasks.value.find(t => t.status === 'completed');
+          const result = [];
+          if (inProgress) result.push(inProgress);
+          if (completed) result.push(completed);
+          return result;
+        });
 
         const onSettings = () => {
           vant.showConfirmDialog({
@@ -2374,7 +3050,7 @@
         };
 
         const onStatClick = (type) => {
-          const map = { 'pending': '待执行任务', 'completed': '已完成任务', 'toSubmit': '待提交数据' };
+          const map = { 'in_progress': '进行中任务', 'completed': '已完成任务' };
           vant.showToast(`查看${map[type]}`);
         };
         const onTaskClick = (task) => {
@@ -2385,21 +3061,25 @@
         Vue.onMounted(() => {
           loadUserInfo();
           fetchTaskList();
-          fetchTaskStats();
         });
 
-        return { user, taskStats, recentTasks, loading, onSettings, onStatClick, onTaskClick, viewAllTasks };
+        return { user, taskStats, displayedTasks, loading, onSettings, onStatClick, onTaskClick, viewAllTasks };
       }
     };
 
     // TaskListView 组件（全部任务列表页）
     const TaskListView = {
       name: 'TaskListView',
-      components: { UserHeader, TaskItem },
+      components: { TaskItem },
       emits: ['navigate', 'logout'],
       template: `
         <div class="task-list-view">
-          <user-header :user="user" @settings="onSettings" />
+          <div class="task-list-view-header">
+            <div class="header-back" @click="goBack">
+              <van-icon name="arrow-left" size="20" color="#fff" />
+            </div>
+            <div class="header-title">任务列表</div>
+          </div>
           <div class="search-bar animate-fade-in">
             <div class="search-input-wrapper">
               <van-icon name="search" size="18" color="#999" />
@@ -2421,6 +3101,13 @@
             </div>
           </div>
           <div class="task-list-content">
+            <div class="section-header">
+              <div class="section-label">
+                <div class="section-label-bar"></div>
+                <span class="section-label-text">全部任务</span>
+              </div>
+              <span class="task-count">共 {{ filteredTasks.length }} 个任务</span>
+            </div>
             <div v-if="loading" class="loading-state">
               <van-loading size="24px">加载中...</van-loading>
             </div>
@@ -2441,14 +3128,6 @@
         </div>
       `,
       setup(props, { emit }) {
-        const user = Vue.ref({
-          id: '',
-          name: '',
-          avatar: '',
-          role: '',
-          district: ''
-        });
-        
         const searchKeyword = Vue.ref('');
         const allTasks = Vue.ref([]);
         const loading = Vue.ref(true);
@@ -2473,6 +3152,7 @@
           taskNo: item.RWBH,
           type: item.RWLX,
           typeLabel: typeMap[item.RWLX]?.text || item.RWLX,
+          leader: item.FZR || '',
           location: item.SSQH,
           deadline: item.CJSJ ? item.CJSJ.split(' ')[0] : '',
           status: item.ZT === 'draft' ? 'pending' : item.ZT === 'processing' ? 'processing' : item.ZT,
@@ -2504,36 +3184,8 @@
             task.location.toLowerCase().includes(keyword)
           );
         });
-
-        const loadUserInfo = () => {
-          const info = localStorage.getItem('userInfo');
-          if (info) {
-            try {
-              const parsed = JSON.parse(info);
-              user.value = {
-                id: parsed.ID || '',
-                name: parsed.XM || '',
-                avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${parsed.XM}&backgroundColor=b6e3f4`,
-                role: parsed.GW || '',
-                district: parsed.SSQH || ''
-              };
-            } catch (e) {
-              console.error('解析用户信息失败', e);
-            }
-          }
-        };
         
-        const onSettings = () => {
-          vant.showConfirmDialog({
-            title: '确认退出',
-            message: '确定要退出登录吗？',
-          }).then(() => {
-            localStorage.removeItem('token');
-            localStorage.removeItem('userInfo');
-            localStorage.removeItem('currentUserId');
-            emit('logout');
-          }).catch(() => {});
-        };
+        const goBack = () => emit('navigate', 'home');
         
         const onSearch = () => {};
         
@@ -2546,16 +3198,14 @@
         };
 
         Vue.onMounted(() => {
-          loadUserInfo();
           fetchTasks();
         });
         
         return {
-          user,
           searchKeyword,
           filteredTasks,
           loading,
-          onSettings,
+          goBack,
           onSearch,
           clearSearch,
           onTaskClick
@@ -2716,19 +3366,7 @@
         const goBack = () => emit('navigate', 'task-list');
         const clearSearch = () => { searchKeyword.value = ''; };
         const onPlotClick = (plot) => {
-          if (plot.status === 'pending') {
-            emit('navigate', 'plot-detail-pending', plot);
-          } else if (plot.status === 'sampling') {
-            emit('navigate', 'survey-record', { task: props.task, plot: plot });
-          } else if (plot.status === 'transport') {
-            emit('navigate', 'sample-collection', { task: props.task, plot: plot });
-          } else if (plot.status === 'analysis') {
-            emit('navigate', 'analysis-result', { task: props.task, plot: plot });
-          } else if (plot.status === 'completed') {
-            emit('navigate', 'plot-detail', plot);
-          } else {
-            emit('navigate', 'plot-detail-pending', plot);
-          }
+          emit('navigate', 'plot-detail', { plot: plot, task: props.task });
         };
 
         const handleBatchCollect = () => {
@@ -3164,7 +3802,7 @@
                 </div>
               </div>
             </div>
-            <div class="plot-detail-map-container animate-fade-in" v-if="showMap">
+            <div class="plot-detail-map-container animate-fade-in">
               <div class="plot-detail-map" ref="mapContainer"></div>
             </div>
           </div>
@@ -3176,24 +3814,34 @@
         </div>
       `,
       setup(props, { emit }) {
+        const plotDetailData = Vue.ref({});
+        const loading = Vue.ref(false);
+
         const plotDetail = computed(() => {
-          const p = props.plot || {};
+          // 优先使用 API 返回的数据，如果没有则使用 props.plot
+          const apiData = plotDetailData.value;
+          const propData = props.plot || {};
           const t = props.task || {};
+          
+          // 如果 API 数据存在且有 id，使用 API 数据；否则使用 props 数据
+          const p = (apiData && (apiData.id || apiData.ID)) ? apiData : propData;
+          
           return {
-            taskName: p.taskName || t.name || '',
-            code: p.code || '',
-            unit: p.unit || '',
-            area: p.area || '',
-            district: p.location || '',
-            longitude: p.longitude || '',
-            latitude: p.latitude || '',
+            taskName: p.taskName || p.task_name || t.name || '',
+            code: p.code || p.plotCode || p.TBH || '',
+            unit: p.unit || p.plotUnit || p.SSDY || '',
+            area: p.area || p.plotArea || p.TBMJ || '',
+            district: p.district || p.location || p.SSQH || '',
+            longitude: p.longitude || p.lng || p.JD || '',
+            latitude: p.latitude || p.lat || p.WD || '',
             status: p.status || 'pending',
-            statusLabel: p.statusLabel || '待领取',
-            samplers: p.samplers || '',
-            hasSurvey: p.hasSurvey,
-            hasSample: p.hasSample,
-            surveyTime: p.surveyTime,
-            sampleTime: p.sampleTime,
+            statusLabel: p.statusLabel || p.status_label || '待领取',
+            samplers: p.samplers || p.samplerNames || p.sampler_name || p.CJR || '',
+            hasSurvey: p.hasSurvey || p.has_survey,
+            hasSample: p.hasSample || p.has_sample,
+            surveyTime: p.surveyTime || p.survey_time,
+            sampleTime: p.sampleTime || p.sample_time,
+            coordinates: p.coordinates || p.plotCoordinates || p.WLZB || null,
           };
         });
 
@@ -3210,6 +3858,9 @@
         const actionButtonText = computed(() => {
           const map = {
             'pending': '领取',
+            'sampling': '勘察记录登记',
+            'transport': '样品采集记录登记',
+            'analysis': '分析结果登记',
             'survey_done': '样品采集记录',
             'sampling_done': '返回',
             'completed': '返回'
@@ -3224,36 +3875,54 @@
             return;
           }
           if (plotDetail.value.status === 'pending') {
-            emit('navigate', 'plot-detail-pending', props.plot);
+            emit('navigate', 'plot-detail-pending', { plot: props.plot, task: props.task });
+            return;
+          }
+          if (plotDetail.value.status === 'sampling') {
+            emit('navigate', 'plot-detail-sampling', { plot: props.plot, task: props.task });
+            return;
+          }
+          if (plotDetail.value.status === 'transport') {
+            emit('navigate', 'sample-collection', { task: props.task, plot: props.plot });
+            return;
+          }
+          if (plotDetail.value.status === 'analysis') {
+            emit('navigate', 'analysis-result', { task: props.task, plot: props.plot });
             return;
           }
           vant.showToast('操作');
         };
 
         const mapContainer = ref(null);
-        
-        const showMap = computed(() => {
-          return ['transport', 'analysis', 'completed'].includes(plotDetail.value.status);
-        });
 
-        onMounted(() => {
-          if (showMap.value && typeof T !== 'undefined' && mapContainer.value) {
-            setTimeout(() => {
-              try {
-                const map = new T.Map(mapContainer.value);
-                const lng = parseFloat(plotDetail.value.longitude);
-                const lat = parseFloat(plotDetail.value.latitude);
-                map.centerAndZoom(new T.LngLat(lng, lat), 15);
-                
-                const marker = new T.Marker(new T.LngLat(lng, lat));
-                map.addOverLay(marker);
-                
-                const points = [
-                  new T.LngLat(lng - 0.001, lat + 0.001),
-                  new T.LngLat(lng + 0.001, lat + 0.001),
-                  new T.LngLat(lng + 0.001, lat - 0.001),
-                  new T.LngLat(lng - 0.001, lat - 0.001)
-                ];
+        onMounted(async () => {
+          const plotId = props.plot?.id;
+          const taskId = props.task?.id;
+          loading.value = true;
+          try {
+            const res = await TRJC.api.getPlotDetail(plotId, taskId);
+            if (res.data.code === 200) {
+              plotDetailData.value = res.data.data;
+            }
+          } catch (e) {
+            console.error('获取地块详情失败:', e);
+          } finally {
+            loading.value = false;
+          }
+          setTimeout(() => {
+            try {
+              const map = new T.Map(mapContainer.value);
+              const lng = parseFloat(plotDetail.value.longitude);
+              const lat = parseFloat(plotDetail.value.latitude);
+              map.centerAndZoom(new T.LngLat(lng, lat), 15);
+              
+              const marker = new T.Marker(new T.LngLat(lng, lat));
+              map.addOverLay(marker);
+              
+              // 添加电子围栏（多边形）
+              const coordinates = plotDetail.value.coordinates;
+              if (coordinates && coordinates.length > 0) {
+                const points = coordinates.map(coord => new T.LngLat(coord.lng, coord.lat));
                 const polygon = new T.Polygon(points, {
                   color: '#4A90E2',
                   weight: 3,
@@ -3262,14 +3931,14 @@
                   fillOpacity: 0.2
                 });
                 map.addOverLay(polygon);
-              } catch (e) {
-                console.log('天地图加载失败', e);
               }
-            }, 100);
-          }
+            } catch (e) {
+              console.log('天地图加载失败', e);
+            }
+          }, 100);
         });
 
-        return { plotDetail, getStatusClass, actionButtonText, goBack, handleAction, mapContainer, showMap };
+        return { plotDetail, getStatusClass, actionButtonText, goBack, handleAction, mapContainer, loading };
       }
     };
 
@@ -3352,21 +4021,29 @@
         </div>
       `,
       setup(props, { emit }) {
+        const plotDetailData = Vue.ref({});
         const mapContainer = ref(null);
         const plotDetail = computed(() => {
-          const p = props.plot || {};
+          // 优先使用 API 返回的数据，如果没有则使用 props.plot
+          const apiData = plotDetailData.value;
+          const propData = props.plot || {};
           const t = props.task || {};
+          
+          // 如果 API 数据存在且有 id，使用 API 数据；否则使用 props 数据
+          const p = (apiData && (apiData.id || apiData.ID)) ? apiData : propData;
+          
           return {
-            taskName: p.taskName || t.name || '',
-            code: p.code || '',
-            unit: p.unit || '',
-            area: p.area || '',
-            district: p.location || '',
-            longitude: p.longitude || '',
-            latitude: p.latitude || '',
+            taskName: p.taskName || p.task_name || t.name || '',
+            code: p.code || p.plotCode || p.TBH || '',
+            unit: p.unit || p.plotUnit || p.SSDY || '',
+            area: p.area || p.plotArea || p.TBMJ || '',
+            district: p.district || p.location || p.SSQH || '',
+            longitude: p.longitude || p.lng || p.JD || '',
+            latitude: p.latitude || p.lat || p.WD || '',
             status: p.status || 'pending',
-            statusLabel: p.statusLabel || '待领取',
-            samplers: p.samplers || '',
+            statusLabel: p.statusLabel || p.status_label || '待领取',
+            samplers: p.samplers || p.samplerNames || p.sampler_name || p.CJR || '',
+            coordinates: p.coordinates || p.plotCoordinates || p.WLZB || null,
           };
         });
 
@@ -3393,7 +4070,19 @@
             });
         };
 
-        onMounted(() => {
+        onMounted(async () => {
+          const plotId = props.plot?.id;
+          const taskId = props.task?.id;
+          try {
+            const res = await TRJC.api.getPlotDetail(plotId, taskId);
+            if (res.data.code === 200) {
+              plotDetailData.value = res.data.data;
+              console.log('API 数据:', res.data.data);
+              console.log('samplerNames:', res.data.data.samplerNames);
+            }
+          } catch (e) {
+            console.error('获取地块详情失败:', e);
+          }
           // 天地图初始化（需要替换YOUR_TIANDITU_KEY为实际的key）
           if (typeof T !== 'undefined' && mapContainer.value) {
             try {
@@ -3407,20 +4096,18 @@
               map.addOverLay(marker);
               
               // 添加电子围栏（多边形）
-              const points = [
-                new T.LngLat(116.3964, 39.9103),
-                new T.LngLat(116.3984, 39.9103),
-                new T.LngLat(116.3984, 39.9083),
-                new T.LngLat(116.3964, 39.9083)
-              ];
-              const polygon = new T.Polygon(points, {
-                color: '#4A90E2',
-                weight: 3,
-                opacity: 0.8,
-                fillColor: '#4A90E2',
-                fillOpacity: 0.2
-              });
-              map.addOverLay(polygon);
+              const coordinates = plotDetail.value.coordinates;
+              if (coordinates && coordinates.length > 0) {
+                const points = coordinates.map(coord => new T.LngLat(coord.lng, coord.lat));
+                const polygon = new T.Polygon(points, {
+                  color: '#4A90E2',
+                  weight: 3,
+                  opacity: 0.8,
+                  fillColor: '#4A90E2',
+                  fillOpacity: 0.2
+                });
+                map.addOverLay(polygon);
+              }
             } catch (e) {
               console.log('天地图加载失败，使用占位图');
             }
@@ -3510,30 +4197,54 @@
         </div>
       `,
       setup(props, { emit }) {
+        const plotDetailData = Vue.ref({});
         const mapContainer = ref(null);
         const plotDetail = computed(() => {
-          const p = props.plot || {};
+          // 优先使用 API 返回的数据，如果没有则使用 props.plot
+          const apiData = plotDetailData.value;
+          const propData = props.plot || {};
           const t = props.task || {};
+          
+          // 如果 API 数据存在且有 id，使用 API 数据；否则使用 props 数据
+          const p = (apiData && (apiData.id || apiData.ID)) ? apiData : propData;
+          
           return {
-            taskName: p.taskName || t.name || '',
-            code: p.code || '',
-            unit: p.unit || '',
-            area: p.area || '',
-            district: p.location || '',
-            longitude: p.longitude || '',
-            latitude: p.latitude || '',
+            taskName: p.taskName || p.task_name || t.name || '',
+            code: p.code || p.plotCode || p.TBH || '',
+            unit: p.unit || p.plotUnit || p.SSDY || '',
+            area: p.area || p.plotArea || p.TBMJ || '',
+            district: p.district || p.location || p.SSQH || '',
+            longitude: p.longitude || p.lng || p.JD || '',
+            latitude: p.latitude || p.lat || p.WD || '',
             status: p.status || 'pending',
-            statusLabel: p.statusLabel || '待勘察',
-            samplers: p.samplers || '',
+            statusLabel: p.statusLabel || p.status_label || '待采样',
+            samplers: p.samplers || p.samplerNames || p.sampler_name || p.CJR || '',
+            coordinates: p.coordinates || p.plotCoordinates || p.WLZB || null,
           };
         });
 
-        const goBack = () => emit('navigate', 'plot-list');
-        const handleSurvey = () => {
-          emit('navigate', 'survey-record');
+        const fetchPlotDetail = async () => {
+          const plotId = props.plot?.id;
+          const taskId = props.task?.id;
+          if (!plotId) return Promise.resolve();
+          try {
+            const res = await TRJC.api.getPlotDetail(plotId, taskId);
+            if (res.data.code === 200) {
+              plotDetailData.value = res.data.data;
+            }
+          } catch (e) {
+            console.error('获取地块详情失败:', e);
+          }
+          return Promise.resolve();
         };
 
-        onMounted(() => {
+        const goBack = () => emit('navigate', 'plot-list');
+        const handleSurvey = () => {
+          emit('navigate', 'survey-record', { task: props.task, plot: props.plot });
+        };
+
+        onMounted(async () => {
+          await fetchPlotDetail();
           if (typeof T !== 'undefined' && mapContainer.value) {
             try {
               const map = new T.Map(mapContainer.value);
@@ -3542,20 +4253,19 @@
               map.centerAndZoom(new T.LngLat(lng, lat), 15);
               const marker = new T.Marker(new T.LngLat(lng, lat));
               map.addOverLay(marker);
-              const points = [
-                new T.LngLat(lng - 0.001, lat + 0.001),
-                new T.LngLat(lng + 0.001, lat + 0.001),
-                new T.LngLat(lng + 0.001, lat - 0.001),
-                new T.LngLat(lng - 0.001, lat - 0.001)
-              ];
-              const polygon = new T.Polygon(points, {
-                color: '#4A90E2',
-                weight: 3,
-                opacity: 0.8,
-                fillColor: '#4A90E2',
-                fillOpacity: 0.2
-              });
-              map.addOverLay(polygon);
+              // 添加电子围栏（多边形）
+              const coordinates = plotDetail.value.coordinates;
+              if (coordinates && coordinates.length > 0) {
+                const points = coordinates.map(coord => new T.LngLat(coord.lng, coord.lat));
+                const polygon = new T.Polygon(points, {
+                  color: '#4A90E2',
+                  weight: 3,
+                  opacity: 0.8,
+                  fillColor: '#4A90E2',
+                  fillOpacity: 0.2
+                });
+                map.addOverLay(polygon);
+              }
             } catch (e) {
               console.log('天地图加载失败，使用占位图');
             }
@@ -3806,7 +4516,7 @@
                  form.value.surveyDate;
         });
 
-        const goBack = () => emit('navigate', 'plot-detail-sampling');
+        const goBack = () => emit('navigate', 'plot-detail-sampling', { task: props.task, plot: props.plot });
         const handleSubmit = async () => {
           if (!isFormValid.value) {
             vant.showToast('请填写所有必填项');
@@ -4320,6 +5030,7 @@
           if ((page === 'plot-detail' || page === 'plot-detail-pending' || page === 'plot-detail-sampling') && data) {
             if (data.plot) currentPlot.value = data.plot;
             else if (data.id && !data.RWMC) currentPlot.value = data;
+            if (data.task) currentTask.value = data.task;
           }
           if ((page === 'survey-record' || page === 'sample-collection' || page === 'analysis-result') && data) {
             if (data.task) currentTask.value = data.task;

@@ -4,8 +4,10 @@ from datetime import datetime, date
 
 
 class PersonInfoBase(BaseModel):
+    YHM: Optional[str] = None
     XM: str
     LXFS: str
+    password: Optional[str] = None
     GW: str
     SSQH: Optional[str] = None
     SSBM: Optional[str] = None
@@ -17,8 +19,10 @@ class PersonInfoCreate(PersonInfoBase):
 
 
 class PersonInfoUpdate(BaseModel):
+    YHM: Optional[str] = None
     XM: Optional[str] = None
     LXFS: Optional[str] = None
+    password: Optional[str] = None
     GW: Optional[str] = None
     SSQH: Optional[str] = None
     SSBM: Optional[str] = None

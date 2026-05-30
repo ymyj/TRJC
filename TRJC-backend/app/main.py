@@ -13,25 +13,27 @@ app = FastAPI(
     description="耕地质量监测管理系统后端API"
 )
 
-app.add_middleware(AuthMiddleware)
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
-app.include_router(auth.router)
-app.include_router(personnel.router)
-app.include_router(plots.router)
-app.include_router(tasks.router)
-app.include_router(task_plots.router)
-app.include_router(survey.router)
-app.include_router(samples.router)
-app.include_router(analysis.router)
-app.include_router(datasets.router)
+app.add_middleware(AuthMiddleware)
+
+# 所有API路由添加/trjcai前缀
+app.include_router(auth.router, prefix="/trjcai")
+app.include_router(personnel.router, prefix="/trjcai")
+app.include_router(plots.router, prefix="/trjcai")
+app.include_router(tasks.router, prefix="/trjcai")
+app.include_router(task_plots.router, prefix="/trjcai")
+app.include_router(survey.router, prefix="/trjcai")
+app.include_router(samples.router, prefix="/trjcai")
+app.include_router(analysis.router, prefix="/trjcai")
+app.include_router(datasets.router, prefix="/trjcai")
 
 
 @app.get("/")

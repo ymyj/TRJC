@@ -140,11 +140,12 @@ def get_task_plot_detail(task_id: int, plot_id: int, db: Session = Depends(get_d
             "status": status_code,
             "statusLabel": status_label_map.get(status_code, "待领取"),
             "samplers": ",".join(samplers) if samplers else "",
+            "coordinates": plot.WLZB if plot.WLZB else None,
         }
     }
 
 
-@router.put("/{plot_id}/status", response_model=dict)
+@router.post("/{plot_id}/status", response_model=dict)
 def update_plot_status(task_id: int, plot_id: int, data: dict, db: Session = Depends(get_db)):
     task = db.query(TaskInfo).filter(TaskInfo.ID == task_id, TaskInfo.SFSC == 0).first()
     if not task:

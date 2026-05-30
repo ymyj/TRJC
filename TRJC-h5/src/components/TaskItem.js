@@ -11,25 +11,48 @@ const TaskItem = {
     }
   },
   template: `
-    <div :class="['task-item', 'animate-slide-in', `list-item-${index + 1}`]" @click="onTaskClick">
-      <div class="task-header">
-        <div class="task-title">{{ task.title }}</div>
-        <span :class="['status-tag', getStatusClass(task.status)]">
-          {{ task.statusLabel }}
-        </span>
-      </div>
-      <div class="task-meta">
-        <span class="task-no">任务编号：{{ task.taskNo }}</span>
-        <span class="task-type">· {{ task.typeLabel }}</span>
-      </div>
-      <div class="task-footer">
-        <div class="task-location">
-          <van-icon name="location-o" size="14" color="#999" />
-          <span>{{ task.location }}</span>
+    <div :class="['task-item', 'animate-slide-in', \`list-item-\${index + 1}\`]" @click="onTaskClick">
+      <div class="task-left-line"></div>
+      <div class="task-card-content">
+        <div class="task-header-row">
+          <div class="task-title-row">
+            <span class="task-title-text">{{ task.title }}</span>
+            <span :class="['status-badge', getStatusClass(task.status)]">
+              {{ task.statusLabel }}
+            </span>
+          </div>
         </div>
-        <div class="task-time" :class="{ 'urgent': isUrgent }">
-          <van-icon name="clock-o" size="14" :color="isUrgent ? '#FF3B30' : '#999'" />
-          <span>{{ timeLabel }}：{{ timeValue }}</span>
+        <div class="task-info-grid">
+          <div class="task-info-item">
+            <van-icon name="label-o" size="14" color="#999" />
+            <span class="info-label">任务编号：</span>
+            <span class="info-value">{{ task.taskNo }}</span>
+          </div>
+          <div class="task-info-item">
+            <van-icon name="calendar-o" size="14" color="#999" />
+            <span class="info-label">采样时间：</span>
+            <span class="info-value">{{ task.deadline }}</span>
+          </div>
+          <div class="task-info-item">
+            <van-icon name="wap-home-o" size="14" color="#999" />
+            <span class="info-label">任务类型：</span>
+            <span class="info-value">{{ task.typeLabel }}</span>
+          </div>
+          <div class="task-info-item">
+            <van-icon name="user-o" size="14" color="#999" />
+            <span class="info-label">负责人：</span>
+            <span class="info-value">{{ task.leader || '待分配' }}</span>
+          </div>
+        </div>
+        <div class="task-actions-row">
+          <div class="action-item" @click.stop="onViewDetail">
+            <van-icon name="notes-o" size="16" />
+            <span>任务详情</span>
+          </div>
+          <div class="action-item primary" @click.stop="onContinueSample">
+            <van-icon name="replay" size="16" />
+            <span>继续采样</span>
+          </div>
         </div>
       </div>
     </div>
@@ -37,32 +60,20 @@ const TaskItem = {
   setup(props, { emit }) {
     const getStatusClass = (status) => {
       const statusMap = {
-        'pending': 'status-pending',
-        'in_progress': 'status-in-progress',
-        'completed': 'status-completed',
-        'to_submit': 'status-to-submit'
+        'pending': 'badge-pending',
+        'in_progress': 'badge-in-progress',
+        'completed': 'badge-completed'
       };
-      return statusMap[status] || 'status-pending';
+      return statusMap[status] || 'badge-pending';
     };
     
-    const isUrgent = Vue.computed(() => {
-      if (props.task.status === 'completed') return false;
-      if (!props.task.deadline) return false;
-      const deadline = new Date(props.task.deadline);
-      const today = new Date();
-      const diffDays = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
-      return diffDays <= 3;
-    });
+    const onViewDetail = () => {
+      emit('detail', props.task);
+    };
     
-    const timeLabel = Vue.computed(() => {
-      return props.task.status === 'completed' ? '完成' : '截止';
-    });
-    
-    const timeValue = Vue.computed(() => {
-      return props.task.status === 'completed' 
-        ? props.task.completedAt 
-        : props.task.deadline;
-    });
+    const onContinueSample = () => {
+      emit('continue', props.task);
+    };
     
     const onTaskClick = () => {
       emit('click', props.task);
@@ -70,9 +81,8 @@ const TaskItem = {
     
     return { 
       getStatusClass, 
-      isUrgent, 
-      timeLabel, 
-      timeValue,
+      onViewDetail,
+      onContinueSample,
       onTaskClick 
     };
   }
@@ -81,73 +91,138 @@ const TaskItem = {
 const TaskItemStyle = `
 .task-item {
   background: var(--card-bg);
-  border-radius: var(--radius-md);
+  border-radius: 12px;
   padding: 16px;
   margin-bottom: 12px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   cursor: pointer;
   transition: all 0.3s ease;
   opacity: 0;
+  display: flex;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
 }
 
 .task-item:active {
   transform: scale(0.98);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
-.task-header {
+.task-left-line {
+  width: 4px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #4A90E2 0%, #5BA3F5 100%);
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+.task-card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-header-row {
+  margin-bottom: 12px;
+}
+
+.task-title-row {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 8px;
+  align-items: center;
+  gap: 8px;
 }
 
-.task-title {
+.task-title-text {
   font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
-  flex: 1;
   line-height: 1.4;
+  flex: 1;
 }
 
-.task-meta {
+.status-badge {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.badge-pending {
+  background: #FFF3E0;
+  color: #FF9500;
+}
+
+.badge-in-progress {
+  background: #E3F2FD;
+  color: #4A90E2;
+}
+
+.badge-completed {
+  background: #E8F5E9;
+  color: #34C759;
+}
+
+.task-info-grid {
   display: flex;
-  gap: 4px;
-  margin-bottom: 12px;
-  font-size: 13px;
-  color: var(--text-tertiary);
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
-.task-no {
+.task-info-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.info-label {
+  color: #999;
+  flex-shrink: 0;
+}
+
+.info-value {
   color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.task-type {
-  color: var(--text-tertiary);
-}
-
-.task-footer {
+.task-actions-row {
   display: flex;
-  justify-content: space-between;
+  gap: 8px;
+  border-top: 1px solid #F5F5F5;
+  padding-top: 12px;
+}
+
+.action-item {
+  flex: 1;
+  display: flex;
   align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 20px;
   font-size: 13px;
-  color: var(--text-tertiary);
+  color: #666;
+  background: #F8F9FA;
+  transition: all 0.2s ease;
 }
 
-.task-location {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.action-item:active {
+  background: #EEEEEE;
 }
 
-.task-time {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.action-item.primary {
+  background: #E3F2FD;
+  color: #4A90E2;
 }
 
-.task-time.urgent span {
-  color: var(--to-submit-color);
+.action-item.primary:active {
+  background: #D0E8F7;
 }
 `;
 
