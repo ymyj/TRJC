@@ -61,7 +61,7 @@
             <td>{{ item.SSQH }}</td>
             <td>{{ item.JD }}</td>
             <td>{{ item.WD }}</td>
-            <td>{{ item.CJSJ ? item.CJSJ.split(' ')[0] : '' }}</td>
+            <td>{{ item.CJSJ || '' }}</td>
             <td>
               <div class="action-links">
                 <span class="action-link" @click="viewDetail(item)">详情</span>

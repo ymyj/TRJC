@@ -49,7 +49,7 @@ def get_personnel_list(
             "SSBM": item.SSBM,
             "GS": item.GS,
             "RYZT": item.RYZT,
-            "CJSJ": item.CJSJ
+            "CJSJ": item.CJSJ.strftime("%Y-%m-%d %H:%M:%S") if item.CJSJ else None
         }
         result.append(item_dict)
 
@@ -167,6 +167,6 @@ def get_personnel_detail(person_id: int, db: Session = Depends(get_db)):
             "SSBM": item.SSBM,
             "GS": item.GS,
             "RYZT": item.RYZT,
-            "CJSJ": item.CJSJ
+            "CJSJ": item.CJSJ.strftime("%Y-%m-%d %H:%M:%S") if item.CJSJ else None
         }
     }

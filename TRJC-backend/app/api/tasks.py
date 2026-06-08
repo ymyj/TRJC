@@ -97,7 +97,7 @@ def get_task_list(
             "SSQH": item.SSQH,
             "FZR": item.FZR,
             "ZT": item.ZT,
-            "CJSJ": item.CJSJ,
+            "CJSJ": item.CJSJ.strftime("%Y-%m-%d %H:%M:%S") if item.CJSJ else None,
             "assignee_count": len(assignees)
         })
 

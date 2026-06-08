@@ -41,11 +41,15 @@
         </div>
         <div class="filter-item">
           <label class="filter-label">创建时间</label>
-          <div class="date-range">
-            <input type="date" class="form-input date-input" v-model="filterForm.startTime">
-            <span class="date-separator">至</span>
-            <input type="date" class="form-input date-input" v-model="filterForm.endTime">
-          </div>
+          <el-date-picker
+            v-model="filterForm.dateRange"
+            type="daterange"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            value-format="YYYY-MM-DD"
+            format="YYYY-MM-DD"
+            class="daterange-input"
+          />
         </div>
       </div>
       <div class="filter-row">
@@ -146,8 +150,7 @@ const filterForm = reactive({
   type: '',
   area: '',
   person: '',
-  startTime: '',
-  endTime: ''
+  dateRange: null
 })
 
 const viewMode = ref('list')
@@ -235,8 +238,10 @@ const fetchList = async () => {
   if (filterForm.type) params.rwlx = filterForm.type
   if (filterForm.area) params.ssqh = filterForm.area
   if (filterForm.person) params.fzr = filterForm.person
-  if (filterForm.startTime) params.start_time = filterForm.startTime
-  if (filterForm.endTime) params.end_time = filterForm.endTime + ' 23:59:59'
+  if (filterForm.dateRange && filterForm.dateRange.length === 2) {
+    params.start_time = filterForm.dateRange[0]
+    params.end_time = filterForm.dateRange[1] + ' 23:59:59'
+  }
 
   const res = await getTaskList(params)
   if (res.data.code === 200) {
@@ -269,8 +274,7 @@ const resetFilter = () => {
   filterForm.type = ''
   filterForm.area = ''
   filterForm.person = ''
-  filterForm.startTime = ''
-  filterForm.endTime = ''
+  filterForm.dateRange = null
   fetchList()
 }
 
@@ -472,19 +476,24 @@ onMounted(() => {
   color: #595959;
 }
 
-.date-range {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.daterange-input {
+  width: 280px;
 }
 
-.date-input {
-  width: 140px;
+:deep(.el-date-editor.el-range-editor) {
+  height: 36px;
+  font-size: 14px;
 }
 
-.date-separator {
+:deep(.el-date-editor.el-range-editor .el-range-input) {
+  font-size: 14px;
+  color: #262626;
+}
+
+:deep(.el-date-editor.el-range-editor .el-range-separator) {
   font-size: 13px;
   color: #8c8c8c;
+  line-height: 36px;
 }
 
 /* 待发布状态样式 */

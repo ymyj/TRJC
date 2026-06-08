@@ -37,7 +37,7 @@ def get_plot_list(
             "SSQH": item.SSQH,
             "JD": float(item.JD) if item.JD else None,
             "WD": float(item.WD) if item.WD else None,
-            "CJSJ": item.CJSJ
+            "CJSJ": item.CJSJ.strftime("%Y-%m-%d %H:%M:%S") if item.CJSJ else None
         })
 
     return {"code": 200, "data": {"list": result, "total": total, "page": page, "size": size}}
@@ -199,7 +199,7 @@ def get_plot_detail(plot_id: int, ryid: Optional[int] = Query(None, description=
             "JD": float(item.JD) if item.JD else None,
             "WD": float(item.WD) if item.WD else None,
             "WLZB": item.WLZB,
-            "CJSJ": item.CJSJ,
+            "CJSJ": item.CJSJ.strftime("%Y-%m-%d %H:%M:%S") if item.CJSJ else None,
             "CJR": creator_name,
             "samplerNames": sampler_name,
             "taskName": task_name,

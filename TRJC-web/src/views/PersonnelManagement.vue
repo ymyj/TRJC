@@ -96,7 +96,7 @@
                 {{ person.RYZT === 'active' ? '在职' : '离职' }}
               </span>
             </td>
-            <td>{{ person.CJSJ ? person.CJSJ.split(' ')[0] : '' }}</td>
+            <td>{{ person.CJSJ || '' }}</td>
             <td>
               <div class="action-links">
                 <span class="action-link" @click="handleEdit(person)">编辑</span>
