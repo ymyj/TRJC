@@ -22,9 +22,22 @@ router = APIRouter(prefix="/api/auth", tags=["认证"])
 security = HTTPBearer(auto_error=False)
 
 
+@router.get("/companies", response_model=dict)
+def get_companies(db: Session = Depends(get_db)):
+    """获取所有不重复的公司列表（从人员表中提取）"""
+    companies = db.query(PersonInfo.GS).filter(
+        PersonInfo.SFSC == 0,
+        PersonInfo.GS.isnot(None),
+        PersonInfo.GS != ""
+    ).distinct().all()
+    result = sorted([c[0] for c in companies if c[0]])
+    return {"code": 200, "data": result}
+
+
 class LoginRequest(BaseModel):
     username: str
     password: str
+    gs: str  # 所属公司
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -65,14 +78,21 @@ def get_current_user(
 
 @router.post("/login", response_model=dict)
 def login(login_data: LoginRequest, db: Session = Depends(get_db), request: Request = None):
-    users = db.query(PersonInfo).filter(PersonInfo.SFSC == 0).all()
+    # 先根据公司过滤用户
+    users = db.query(PersonInfo).filter(
+        PersonInfo.SFSC == 0,
+        PersonInfo.GS == login_data.gs
+    ).all()
 
     user = None
     for u in users:
         try:
             decrypted_username = decrypt_data(u.YHM) if u.YHM else None
             decrypted_phone = decrypt_data(u.LXFS) if u.LXFS else None
-            if decrypted_username == login_data.username or decrypted_phone == login_data.username:
+            decrypted_name = decrypt_data(u.XM) if u.XM else None
+            if (decrypted_username == login_data.username or
+                decrypted_phone == login_data.username or
+                decrypted_name == login_data.username):
                 user = u
                 break
         except Exception:
@@ -89,13 +109,17 @@ def login(login_data: LoginRequest, db: Session = Depends(get_db), request: Requ
 
     login_source = request.headers.get("X-Login-Source", "h5") if request else "h5"
 
-    if login_source == "web" and user.GW != "项目经理":
+    # 权限控制:
+    # 管理员: 可登录Web+H5
+    # 项目经理: 可登录Web+H5
+    # 其他岗位: 仅可登录H5
+    if login_source == "web" and user.GW not in ("管理员", "项目经理"):
         raise HTTPException(
             status_code=403,
-            detail="仅项目经理可登录Web端，请使用移动端登录"
+            detail="该岗位不可登录Web端，请使用移动端登录"
         )
 
-    token = create_access_token(data={"sub": str(user.ID)})
+    token = create_access_token(data={"sub": str(user.ID), "gs": user.GS})
 
     return {
         "code": 200,
@@ -109,7 +133,8 @@ def login(login_data: LoginRequest, db: Session = Depends(get_db), request: Requ
                 "GW": user.GW,
                 "SSQH": user.SSQH,
                 "SSBM": user.SSBM,
-                "isAdmin": user.GW == "项目经理"
+                "GS": user.GS,
+                "isAdmin": user.GW == "管理员"
             }
         }
     }

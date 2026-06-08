@@ -11,3 +11,7 @@ export function getDatasetDetail(id) {
 export function createDataset(data) {
   return api.post('/api/datasets', data)
 }
+
+export function deleteDataset(id) {
+  return api.post(`/api/datasets/${id}/delete`)
+}

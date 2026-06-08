@@ -11,6 +11,7 @@ class PersonInfoBase(BaseModel):
     GW: str
     SSQH: Optional[str] = None
     SSBM: Optional[str] = None
+    GS: Optional[str] = None
     RYZT: str = "active"
 
 
@@ -26,6 +27,7 @@ class PersonInfoUpdate(BaseModel):
     GW: Optional[str] = None
     SSQH: Optional[str] = None
     SSBM: Optional[str] = None
+    GS: Optional[str] = None
     RYZT: Optional[str] = None
 
 
@@ -36,6 +38,7 @@ class PersonInfoResponse(BaseModel):
     GW: str
     SSQH: Optional[str] = None
     SSBM: Optional[str] = None
+    GS: Optional[str] = None
     RYZT: str
     CJSJ: Optional[datetime] = None
     SFSC: int = 0
@@ -51,6 +54,7 @@ class PersonInfoListResponse(BaseModel):
     GW: str
     SSQH: Optional[str] = None
     SSBM: Optional[str] = None
+    GS: Optional[str] = None
     RYZT: str
     CJSJ: Optional[datetime] = None
 

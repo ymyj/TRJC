@@ -49,9 +49,11 @@ const userInfo = ref({
 
 const loadUserInfo = () => {
   const info = localStorage.getItem('userInfo')
+  console.log('从localStorage读取的用户信息:', info)
   if (info) {
     try {
       userInfo.value = JSON.parse(info)
+      console.log('解析后的用户信息:', userInfo.value)
     } catch (e) {
       console.error('解析用户信息失败', e)
     }

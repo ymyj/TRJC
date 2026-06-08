@@ -5,69 +5,147 @@ export const SampleCollectionView = {
     taskId: {
       type: [String, Number],
       default: null
+    },
+    mode: {
+      type: String,
+      default: 'single'
+    },
+    selectedPlots: {
+      type: Array,
+      default: () => []
+    },
+    currentPlot: {
+      type: Object,
+      default: () => ({})
+    },
+    plotIndex: {
+      type: Number,
+      default: 0
     }
   },
   setup(props, { emit }) {
-    const formData = Vue.reactive({
+    const isBatchMode = props.mode === 'batch';
+
+    const createFormData = () => ({
       sampleCode: '',
       location: '',
       coordinates: '',
+      coord_d1bh: '',
+      coord_d1jd: '',
+      coord_d1wd: '',
       depth: '',
       pointCount: '',
       weight: '',
-      sampleDate: ''
+      sampleDate: '',
+      sampler: '',
+      unitRep: '',
+      expert: ''
     });
 
+    const formData = Vue.ref(createFormData());
+
+    const plotForms = Vue.ref([]);
+
     const submitting = Vue.ref(false);
+    const currentPlotIndex = Vue.ref(0);
 
     const goBack = () => {
-      emit('navigate', 'plot-detail');
+      if (isBatchMode) {
+        emit('navigate', 'plot-list');
+      } else {
+        emit('navigate', 'plot-detail');
+      }
+    };
+
+    const initPlotForms = () => {
+      if (isBatchMode && props.selectedPlots && props.selectedPlots.length > 0) {
+        plotForms.value = props.selectedPlots.map((plot, index) => ({
+          plotId: plot.ID,
+          plotName: plot.TBH || '地块' + plot.ID,
+          formData: createFormData()
+        }));
+        currentPlotIndex.value = 0;
+      }
+    };
+
+    const getCurrentPlotData = () => {
+      if (isBatchMode) {
+        return plotForms.value[currentPlotIndex.value];
+      }
+      return null;
+    };
+
+    const nextPlot = () => {
+      if (currentPlotIndex.value < plotForms.value.length - 1) {
+        currentPlotIndex.value++;
+      }
+    };
+
+    const prevPlot = () => {
+      if (currentPlotIndex.value > 0) {
+        currentPlotIndex.value--;
+      }
     };
 
     const handleSubmit = async () => {
-      if (!formData.sampleCode) {
+      if (isBatchMode) {
+        await handleBatchSubmit();
+      } else {
+        await handleSingleSubmit();
+      }
+    };
+
+    const handleSingleSubmit = async () => {
+      if (!formData.value.sampleCode) {
         vant.showToast({ message: '请输入土壤混合样品编号', position: 'top' });
         return;
       }
-      if (!formData.location) {
+      if (!formData.value.location) {
         vant.showToast({ message: '请输入地理位置', position: 'top' });
         return;
       }
-      if (!formData.depth) {
+      if (!formData.value.depth) {
         vant.showToast({ message: '请输入采样深度', position: 'top' });
         return;
       }
-      if (!formData.pointCount) {
+      if (!formData.value.pointCount) {
         vant.showToast({ message: '请输入采样点位数量', position: 'top' });
         return;
       }
-      if (!formData.weight) {
+      if (!formData.value.weight) {
         vant.showToast({ message: '请输入混合样品重量', position: 'top' });
         return;
       }
-      if (!formData.sampleDate) {
+      if (!formData.value.sampleDate) {
         vant.showToast({ message: '请选择采样日期', position: 'top' });
         return;
       }
 
       submitting.value = true;
       try {
-        const taskId = props.taskId || '1';
         const payload = {
-          RWID: parseInt(taskId),
-          DKID: parseInt(taskId),
-          TRHHYPBH: formData.sampleCode,
-          DLWZ: formData.location,
-          CYSD_D1: formData.depth,
-          CYDWSL: parseInt(formData.pointCount),
-          HHYPSL: parseFloat(formData.weight),
-          CYRQ: formData.sampleDate
+          RWID: props.taskId,
+          DKID: props.currentPlot.ID,
+          TRHHYPBH: formData.value.sampleCode,
+          DLWZ: formData.value.location,
+          DLZB_D1BH: formData.value.coord_d1bh || '',
+          DLZB_D1JD: formData.value.coord_d1jd || '',
+          DLZB_D1WD: formData.value.coord_d1wd || '',
+          CYSD_D1: formData.value.depth,
+          CYDWSL: parseInt(formData.value.pointCount),
+          HHYPSL: parseFloat(formData.value.weight),
+          CYRQ: formData.value.sampleDate,
+          CYRY: formData.value.sampler || '',
+          XMDWDB: formData.value.unitRep || '',
+          TKZJ: formData.value.expert || ''
         };
-        const res = await TRJC.api.createSampleRecord(taskId, payload);
+
+        const res = await TRJC.api.createSampleRecord(props.taskId, payload);
         if (res.data.code === 200) {
           vant.showToast({ message: '提交成功', position: 'top' });
-          resetForm();
-          emit('navigate', 'plot-detail');
+          setTimeout(() => {
+            emit('navigate', 'plot-detail');
+          }, 1500);
         }
       } catch (error) {
         console.error('提交失败:', error);
@@ -77,22 +155,90 @@ export const SampleCollectionView = {
       }
     };
 
-    const resetForm = () => {
-      formData.sampleCode = '';
-      formData.location = '';
-      formData.coordinates = '';
-      formData.depth = '';
-      formData.pointCount = '';
-      formData.weight = '';
-      formData.sampleDate = '';
+    const handleBatchSubmit = async () => {
+      for (let i = 0; i < plotForms.value.length; i++) {
+        const form = plotForms.value[i].formData;
+        if (!form.sampleCode) {
+          vant.showToast({ message: '请输入土壤混合样品编号', position: 'top' });
+          return;
+        }
+        if (!form.location) {
+          vant.showToast({ message: '请输入地理位置', position: 'top' });
+          return;
+        }
+        if (!form.depth) {
+          vant.showToast({ message: `请输入第${i + 1}个地块的采样深度`, position: 'top' });
+          return;
+        }
+        if (!form.coord_d1jd || !form.coord_d1wd) {
+          vant.showToast({ message: `请填写第${i + 1}个地块的地理坐标`, position: 'top' });
+          return;
+        }
+      }
+
+      submitting.value = true;
+      try {
+        const firstForm = plotForms.value[0].formData;
+        const payload = {
+          common: {
+            TRHHYPBH: firstForm.sampleCode,
+            DLWZ: firstForm.location,
+            CYDWSL: parseInt(firstForm.pointCount),
+            HHYPSL: parseFloat(firstForm.weight),
+            CYRQ: firstForm.sampleDate,
+            CYRY: firstForm.sampler || '',
+            XMDWDB: firstForm.unitRep || '',
+            TKZJ: firstForm.expert || ''
+          },
+          plots: plotForms.value.map(pf => ({
+            DKID: pf.plotId,
+            DLZB_D1BH: pf.formData.coord_d1bh || '',
+            DLZB_D1JD: pf.formData.coord_d1jd || '',
+            DLZB_D1WD: pf.formData.coord_d1wd || '',
+            CYSD_D1: pf.formData.depth
+          }))
+        };
+
+        const res = await TRJC.api.createSampleRecordsBatch(props.taskId, payload);
+        if (res.data.code === 200) {
+          vant.showToast({ message: '批量提交成功', position: 'top' });
+          setTimeout(() => {
+            emit('navigate', 'plot-list');
+          }, 1500);
+        }
+      } catch (error) {
+        console.error('批量提交失败:', error);
+        vant.showToast({ message: '批量提交失败', position: 'top' });
+      } finally {
+        submitting.value = false;
+      }
     };
+
+    const resetForm = () => {
+      if (isBatchMode) {
+        plotForms.value.forEach(pf => {
+          pf.formData = createFormData();
+        });
+      } else {
+        formData.value = createFormData();
+      }
+    };
+
+    Vue.onMounted(() => {
+      initPlotForms();
+    });
 
     return {
       formData,
+      plotForms,
       submitting,
+      currentPlotIndex,
       goBack,
+      nextPlot,
+      prevPlot,
       handleSubmit,
-      resetForm
+      resetForm,
+      isBatchMode
     };
   },
   template: `
@@ -101,103 +247,253 @@ export const SampleCollectionView = {
         <div class="sample-collection-header-back" @click="goBack">
           <van-icon name="arrow-left" size="20" color="#fff" />
         </div>
-        <span class="sample-collection-header-title">样品采集记录登记</span>
+        <span class="sample-collection-header-title">{{ isBatchMode ? '批量采集记录登记' : '样品采集记录登记' }}</span>
       </div>
       
       <div class="sample-collection-content">
-        <div class="sample-collection-form-card">
-          <div class="form-item">
-            <label class="form-label">土壤混合样品编号</label>
-            <input 
-              type="text" 
-              v-model="formData.sampleCode"
-              placeholder="如：110101F250723001"
-              class="form-input"
-            />
-            <span class="form-tip">县级行政区域代码(6位)+补充耕地类型(F复耕/K垦造)+采样日期(6位)+顺序号(3位)</span>
+        <template v-if="isBatchMode">
+          <div class="batch-plot-selector">
+            <div 
+              v-for="(pf, index) in plotForms" 
+              :key="pf.plotId"
+              class="batch-plot-tab"
+              :class="{ active: currentPlotIndex === index }"
+              @click="currentPlotIndex = index"
+            >
+              地块{{ index + 1 }}
+            </div>
           </div>
-          
-          <div class="form-item">
-            <label class="form-label">地理位置</label>
-            <input 
-              type="text" 
-              v-model="formData.location"
-              placeholder="所在市(州)、县(市、区)、乡(镇、街道)、村的名称"
-              class="form-input"
-            />
-          </div>
-          
-          <div class="form-item">
-            <label class="form-label">地理坐标</label>
-            <input 
-              type="text" 
-              v-model="formData.coordinates"
-              placeholder="按度分秒填写"
-              class="form-input"
-            />
-          </div>
-          
-          <div class="form-row">
-            <div class="form-item half">
-              <label class="form-label">采样深度</label>
-              <div class="input-with-unit">
+
+          <div class="sample-collection-form-card">
+            <div class="form-item">
+              <label class="form-label">土壤混合样品编号</label>
+              <input 
+                type="text" 
+                v-model="plotForms[currentPlotIndex].formData.sampleCode"
+                placeholder="如：110101F250723001"
+                class="form-input"
+              />
+              <span class="form-tip">县级行政区域代码(6位)+补充耕地类型(F复耕/K垦造)+采样日期(6位)+顺序号(3位)</span>
+            </div>
+            
+            <div class="form-item">
+              <label class="form-label">地理位置</label>
+              <input 
+                type="text" 
+                v-model="plotForms[currentPlotIndex].formData.location"
+                placeholder="所在市(州)、县(市、区)、乡(镇、街道)、村的名称"
+                class="form-input"
+              />
+            </div>
+            
+            <div class="form-item">
+              <label class="form-label">地理坐标</label>
+              <div class="coord-row">
                 <input 
-                  type="number" 
-                  v-model="formData.depth"
-                  placeholder="请输入"
-                  class="form-input"
+                  type="text" 
+                  v-model="plotForms[currentPlotIndex].formData.coord_d1bh"
+                  placeholder="编号"
+                  class="form-input coord-input-small"
                 />
-                <span class="input-unit">cm</span>
+                <input 
+                  type="text" 
+                  v-model="plotForms[currentPlotIndex].formData.coord_d1jd"
+                  placeholder="经度"
+                  class="form-input coord-input"
+                />
+                <input 
+                  type="text" 
+                  v-model="plotForms[currentPlotIndex].formData.coord_d1wd"
+                  placeholder="纬度"
+                  class="form-input coord-input"
+                />
+              </div>
+              <span class="form-tip">按度分秒填写，如：116°24′ 39°55′</span>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-item half">
+                <label class="form-label">采样深度</label>
+                <div class="input-with-unit">
+                  <input 
+                    type="number" 
+                    v-model="plotForms[currentPlotIndex].formData.depth"
+                    placeholder="请输入"
+                    class="form-input"
+                  />
+                  <span class="input-unit">cm</span>
+                </div>
+              </div>
+              
+              <div class="form-item half">
+                <label class="form-label">采样点位数量</label>
+                <div class="input-with-unit">
+                  <input 
+                    type="number" 
+                    v-model="plotForms[currentPlotIndex].formData.pointCount"
+                    placeholder="请输入"
+                    class="form-input"
+                  />
+                  <span class="input-unit">个</span>
+                </div>
               </div>
             </div>
             
-            <div class="form-item half">
-              <label class="form-label">采样点位数量</label>
+            <div class="form-item">
+              <label class="form-label">混合样品重量</label>
               <div class="input-with-unit">
                 <input 
                   type="number" 
-                  v-model="formData.pointCount"
+                  v-model="plotForms[currentPlotIndex].formData.weight"
                   placeholder="请输入"
                   class="form-input"
                 />
-                <span class="input-unit">个</span>
+                <span class="input-unit">g</span>
               </div>
             </div>
-          </div>
-          
-          <div class="form-item">
-            <label class="form-label">混合样品重量</label>
-            <div class="input-with-unit">
+            
+            <div class="form-item">
+              <label class="form-label">采样日期</label>
               <input 
-                type="number" 
-                v-model="formData.weight"
+                type="date" 
+                v-model="plotForms[currentPlotIndex].formData.sampleDate"
+                class="form-input date-input"
+              />
+            </div>
+            
+            <div class="form-item">
+              <label class="form-label">采样人员（签字）</label>
+              <input 
+                type="text" 
+                v-model="plotForms[currentPlotIndex].formData.sampler"
                 placeholder="请输入"
                 class="form-input"
               />
-              <span class="input-unit">g</span>
+            </div>
+            
+            <div class="form-item">
+              <label class="form-label">项目承担单位代表（签字）</label>
+              <input 
+                type="text" 
+                v-model="plotForms[currentPlotIndex].formData.unitRep"
+                placeholder="请输入"
+                class="form-input"
+              />
+            </div>
+            
+            <div class="form-item">
+              <label class="form-label">踏勘专家（签字）</label>
+              <input 
+                type="text" 
+                v-model="plotForms[currentPlotIndex].formData.expert"
+                placeholder="请输入"
+                class="form-input"
+              />
             </div>
           </div>
-          
-          <div class="form-item">
-            <label class="form-label">采样日期</label>
-            <input 
-              type="date" 
-              v-model="formData.sampleDate"
-              class="form-input date-input"
-            />
+
+          <div class="batch-nav">
+            <button class="batch-nav-btn" @click="prevPlot" :disabled="currentPlotIndex === 0">上一个</button>
+            <span class="batch-nav-indicator">{{ currentPlotIndex + 1 }} / {{ plotForms.length }}</span>
+            <button class="batch-nav-btn" @click="nextPlot" :disabled="currentPlotIndex === plotForms.length - 1">下一个</button>
           </div>
-        </div>
+        </template>
+
+        <template v-else>
+          <div class="sample-collection-form-card">
+            <div class="form-item">
+              <label class="form-label">土壤混合样品编号</label>
+              <input 
+                type="text" 
+                v-model="formData.sampleCode"
+                placeholder="如：110101F250723001"
+                class="form-input"
+              />
+              <span class="form-tip">县级行政区域代码(6位)+补充耕地类型(F复耕/K垦造)+采样日期(6位)+顺序号(3位)</span>
+            </div>
+            
+            <div class="form-item">
+              <label class="form-label">地理位置</label>
+              <input 
+                type="text" 
+                v-model="formData.location"
+                placeholder="所在市(州)、县(市、区)、乡(镇、街道)、村的名称"
+                class="form-input"
+              />
+            </div>
+            
+            <div class="form-item">
+              <label class="form-label">地理坐标</label>
+              <input 
+                type="text" 
+                v-model="formData.coordinates"
+                placeholder="按度分秒填写"
+                class="form-input"
+              />
+            </div>
+            
+            <div class="form-row">
+              <div class="form-item half">
+                <label class="form-label">采样深度</label>
+                <div class="input-with-unit">
+                  <input 
+                    type="number" 
+                    v-model="formData.depth"
+                    placeholder="请输入"
+                    class="form-input"
+                  />
+                  <span class="input-unit">cm</span>
+                </div>
+              </div>
+              
+              <div class="form-item half">
+                <label class="form-label">采样点位数量</label>
+                <div class="input-with-unit">
+                  <input 
+                    type="number" 
+                    v-model="formData.pointCount"
+                    placeholder="请输入"
+                    class="form-input"
+                  />
+                  <span class="input-unit">个</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-item">
+              <label class="form-label">混合样品重量</label>
+              <div class="input-with-unit">
+                <input 
+                  type="number" 
+                  v-model="formData.weight"
+                  placeholder="请输入"
+                  class="form-input"
+                />
+                <span class="input-unit">g</span>
+              </div>
+            </div>
+            
+            <div class="form-item">
+              <label class="form-label">采样日期</label>
+              <input 
+                type="date" 
+                v-model="formData.sampleDate"
+                class="form-input date-input"
+              />
+            </div>
+          </div>
+        </template>
         
         <div class="form-instructions">
           <div class="instructions-title">填表说明</div>
           <ul class="instructions-list">
-            <li>1. 土壤混合样品编号：县级行政区域代码(6位)+补充耕地类型(F复耕、K垦造)+采样日期(6位)+顺序号(3位)。如110101F250723001。</li>
+            <li>1. 土壤混合样品编号：县级行政区域代码(6位)+补充耕地类型(F复耕、K垦造)+采样日期(6位)+顺序号(3位)。</li>
             <li>2. 地理位置：所在市(州)、县(市、区)、乡(镇、街道)、村的名称。</li>
             <li>3. 地理坐标：按度分秒填写。</li>
             <li>4. 采样深度：单位为cm，保留整数位。</li>
-            <li>5. 采样点位数量：单位为个。</li>
-            <li>6. 混合样品重量：土壤混合样品重量，单位为g，保留整数位。</li>
-            <li>7. 采样日期：填写年月日。</li>
+            <li>5. 混合样品重量：土壤混合样品重量，单位为g，保留整数位。</li>
+            <li>6. 样品重量：土壤混合样品总重量，单位为g，保留整数位。</li>
+            <li>7. 本表由采样人员负责填写，一式三份，采样人员、项目承担单位和县级农业农村部门各留存一份。</li>
             <li>8. 各地可根据实际细化修改补充耕地质量鉴定土壤混合样品采集记录表。</li>
           </ul>
         </div>
@@ -254,12 +550,37 @@ export const SampleCollectionViewStyle = `
   padding: 16px;
 }
 
+.batch-plot-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.batch-plot-tab {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: #fff;
+  color: #666;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid #e0e0e0;
+}
+
+.batch-plot-tab.active {
+  background: #4A90E2;
+  color: #fff;
+  border-color: #4A90E2;
+}
+
 .sample-collection-form-card {
   background: #fff;
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  margin-bottom: 16px;
 }
 
 .form-item {
@@ -333,11 +654,61 @@ export const SampleCollectionViewStyle = `
   margin-top: 4px;
 }
 
+.coord-row {
+  display: flex;
+  gap: 8px;
+}
+
+.coord-input-small {
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.coord-input {
+  flex: 1;
+}
+
+.batch-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+  margin-top: 16px;
+}
+
+.batch-nav-btn {
+  padding: 8px 20px;
+  border: 1px solid #4A90E2;
+  border-radius: 20px;
+  background: #fff;
+  color: #4A90E2;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.batch-nav-btn:disabled {
+  border-color: #e0e0e0;
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.batch-nav-btn:not(:disabled):active {
+  background: #4A90E2;
+  color: #fff;
+}
+
+.batch-nav-indicator {
+  font-size: 14px;
+  color: #666;
+}
+
 .form-instructions {
   background: #fff;
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin-top: 16px;
 }
 
 .instructions-title {

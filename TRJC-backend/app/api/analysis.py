@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from datetime import datetime
 from app.database import get_db
@@ -86,14 +86,83 @@ def create_analysis_result(task_id: int, data: AnalysisResultCreate, db: Session
     return {"code": 200, "msg": "提交成功", "data": {"ID": db_item.ID}}
 
 
-@router.put("/{record_id}", response_model=dict)
-def update_analysis_result(task_id: int, record_id: int, data: AnalysisResultUpdate, db: Session = Depends(get_db)):
-    item = db.query(AnalysisResult).filter(AnalysisResult.ID == record_id, AnalysisResult.SFSC == 0).first()
-    if not item:
-        raise HTTPException(status_code=404, detail="记录不存在")
-
-    for field, value in data.model_dump(exclude_unset=True).items():
-        setattr(item, field, value)
-
-    db.commit()
-    return {"code": 200, "msg": "更新成功"}
+@router.post("/batch", response_model=dict)
+async def create_analysis_result_batch(task_id: int, request: Request, db: Session = Depends(get_db)):
+    """批量提交分析结果：勾选多个地块，填写一份分析数据，所有地块共享相同的分析结果"""
+    import json
+    raw_body = await request.body()
+    print(f"[DEBUG] Batch analysis raw body: {raw_body}")
+    
+    try:
+        data = json.loads(raw_body)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"JSON解析失败: {str(e)}")
+    
+    common = data.get('common', {})
+    plot_ids = data.get('plotIds', [])
+    
+    if not plot_ids:
+        raise HTTPException(status_code=400, detail="请选择至少一个地块")
+    
+    try:
+        # 批量提交前先清理该任务下已有的分析记录
+        existing_records = db.query(AnalysisResult).filter(
+            AnalysisResult.RWID == task_id,
+            AnalysisResult.SFSC == 0
+        ).all()
+        for rec in existing_records:
+            rec.SFSC = 1
+        db.flush()
+        
+        for dkid in plot_ids:
+            db_item = AnalysisResult(
+                RWID=task_id,
+                DKID=dkid,
+                RZ=common.get('RZ'),
+                PHZ=common.get('PHZ'),
+                YJZ=common.get('YJZ'),
+                YXP=common.get('YXP'),
+                XJK=common.get('XJK'),
+                SRXYLZL=common.get('SRXYLZL'),
+                GE=common.get('GE'),
+                ZG=common.get('ZG'),
+                ZS=common.get('ZS'),
+                QIAN=common.get('QIAN'),
+                GE_CHROME=common.get('GE_CHROME')
+            )
+            db.add(db_item)
+            
+            status_record = db.query(TaskPlotStatus).filter(
+                TaskPlotStatus.RWID == task_id,
+                TaskPlotStatus.DKID == dkid,
+                TaskPlotStatus.SFSC == 0
+            ).first()
+            
+            if status_record:
+                status_record.ZT = "completed"
+                status_record.CYFSJ = datetime.now()
+            else:
+                status_record = TaskPlotStatus(
+                    RWID=task_id,
+                    DKID=dkid,
+                    ZT="completed",
+                    CYFSJ=datetime.now()
+                )
+                db.add(status_record)
+            
+            try:
+                from app.utils.dataset_helper import _create_dataset_from_completed_plot
+                _create_dataset_from_completed_plot(db, task_id, dkid, preloaded_analysis=common)
+            except Exception as e:
+                print(f"地块{dkid}创建数据集记录失败: {e}")
+        
+        db.commit()
+        try_complete_task(db, task_id)
+        
+        return {"code": 200, "msg": f"批量分析提交成功，共{len(plot_ids)}个地块", "data": {"count": len(plot_ids)}}
+    except Exception as e:
+        db.rollback()
+        print(f"[ERROR] Batch analysis submit failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"批量分析提交失败: {str(e)}")

@@ -77,6 +77,7 @@
               <td class="col-fixed col-fixed-right">
                 <div class="action-links">
                   <span class="action-link" @click="viewDetail(item)">详情</span>
+                  <span class="action-link action-link-danger" @click="handleDelete(item)">删除</span>
                 </div>
               </td>
             </tr>
@@ -105,7 +106,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import DatasetDetailModal from '../components/DatasetDetailModal.vue'
-import { getDatasetList, getDatasetDetail } from '../api'
+import { getDatasetList, getDatasetDetail, deleteDataset } from '../api'
 
 const modalVisible = ref(false)
 const selectedData = ref({})
@@ -121,7 +122,7 @@ const datasetList = ref([])
 const pagination = reactive({
   current: 1,
   total: 0,
-  pageSize: 9,
+  pageSize: 10,
   pages: [],
   get start() { return (this.current - 1) * this.pageSize + 1 },
   get end() { return Math.min(this.current * this.pageSize, this.total) },
@@ -217,6 +218,24 @@ const changePage = (page) => {
   if (page >= 1 && page <= pagination.totalPages) {
     pagination.current = page
     fetchList()
+  }
+}
+
+const handleDelete = async (item) => {
+  if (!confirm(`确定要删除该数据集记录吗？\n任务名称：${item.taskName}\n图斑编号：${item.plotNumber}`)) {
+    return
+  }
+  try {
+    const res = await deleteDataset(item.id)
+    if (res.data.code === 200) {
+      alert('删除成功')
+      fetchList()
+    } else {
+      alert(res.data.msg || '删除失败')
+    }
+  } catch (error) {
+    console.error('删除失败:', error)
+    alert('删除失败，请稍后重试')
   }
 }
 
@@ -422,6 +441,14 @@ onMounted(() => {
 
 .action-link:hover {
   color: #4096ff;
+}
+
+.action-link-danger {
+  color: #ff4d4f;
+}
+
+.action-link-danger:hover {
+  color: #ff7875;
 }
 
 .pagination-wrapper {

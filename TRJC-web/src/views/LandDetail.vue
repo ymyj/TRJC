@@ -178,31 +178,15 @@
               <td class="label-cell">地理位置</td>
               <td class="value-cell" colspan="5">{{ sampleRecord.locationCity }} {{ sampleRecord.locationCounty }} {{ sampleRecord.locationVillage }}</td>
             </tr>
-            <tr>
-              <td class="label-cell" rowspan="3">地理坐标</td>
-              <td class="value-cell">{{ sampleRecord.point1Code }}</td>
-              <td class="value-cell" colspan="4">经度：{{ sampleRecord.point1Lon }}　　纬度：{{ sampleRecord.point1Lat }}</td>
+            <tr v-for="(point, index) in coordinatePoints" :key="'coord-' + index">
+              <td v-if="index === 0" class="label-cell" :rowspan="coordinatePoints.length">地理坐标</td>
+              <td class="value-cell">{{ point.code }}</td>
+              <td class="value-cell" colspan="4">经度：{{ point.lon }}纬度：{{ point.lat }}</td>
             </tr>
-            <tr>
-              <td class="value-cell">{{ sampleRecord.point2Code }}</td>
-              <td class="value-cell" colspan="4">经度：{{ sampleRecord.point2Lon }}　　纬度：{{ sampleRecord.point2Lat }}</td>
-            </tr>
-            <tr>
-              <td class="value-cell">{{ sampleRecord.point3Code }}</td>
-              <td class="value-cell" colspan="4">经度：{{ sampleRecord.point3Lon }}　　纬度：{{ sampleRecord.point3Lat }}</td>
-            </tr>
-            <tr>
-              <td class="label-cell" rowspan="3">采样深度（cm）</td>
-              <td class="value-cell">{{ sampleRecord.depth1Code }}</td>
-              <td class="value-cell" colspan="4"></td>
-            </tr>
-            <tr>
-              <td class="value-cell">{{ sampleRecord.depth2Code }}</td>
-              <td class="value-cell" colspan="4"></td>
-            </tr>
-            <tr>
-              <td class="value-cell">{{ sampleRecord.depth3Code }}</td>
-              <td class="value-cell" colspan="4"></td>
+            <tr v-for="(depth, index) in depthPoints" :key="'depth-' + index">
+              <td v-if="index === 0" class="label-cell" :rowspan="depthPoints.length">采样深度（cm）</td>
+              <td class="value-cell">{{ depth.code }}</td>
+              <td class="value-cell" colspan="4">{{ depth.value }}</td>
             </tr>
             <tr>
               <td class="label-cell">采样点位数量（个）</td>
@@ -230,7 +214,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { getSurveyRecords, getSampleRecords, getTaskPlotDetail } from '../api'
 
@@ -241,6 +225,7 @@ const activeTab = ref('basic')
 const landInfo = reactive({})
 const surveyRecord = reactive({})
 const sampleRecord = reactive({})
+const allSampleRecords = ref([])
 
 const statusMap = {
   pending: { text: '待领取', class: 'status-pending' },
@@ -252,6 +237,54 @@ const statusMap = {
 const getStatusClass = (status) => {
   return statusMap[status]?.class || 'status-pending'
 }
+
+const coordinatePoints = computed(() => {
+  const points = []
+  
+  allSampleRecords.value.forEach((record, idx) => {
+    if (record.DLZB_D1BH || record.DLZB_D1JD || record.DLZB_D1WD) {
+      points.push({
+        code: record.DLZB_D1BH || '',
+        lon: record.DLZB_D1JD || '',
+        lat: record.DLZB_D1WD || ''
+      })
+    }
+    if (record.DLZB_D2BH || record.DLZB_D2JD || record.DLZB_D2WD) {
+      points.push({
+        code: record.DLZB_D2BH || '',
+        lon: record.DLZB_D2JD || '',
+        lat: record.DLZB_D2WD || ''
+      })
+    }
+    if (record.DLZB_D3BH || record.DLZB_D3JD || record.DLZB_D3WD) {
+      points.push({
+        code: record.DLZB_D3BH || '',
+        lon: record.DLZB_D3JD || '',
+        lat: record.DLZB_D3WD || ''
+      })
+    }
+  })
+  
+  return points
+})
+
+const depthPoints = computed(() => {
+  const depths = []
+  
+  allSampleRecords.value.forEach((record, idx) => {
+    if (record.CYSD_D1 || record.DLZB_D1BH) {
+      depths.push({ code: record.DLZB_D1BH || '', value: record.CYSD_D1 || '' })
+    }
+    if (record.CYSD_D2 || record.DLZB_D2BH) {
+      depths.push({ code: record.DLZB_D2BH || '', value: record.CYSD_D2 || '' })
+    }
+    if (record.CYSD_D3 || record.DLZB_D3BH) {
+      depths.push({ code: record.DLZB_D3BH || '', value: record.CYSD_D3 || '' })
+    }
+  })
+  
+  return depths
+})
 
 const fetchLandDetail = async () => {
   try {
@@ -332,30 +365,17 @@ const fetchSurveyRecords = async () => {
 const fetchSampleRecords = async () => {
   try {
     const taskId = route.query.taskId || route.params.id
-    const plotId = route.params.id
     const res = await getSampleRecords(taskId)
     if (res.data.code === 200) {
-      const list = res.data.data || []
-      const record = list.find(item => String(item.DKID) === String(plotId))
-      if (record) {
+      allSampleRecords.value = res.data.data || []
+      if (allSampleRecords.value.length > 0) {
+        const record = allSampleRecords.value[0]
         const locationParts = (record.DLWZ || '').split(' ')
         Object.assign(sampleRecord, {
           sampleCode: record.TRHHYPBH,
           locationCity: locationParts[0] || '',
           locationCounty: locationParts[1] || '',
           locationVillage: locationParts.slice(2).join(' ') || '',
-          point1Code: record.DLZB_D1BH,
-          point1Lon: record.DLZB_D1JD,
-          point1Lat: record.DLZB_D1WD,
-          point2Code: record.DLZB_D2BH,
-          point2Lon: record.DLZB_D2JD,
-          point2Lat: record.DLZB_D2WD,
-          point3Code: record.DLZB_D3BH,
-          point3Lon: record.DLZB_D3JD,
-          point3Lat: record.DLZB_D3WD,
-          depth1Code: record.CYSD_D1,
-          depth2Code: record.CYSD_D2,
-          depth3Code: record.CYSD_D3,
           pointCount: record.CYDWSL,
           sampleWeight: record.HHYPSL,
           sampleDate: record.CYRQ,

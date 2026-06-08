@@ -10,6 +10,7 @@
           <label class="filter-label">岗位</label>
           <select class="form-select" v-model="filterForm.gw">
             <option value="">全部岗位</option>
+            <option value="管理员">管理员</option>
             <option value="项目经理">项目经理</option>
             <option value="技术员">技术员</option>
             <option value="采样员">采样员</option>
@@ -28,6 +29,15 @@
           </select>
         </div>
         <div class="filter-item">
+          <label class="filter-label">公司</label>
+          <select class="form-select" v-model="filterForm.gs">
+            <option value="">全部公司</option>
+            <option v-for="gs in companyOptions" :key="gs" :value="gs">{{ gs }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="filter-row">
+        <div class="filter-item">
           <label class="filter-label">人员状态</label>
           <select class="form-select" v-model="filterForm.ryzt">
             <option value="">全部状态</option>
@@ -35,8 +45,6 @@
             <option value="inactive">离职</option>
           </select>
         </div>
-      </div>
-      <div class="filter-row">
         <div class="filter-actions">
           <button class="btn btn-default" @click="resetFilter">重置</button>
           <button class="btn btn-primary" @click="handleQuery">查询</button>
@@ -64,6 +72,7 @@
             <th>岗位</th>
             <th>所属区划</th>
             <th>所属部门</th>
+            <th>公司</th>
             <th>人员状态</th>
             <th>创建时间</th>
             <th>操作</th>
@@ -81,6 +90,7 @@
             <td>{{ person.GW }}</td>
             <td>{{ person.SSQH }}</td>
             <td>{{ person.SSBM }}</td>
+            <td>{{ person.GS || '-' }}</td>
             <td>
               <span class="status-tag" :class="getStatusClass(person.RYZT)">
                 {{ person.RYZT === 'active' ? '在职' : '离职' }}
@@ -155,6 +165,7 @@
               <label class="form-label">岗位</label>
               <select class="form-select" v-model="form.GW">
                 <option value="">请选择岗位</option>
+                <option value="管理员">管理员</option>
                 <option value="项目经理">项目经理</option>
                 <option value="技术员">技术员</option>
                 <option value="采样员">采样员</option>
@@ -175,10 +186,28 @@
           </div>
           <div class="form-row">
             <div class="form-item">
+              <label class="form-label">公司<span class="required">*</span></label>
+              <select class="form-select" v-model="form.GS" @change="onCompanyChange">
+                <option value="">请选择公司</option>
+                <option v-for="gs in companyOptions" :key="gs" :value="gs">{{ gs }}</option>
+                <option value="__custom__">+ 输入新公司</option>
+              </select>
+              <div v-if="isCustomCompany" style="margin-top: 8px;">
+                <input 
+                  type="text" 
+                  class="form-input" 
+                  placeholder="请输入新公司名称" 
+                  v-model="customCompany"
+                >
+              </div>
+            </div>
+            <div class="form-item">
               <label class="form-label">所属部门</label>
               <input type="text" class="form-input" placeholder="请输入所属部门" v-model="form.SSBM">
             </div>
-            <div class="form-item">
+          </div>
+          <div class="form-row">
+            <div class="form-item" style="max-width: 50%;">
               <label class="form-label">人员状态<span class="required">*</span></label>
               <select class="form-select" v-model="form.RYZT">
                 <option value="active">在职</option>
@@ -199,13 +228,17 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { getPersonnelList, getPersonnelDetail, createPersonnel, updatePersonnel, deletePersonnel } from '../api'
+import { getCompanies } from '../api/auth'
 
 const filterForm = reactive({
   keyword: '',
   gw: '',
   ssqh: '',
+  gs: '',
   ryzt: ''
 })
+
+const companyOptions = ref([])
 
 const personList = ref([])
 
@@ -213,6 +246,19 @@ const showModal = ref(false)
 const isEdit = ref(false)
 const editId = ref(null)
 const passwordDisplay = ref('')
+const customCompany = ref('')
+const isCustomCompany = ref(false)
+
+const onCustomCompanyInput = () => {
+  // keep isCustomCompany true so input stays visible
+}
+
+const onCompanyChange = () => {
+  isCustomCompany.value = form.GS === '__custom__'
+  if (form.GS === '__custom__') {
+    customCompany.value = ''
+  }
+}
 
 const form = reactive({
   YHM: '',
@@ -222,6 +268,7 @@ const form = reactive({
   GW: '',
   SSQH: '',
   SSBM: '',
+  GS: '',
   RYZT: 'active'
 })
 
@@ -255,6 +302,7 @@ const fetchList = async () => {
       keyword: filterForm.keyword || undefined,
       gw: filterForm.gw || undefined,
       ssqh: filterForm.ssqh || undefined,
+      gs: filterForm.gs || undefined,
       ryzt: filterForm.ryzt || undefined
     }
     const res = await getPersonnelList(params)
@@ -272,10 +320,22 @@ const fetchList = async () => {
   }
 }
 
+const fetchCompanyOptions = async () => {
+  try {
+    const res = await getCompanies()
+    if (res.data.code === 200) {
+      companyOptions.value = res.data.data || []
+    }
+  } catch (error) {
+    console.error('获取公司列表失败:', error)
+  }
+}
+
 const resetFilter = () => {
   filterForm.keyword = ''
   filterForm.gw = ''
   filterForm.ssqh = ''
+  filterForm.gs = ''
   filterForm.ryzt = ''
   pagination.current = 1
   fetchList()
@@ -306,8 +366,11 @@ const resetForm = () => {
   form.GW = ''
   form.SSQH = ''
   form.SSBM = ''
+  form.GS = ''
   form.RYZT = 'active'
   passwordDisplay.value = ''
+  customCompany.value = ''
+  isCustomCompany.value = false
 }
 
 const onPasswordFocus = (e) => {
@@ -330,6 +393,17 @@ const confirmSubmit = async () => {
     alert('请填写必填项（用户名、姓名、联系方式）')
     return
   }
+  // 确定公司值
+  if (isCustomCompany.value) {
+    if (!customCompany.value) {
+      alert('请输入公司名称')
+      return
+    }
+    form.GS = customCompany.value
+  } else if (!form.GS) {
+    alert('请选择或输入公司')
+    return
+  }
   if (!isEdit.value && !form.password) {
     alert('请填写密码')
     return
@@ -347,6 +421,7 @@ const confirmSubmit = async () => {
       alert('添加成功')
     }
     closeModal()
+    fetchCompanyOptions()
     fetchList()
   } catch (error) {
     console.error(isEdit.value ? '更新失败:' : '添加失败:', error)
@@ -370,6 +445,16 @@ const handleEdit = async (person) => {
       form.SSQH = data.SSQH || ''
       form.SSBM = data.SSBM || ''
       form.RYZT = data.RYZT || 'active'
+      customCompany.value = ''
+      // 处理公司字段：如果公司不在选项中，切换到自定义输入模式
+      if (data.GS && !companyOptions.value.includes(data.GS)) {
+        form.GS = '__custom__'
+        customCompany.value = data.GS
+        isCustomCompany.value = true
+      } else {
+        form.GS = data.GS || ''
+        isCustomCompany.value = false
+      }
       showModal.value = true
     }
   } catch (error) {
@@ -398,6 +483,7 @@ const changePage = (page) => {
 }
 
 onMounted(() => {
+  fetchCompanyOptions()
   fetchList()
 })
 </script>

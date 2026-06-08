@@ -17,6 +17,17 @@ const LoginView = {
           
           <div class="input-group">
             <van-field
+              v-model="companyDisplay"
+              readonly
+              clickable
+              placeholder="请选择公司"
+              @click="showCompanyPicker = true"
+              class="form-input"
+            />
+          </div>
+
+          <div class="input-group">
+            <van-field
               v-model="form.username"
               placeholder="请输入用户名"
               type="text"
@@ -46,19 +57,59 @@ const LoginView = {
 
         </div>
       </div>
+
+      <van-popup v-model:show="showCompanyPicker" position="bottom" round>
+        <van-picker
+          :columns="companyColumns"
+          @confirm="onCompanyConfirm"
+          @cancel="showCompanyPicker = false"
+        />
+      </van-popup>
     </div>
   `,
   setup() {
     const router = VueRouter.useRouter()
     const loading = Vue.ref(false)
     const errorMsg = Vue.ref('')
+    const showCompanyPicker = Vue.ref(false)
+    const companyList = Vue.ref([])
+    const companyDisplay = Vue.ref('')
 
     const form = Vue.reactive({
+      gs: '',
       username: '',
       password: ''
     })
 
+    const companyColumns = Vue.computed(() => {
+      return companyList.value.map(gs => ({ text: gs, value: gs }))
+    })
+
+    // 加载公司列表
+    const fetchCompanies = async () => {
+      try {
+        const res = await TRJC.api.getCompanies()
+        if (res.data.code === 200) {
+          companyList.value = res.data.data || []
+        }
+      } catch (err) {
+        console.error('获取公司列表失败:', err)
+      }
+    }
+
+    const onCompanyConfirm = ({ selectedOptions }) => {
+      if (selectedOptions && selectedOptions[0]) {
+        form.gs = selectedOptions[0].value
+        companyDisplay.value = selectedOptions[0].text
+      }
+      showCompanyPicker.value = false
+    }
+
     const handleLogin = async () => {
+      if (!form.gs) {
+        errorMsg.value = '请选择公司'
+        return
+      }
       if (!form.username || !form.password) {
         errorMsg.value = '请填写用户名和密码'
         return
@@ -81,6 +132,8 @@ const LoginView = {
       } catch (err) {
         if (err.response && err.response.status === 401) {
           errorMsg.value = '用户名或密码错误'
+        } else if (err.response && err.response.status === 403) {
+          errorMsg.value = err.response.data.detail || '无权限登录'
         } else {
           errorMsg.value = '登录失败，请检查网络连接'
         }
@@ -89,10 +142,18 @@ const LoginView = {
       }
     }
 
+    Vue.onMounted(() => {
+      fetchCompanies()
+    })
+
     return {
       form,
       loading,
       errorMsg,
+      showCompanyPicker,
+      companyDisplay,
+      companyColumns,
+      onCompanyConfirm,
       handleLogin
     }
   }

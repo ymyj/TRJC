@@ -137,8 +137,8 @@
     }
 
     .plot-status-sampling {
-      color: #007AFF;
-      background-color: rgba(0, 122, 255, 0.1);
+      color: #FF9500;
+      background-color: rgba(255, 149, 0, 0.1);
     }
 
     .plot-status-transport {
@@ -2193,9 +2193,284 @@
       }
 
       .batch-collect-submit-btn:active {
-        opacity: 0.9;
-        transform: scale(0.98);
-      }
+      opacity: 0.9;
+      transform: scale(0.98);
+    }
+
+    /* BatchSampleFormView 样式 */
+    .batch-sample-form-view {
+      min-height: 100vh;
+      background-color: var(--bg-color);
+      padding-bottom: 80px;
+    }
+
+    .batch-sample-header {
+      background: var(--header-bg);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .batch-sample-header-back {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .batch-sample-header-back:active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .batch-sample-header-title {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-white);
+      margin-right: 36px;
+    }
+
+    .batch-sample-content {
+      padding: 16px;
+    }
+
+    .selected-plots-info {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .info-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .plot-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .plot-tag {
+      display: inline-block;
+      background: #e3f2fd;
+      color: #1565c0;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+    }
+
+    .sample-collection-form-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 16px;
+    }
+
+    .form-section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .form-item {
+      margin-bottom: 16px;
+    }
+
+    .form-item.half {
+      flex: 1;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      color: var(--text-primary);
+      background: #fafafa;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      background: #fff;
+    }
+
+    .form-input::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    .date-input {
+      color: var(--text-primary);
+    }
+
+    .input-with-unit {
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .input-with-unit .form-input {
+      padding-right: 50px;
+    }
+
+    .input-unit {
+      position: absolute;
+      right: 12px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .form-tip {
+      display: block;
+      font-size: 12px;
+      color: var(--text-tertiary);
+      margin-top: 4px;
+    }
+
+    .coord-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .coord-input-small {
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    .coord-input {
+      flex: 1;
+    }
+
+    .plot-data-card {
+      background: #f8f9fa;
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border-color);
+    }
+
+    .plot-data-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .plot-data-index {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--primary-color);
+      background: #e3f2fd;
+      padding: 4px 12px;
+      border-radius: 12px;
+    }
+
+    .plot-data-name {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .plot-data-card .form-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-instructions {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .instructions-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .instructions-list {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .instructions-list li {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin-bottom: 8px;
+    }
+
+    .instructions-list li:last-child {
+      margin-bottom: 0;
+    }
+
+    .batch-sample-bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      padding: 12px 16px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .submit-btn {
+      width: 100%;
+      height: 44px;
+      border: none;
+      border-radius: 22px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #fff;
+      background: var(--primary-color);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .submit-btn:disabled {
+      background: #b3d1f2;
+      cursor: not-allowed;
+    }
+
+    .submit-btn:active:not(:disabled) {
+      opacity: 0.9;
+      transform: scale(0.98);
+    }
 
     /* BatchAnalyzeView 样式 */
     .batch-analyze-view {
@@ -2361,6 +2636,84 @@
       transform: scale(0.98);
     }
 
+    /* BatchAnalysisFormView 样式 */
+    .batch-analysis-form-view {
+      min-height: 100vh;
+      background-color: var(--bg-color);
+      padding-bottom: 80px;
+    }
+
+    .batch-analysis-header {
+      background: var(--header-bg);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .batch-analysis-header-back {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .batch-analysis-header-back:active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .batch-analysis-header-title {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-white);
+      margin-right: 36px;
+    }
+
+    .batch-analysis-content {
+      padding: 16px;
+    }
+
+    .batch-analysis-form-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 16px;
+    }
+
+    .form-section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .form-tip {
+      display: block;
+      font-size: 12px;
+      color: var(--text-tertiary);
+      margin-top: 4px;
+      margin-bottom: 16px;
+    }
+
+    .batch-analysis-bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      padding: 12px 16px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    }
+
       /* Login Page 样式 */
       .login-page {
         min-height: 100vh;
@@ -2511,6 +2864,7 @@
     // API module
     const api = axios.create({
       baseURL: 'http://localhost:8000/trjcai',  // 服务器地址: https://xx7x.star7.cn:8090/trjcai/
+      // baseURL: 'https://xx7x.star7.cn:8090/trjcai/',  // 服务器地址: https://xx7x.star7.cn:8090/trjcai/
       timeout: 10000,
       headers: { 'Content-Type': 'application/json' }
     });
@@ -2539,7 +2893,10 @@
 
     const TRJC = {
       api: {
-        login: (data) => api.post('/api/auth/login', data),
+        getCompanies: () => api.get('/api/auth/companies'),
+        login: (data) => api.post('/api/auth/login', data, {
+          headers: { 'X-Login-Source': 'h5' }
+        }),
         logout: () => api.post('/api/auth/logout'),
         getTaskList: (params) => api.get('/api/tasks', { params }),
         getTaskStats: () => api.get('/api/tasks/stats'),
@@ -2553,8 +2910,10 @@
         createSurveyRecord: (taskId, data) => api.post(`/api/tasks/${taskId}/survey`, data),
         getSampleRecords: (taskId) => api.get(`/api/tasks/${taskId}/samples`),
         createSampleRecord: (taskId, data) => api.post(`/api/tasks/${taskId}/samples`, data),
+        createSampleRecordsBatch: (taskId, data) => api.post(`/api/tasks/${taskId}/samples/batch`, data),
         getAnalysisResults: (taskId) => api.get(`/api/tasks/${taskId}/analysis`),
         createAnalysisResult: (taskId, data) => api.post(`/api/tasks/${taskId}/analysis`, data),
+        createAnalysisResultBatch: (taskId, data) => api.post(`/api/tasks/${taskId}/analysis/batch`, data),
         getPersonnelList: (params) => api.get('/api/personnel', { params }),
         getPlots: (params) => api.get('/api/plots', { params }),
         getPlotDetail: (plotId, taskId = null) => {
@@ -2784,6 +3143,9 @@
     };
 
     // 登录API
+    const getCompaniesApi = async () => {
+      return await TRJC.api.getCompanies();
+    };
     const loginApi = async (data) => {
       return await TRJC.api.login(data);
     };
@@ -2793,11 +3155,42 @@
       name: 'LoginView',
       emits: ['login'],
       setup(props, { emit }) {
-        const form = Vue.reactive({ username: '', password: '' });
+        const form = Vue.reactive({ gs: '', username: '', password: '' });
         const loading = Vue.ref(false);
         const errorMsg = Vue.ref('');
+        const showCompanyPicker = Vue.ref(false);
+        const companyList = Vue.ref([]);
+        const companyDisplay = Vue.ref('');
+
+        const companyColumns = Vue.computed(() => {
+          return companyList.value.map(gs => ({ text: gs, value: gs }));
+        });
+
+        // 加载公司列表
+        const fetchCompanies = async () => {
+          try {
+            const res = await getCompaniesApi();
+            if (res.data.code === 200) {
+              companyList.value = res.data.data || [];
+            }
+          } catch (err) {
+            console.error('获取公司列表失败:', err);
+          }
+        };
+
+        const onCompanyConfirm = ({ selectedOptions }) => {
+          if (selectedOptions && selectedOptions[0]) {
+            form.gs = selectedOptions[0].value;
+            companyDisplay.value = selectedOptions[0].text;
+          }
+          showCompanyPicker.value = false;
+        };
 
         const handleLogin = async () => {
+          if (!form.gs) {
+            errorMsg.value = '请选择公司';
+            return;
+          }
           if (!form.username || !form.password) {
             errorMsg.value = '请填写用户名和密码';
             return;
@@ -2818,6 +3211,8 @@
           } catch (err) {
             if (err.response && err.response.status === 401) {
               errorMsg.value = '用户名或密码错误';
+            } else if (err.response && err.response.status === 403) {
+              errorMsg.value = err.response.data.detail || '无权限登录';
             } else {
               errorMsg.value = '登录失败，请检查网络连接';
             }
@@ -2826,7 +3221,11 @@
           }
         };
 
-        return { form, loading, errorMsg, handleLogin };
+        Vue.onMounted(() => {
+          fetchCompanies();
+        });
+
+        return { form, loading, errorMsg, showCompanyPicker, companyDisplay, companyColumns, onCompanyConfirm, handleLogin };
       },
       template: `
         <div class="login-page">
@@ -2841,6 +3240,16 @@
           </div>
           <div class="login-form">
             <div class="form-item">
+              <van-field
+                v-model="companyDisplay"
+                readonly
+                clickable
+                placeholder="请选择公司"
+                @click="showCompanyPicker = true"
+                class="form-input"
+              />
+            </div>
+            <div class="form-item">
               <input type="text" v-model="form.username" placeholder="请输入用户名" class="form-input" />
             </div>
             <div class="form-item">
@@ -2851,6 +3260,13 @@
               {{ loading ? '登录中...' : '登 录' }}
             </button>
           </div>
+          <van-popup v-model:show="showCompanyPicker" position="bottom" round>
+            <van-picker
+              :columns="companyColumns"
+              @confirm="onCompanyConfirm"
+              @cancel="showCompanyPicker = false"
+            />
+          </van-popup>
         </div>
       `
     };
@@ -3240,6 +3656,7 @@
         const getStatusClass = (status) => {
           const map = {
             'pending': 'plot-status-pending',
+            'sampling': 'plot-status-sampling',
             'survey_done': 'plot-status-survey',
             'sampling_done': 'plot-status-sampling',
             'completed': 'plot-status-completed'
@@ -3458,7 +3875,11 @@
             vant.showToast('请选择至少一个地块');
             return;
           }
-          emit('navigate', 'sample-collection');
+          const selectedPlotData = plots.value.filter(p => selectedPlots.value.includes(p.id));
+          emit('navigate', 'batch-sample-form', {
+            task: props.task,
+            selectedPlots: selectedPlotData
+          });
         };
 
         const getStatusClass = (status) => {
@@ -3630,7 +4051,11 @@
             vant.showToast('请选择至少一个地块');
             return;
           }
-          emit('navigate', 'analysis-result');
+          const selectedPlotData = plots.value.filter(p => selectedPlots.value.includes(p.id));
+          emit('navigate', 'batch-analysis-form', {
+            task: props.task,
+            selectedPlots: selectedPlotData
+          });
         };
 
         const getStatusClass = (status) => {
@@ -3848,6 +4273,7 @@
         const getStatusClass = (status) => {
           const map = {
             'pending': 'plot-status-pending',
+            'sampling': 'plot-status-sampling',
             'survey_done': 'plot-status-survey',
             'sampling_done': 'plot-status-sampling',
             'completed': 'plot-status-completed'
@@ -3875,11 +4301,30 @@
             return;
           }
           if (plotDetail.value.status === 'pending') {
-            emit('navigate', 'plot-detail-pending', { plot: props.plot, task: props.task });
+            // 直接领取，不需要跳转到中间页面
+            const taskId = props.task?.id;
+            const plotId = props.plot?.id;
+            if (!taskId || !plotId) {
+              vant.showToast('缺少任务或地块信息');
+              return;
+            }
+            vant.showLoadingToast({ message: '领取中...', forbidClick: true });
+            TRJC.api.updatePlotStatus(taskId, plotId, { status: 'sampling' })
+              .then(() => {
+                vant.closeToast();
+                vant.showToast('领取成功');
+                setTimeout(() => {
+                  emit('navigate', 'plot-list', { task: props.task, plot: props.plot, refresh: true });
+                }, 1500);
+              })
+              .catch(() => {
+                vant.closeToast();
+                vant.showToast('领取失败，请重试');
+              });
             return;
           }
           if (plotDetail.value.status === 'sampling') {
-            emit('navigate', 'plot-detail-sampling', { plot: props.plot, task: props.task });
+            emit('navigate', 'survey-record', { task: props.task, plot: props.plot });
             return;
           }
           if (plotDetail.value.status === 'transport') {
@@ -4987,14 +5432,550 @@
       `
     };
 
+    // BatchSampleFormView 组件（批量采集表单页面）
+    const BatchSampleFormView = {
+      name: 'BatchSampleFormView',
+      props: {
+        task: { type: Object, default: null },
+        selectedPlots: { type: Array, default: () => [] }
+      },
+      emits: ['navigate'],
+      setup(props, { emit }) {
+        const formData = Vue.reactive({
+          sampleCode: '',
+          location: '',
+          pointCount: '',
+          weight: '',
+          sampleDate: ''
+        });
+
+        const plotData = Vue.ref([]);
+        const submitting = Vue.ref(false);
+
+        const goBack = () => {
+          emit('navigate', 'batch-collect');
+        };
+
+        const initPlotData = () => {
+          if (!props.selectedPlots || props.selectedPlots.length === 0) {
+            vant.showToast({ message: '未选择地块，请返回重新选择', position: 'top' });
+            setTimeout(() => {
+              emit('navigate', 'plot-list', { task: props.task });
+            }, 1500);
+            return;
+          }
+          plotData.value = props.selectedPlots.map(plot => ({
+            DKID: plot.id,
+            name: plot.TBH || plot.code || '地块' + plot.id,
+            coord_d1bh: '',
+            coord_d1jd: '',
+            coord_d1wd: '',
+            depth: ''
+          }));
+          console.log('[BatchSampleForm] Initialized plotData:', plotData.value);
+        };
+
+        const handleSubmit = async () => {
+          if (!formData.sampleCode) {
+            vant.showToast({ message: '请输入土壤混合样品编号', position: 'top' });
+            return;
+          }
+          if (!formData.location) {
+            vant.showToast({ message: '请输入地理位置', position: 'top' });
+            return;
+          }
+          if (!formData.pointCount) {
+            vant.showToast({ message: '请输入采样点位数量', position: 'top' });
+            return;
+          }
+          if (!formData.weight) {
+            vant.showToast({ message: '请输入混合样品重量', position: 'top' });
+            return;
+          }
+          if (!formData.sampleDate) {
+            vant.showToast({ message: '请选择采样日期', position: 'top' });
+            return;
+          }
+
+          for (let i = 0; i < plotData.value.length; i++) {
+            if (!plotData.value[i].coord_d1jd || !plotData.value[i].coord_d1wd) {
+              vant.showToast({ message: `请填写第${i + 1}个地块的地理坐标`, position: 'top' });
+              return;
+            }
+            if (!plotData.value[i].depth) {
+              vant.showToast({ message: `请填写第${i + 1}个地块的采样深度`, position: 'top' });
+              return;
+            }
+          }
+
+          submitting.value = true;
+          try {
+            const taskId = props.task?.id;
+            const payload = {
+              common: {
+                TRHHYPBH: formData.sampleCode,
+                DLWZ: formData.location,
+                CYDWSL: parseInt(formData.pointCount),
+                HHYPSL: parseFloat(formData.weight),
+                CYRQ: formData.sampleDate
+              },
+              plots: plotData.value.map(pd => ({
+                DKID: pd.DKID,
+                DLZB_D1BH: pd.coord_d1bh,
+                DLZB_D1JD: pd.coord_d1jd,
+                DLZB_D1WD: pd.coord_d1wd,
+                CYSD_D1: pd.depth
+              }))
+            };
+
+            console.log('[BatchSampleForm] Submitting payload:', JSON.stringify(payload, null, 2));
+
+            const res = await TRJC.api.createSampleRecordsBatch(taskId, payload);
+            if (res.data.code === 200) {
+              vant.showToast({ message: '批量提交成功', position: 'top' });
+              setTimeout(() => {
+                emit('navigate', 'plot-list', { task: props.task, refresh: true });
+              }, 1500);
+            }
+          } catch (error) {
+            console.error('批量提交失败:', error);
+            vant.showToast({ message: '批量提交失败', position: 'top' });
+          } finally {
+            submitting.value = false;
+          }
+        };
+
+        Vue.onMounted(() => {
+          initPlotData();
+        });
+
+        return {
+          formData,
+          plotData,
+          submitting,
+          goBack,
+          handleSubmit
+        };
+      },
+      template: `
+        <div class="batch-sample-form-view">
+          <div class="batch-sample-header">
+            <div class="batch-sample-header-back" @click="goBack">
+              <van-icon name="arrow-left" size="20" color="#fff" />
+            </div>
+            <span class="batch-sample-header-title">批量采集 - 填写信息</span>
+          </div>
+          
+          <div class="batch-sample-content">
+            <div class="selected-plots-info">
+              <div class="info-title">已选地块 ({{ plotData.length }}个)</div>
+              <div class="plot-tags">
+                <span v-for="(plot, index) in plotData" :key="plot.DKID" class="plot-tag">
+                  {{ index + 1 }}. {{ plot.name }}
+                </span>
+              </div>
+            </div>
+            
+            <div class="sample-collection-form-card">
+              <div class="form-section-title">通用信息</div>
+              
+              <div class="form-item">
+                <label class="form-label">土壤混合样品编号</label>
+                <input 
+                  type="text" 
+                  v-model="formData.sampleCode"
+                  placeholder="如：110101F250723001"
+                  class="form-input"
+                />
+                <span class="form-tip">县级行政区域代码(6位)+补充耕地类型(F复耕/K垦造)+采样日期(6位)+顺序号(3位)</span>
+              </div>
+              
+              <div class="form-item">
+                <label class="form-label">地理位置</label>
+                <input 
+                  type="text" 
+                  v-model="formData.location"
+                  placeholder="所在市(州)、县(市、区)、乡(镇、街道)、村的名称"
+                  class="form-input"
+                />
+              </div>
+              
+              <div class="form-row">
+                <div class="form-item half">
+                  <label class="form-label">采样点位数量</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      v-model="formData.pointCount"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">个</span>
+                  </div>
+                </div>
+                
+                <div class="form-item half">
+                  <label class="form-label">混合样品重量</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      v-model="formData.weight"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">g</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="form-item">
+                <label class="form-label">采样日期</label>
+                <input 
+                  type="date" 
+                  v-model="formData.sampleDate"
+                  class="form-input date-input"
+                />
+              </div>
+            </div>
+            
+            <div class="sample-collection-form-card">
+              <div class="form-section-title">地块坐标与深度信息</div>
+              <span class="form-tip">请为每个选中的地块填写地理坐标和采样深度</span>
+              
+              <div v-for="(plot, index) in plotData" :key="plot.DKID" class="plot-data-card">
+                <div class="plot-data-header">
+                  <span class="plot-data-index">地块 {{ index + 1 }}</span>
+                  <span class="plot-data-name">{{ plot.name }}</span>
+                </div>
+                
+                <div class="form-item">
+                  <label class="form-label">地理坐标</label>
+                  <div class="coord-row">
+                    <input 
+                      type="text" 
+                      v-model="plot.coord_d1bh"
+                      placeholder="编号"
+                      class="form-input coord-input-small"
+                    />
+                    <input 
+                      type="text" 
+                      v-model="plot.coord_d1jd"
+                      placeholder="经度"
+                      class="form-input coord-input"
+                    />
+                    <input 
+                      type="text" 
+                      v-model="plot.coord_d1wd"
+                      placeholder="纬度"
+                      class="form-input coord-input"
+                    />
+                  </div>
+                  <span class="form-tip">按度分秒填写，如：116°24′ 39°55′</span>
+                </div>
+                
+                <div class="form-item">
+                  <label class="form-label">采样深度</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      v-model="plot.depth"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">cm</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-instructions">
+              <div class="instructions-title">填表说明</div>
+              <ul class="instructions-list">
+                <li>1. 土壤混合样品编号：县级行政区域代码(6位)+补充耕地类型(F复耕、K垦造)+采样日期(6位)+顺序号(3位)。</li>
+                <li>2. 地理位置：所在市(州)、县(市、区)、乡(镇、街道)、村的名称。</li>
+                <li>3. 地理坐标：按度分秒填写。</li>
+                <li>4. 采样深度：单位为cm，保留整数位。</li>
+                <li>5. 混合样品重量：土壤混合样品重量，单位为g，保留整数位。</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="batch-sample-bottom">
+            <button class="submit-btn" @click="handleSubmit" :disabled="submitting">{{ submitting ? '提交中...' : '批量提交' }}</button>
+          </div>
+        </div>
+      `
+    };
+
+    // BatchAnalysisFormView 组件（批量分析表单页面）
+    const BatchAnalysisFormView = {
+      name: 'BatchAnalysisFormView',
+      props: {
+        task: { type: Object, default: null },
+        selectedPlots: { type: Array, default: () => [] }
+      },
+      emits: ['navigate'],
+      setup(props, { emit }) {
+        const formData = Vue.reactive({
+          bulkDensity: '',
+          phValue: '',
+          organicMatter: '',
+          availablePhosphorus: '',
+          availablePotassium: '',
+          waterSolubleSalt: '',
+          cadmium: '',
+          totalMercury: '',
+          totalArsenic: '',
+          lead: '',
+          chromium: ''
+        });
+
+        const submitting = Vue.ref(false);
+
+        const goBack = () => {
+          emit('navigate', 'batch-analyze');
+        };
+
+        const handleSubmit = async () => {
+          submitting.value = true;
+          try {
+            const taskId = props.task?.id;
+            const plotIds = props.selectedPlots.map(p => p.id);
+            
+            const analysisData = {
+              plotIds: plotIds,
+              common: {
+                RZ: formData.bulkDensity ? Number(formData.bulkDensity) : null,
+                PHZ: formData.phValue ? Number(formData.phValue) : null,
+                YJZ: formData.organicMatter ? Number(formData.organicMatter) : null,
+                YXP: formData.availablePhosphorus ? Number(formData.availablePhosphorus) : null,
+                XJK: formData.availablePotassium ? Number(formData.availablePotassium) : null,
+                SRXYLZL: formData.waterSolubleSalt ? Number(formData.waterSolubleSalt) : null,
+                GE: formData.cadmium ? Number(formData.cadmium) : null,
+                ZG: formData.totalMercury ? Number(formData.totalMercury) : null,
+                ZS: formData.totalArsenic ? Number(formData.totalArsenic) : null,
+                QIAN: formData.lead ? Number(formData.lead) : null,
+                GE_CHROME: formData.chromium ? Number(formData.chromium) : null
+              }
+            };
+
+            console.log('[BatchAnalysisForm] Submitting:', JSON.stringify(analysisData, null, 2));
+
+            const res = await TRJC.api.createAnalysisResultBatch(taskId, analysisData);
+            if (res.data.code === 200) {
+              vant.showToast({ message: '批量分析提交成功', position: 'top' });
+              setTimeout(() => {
+                emit('navigate', 'plot-list', { task: props.task, refresh: true });
+              }, 1500);
+            }
+          } catch (error) {
+            console.error('批量分析提交失败:', error);
+            vant.showToast({ message: '提交失败，请重试', position: 'top' });
+          } finally {
+            submitting.value = false;
+          }
+        };
+
+        return {
+          formData,
+          submitting,
+          goBack,
+          handleSubmit
+        };
+      },
+      template: `
+        <div class="batch-analysis-form-view">
+          <div class="batch-analysis-header">
+            <div class="batch-analysis-header-back" @click="goBack">
+              <van-icon name="arrow-left" size="20" color="#fff" />
+            </div>
+            <span class="batch-analysis-header-title">批量分析 - 填写数据</span>
+          </div>
+          
+          <div class="batch-analysis-content">
+            <div class="selected-plots-info">
+              <div class="info-title">已选地块 ({{ selectedPlots.length }}个)</div>
+              <div class="plot-tags">
+                <span v-for="(plot, index) in selectedPlots" :key="plot.id" class="plot-tag">
+                  {{ index + 1 }}. {{ plot.TBH || plot.code || '地块' + plot.id }}
+                </span>
+              </div>
+            </div>
+            
+            <div class="analysis-result-form-card">
+              <div class="form-section-title">分析指标数据</div>
+              <span class="form-tip">以下数据将应用于所有选中的地块</span>
+              
+              <div class="form-row">
+                <div class="form-item half">
+                  <label class="form-label">容重</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      step="0.01"
+                      v-model="formData.bulkDensity"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">g/cm³</span>
+                  </div>
+                </div>
+                <div class="form-item half">
+                  <label class="form-label">pH值</label>
+                  <input 
+                    type="number" 
+                    step="0.01"
+                    v-model="formData.phValue"
+                    placeholder="请输入"
+                    class="form-input"
+                  />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-item half">
+                  <label class="form-label">有机质</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      step="0.01"
+                      v-model="formData.organicMatter"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">g/kg</span>
+                  </div>
+                </div>
+                <div class="form-item half">
+                  <label class="form-label">有效磷</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      step="0.01"
+                      v-model="formData.availablePhosphorus"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">mg/kg</span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-item half">
+                  <label class="form-label">速效钾</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      step="0.01"
+                      v-model="formData.availablePotassium"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">mg/kg</span>
+                  </div>
+                </div>
+                <div class="form-item half">
+                  <label class="form-label">水溶性盐总量</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      step="0.01"
+                      v-model="formData.waterSolubleSalt"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">g/kg</span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-item half">
+                  <label class="form-label">镉</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      step="0.001"
+                      v-model="formData.cadmium"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">mg/kg</span>
+                  </div>
+                </div>
+                <div class="form-item half">
+                  <label class="form-label">总汞</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      step="0.001"
+                      v-model="formData.totalMercury"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">mg/kg</span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-item half">
+                  <label class="form-label">总砷</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      step="0.001"
+                      v-model="formData.totalArsenic"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">mg/kg</span>
+                  </div>
+                </div>
+                <div class="form-item half">
+                  <label class="form-label">铅</label>
+                  <div class="input-with-unit">
+                    <input 
+                      type="number" 
+                      step="0.001"
+                      v-model="formData.lead"
+                      placeholder="请输入"
+                      class="form-input"
+                    />
+                    <span class="input-unit">mg/kg</span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-item">
+                <label class="form-label">铬</label>
+                <div class="input-with-unit">
+                  <input 
+                    type="number" 
+                    step="0.001"
+                    v-model="formData.chromium"
+                    placeholder="请输入"
+                    class="form-input"
+                  />
+                  <span class="input-unit">mg/kg</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="batch-analysis-bottom">
+            <button class="submit-btn" @click="handleSubmit" :disabled="submitting">{{ submitting ? '提交中...' : '批量提交' }}</button>
+          </div>
+        </div>
+      `
+    };
+
     // 根组件
     const App = {
-      components: { LoginView, HomeView, TaskListView, PlotListView, PlotDetailView, PlotDetailPendingView, PlotDetailSamplingView, SurveyRecordView, SampleCollectionView, AnalysisResultView, BatchCollectView, BatchAnalyzeView },
+      components: { LoginView, HomeView, TaskListView, PlotListView, PlotDetailView, PlotDetailPendingView, PlotDetailSamplingView, SurveyRecordView, SampleCollectionView, AnalysisResultView, BatchCollectView, BatchSampleFormView, BatchAnalyzeView, BatchAnalysisFormView },
       setup() {
         const isLoggedIn = Vue.ref(!!localStorage.getItem('token'));
         const currentPage = Vue.ref(isLoggedIn.value ? 'home' : 'login');
         const currentTask = Vue.ref(null);
         const currentPlot = Vue.ref(null);
+        const batchSelectedPlots = Vue.ref([]);
+        const batchAnalysisSelectedPlots = Vue.ref([]);
         
         const handleLogin = () => {
           isLoggedIn.value = true;
@@ -5036,9 +6017,17 @@
             if (data.task) currentTask.value = data.task;
             if (data.plot) currentPlot.value = data.plot;
           }
+          if (page === 'batch-sample-form' && data) {
+            if (data.task) currentTask.value = data.task;
+            if (data.selectedPlots) batchSelectedPlots.value = data.selectedPlots;
+          }
+          if (page === 'batch-analysis-form' && data) {
+            if (data.task) currentTask.value = data.task;
+            if (data.selectedPlots) batchAnalysisSelectedPlots.value = data.selectedPlots;
+          }
         };
         
-        return { isLoggedIn, currentPage, currentTask, currentPlot, handleLogin, handleLogout, navigate };
+        return { isLoggedIn, currentPage, currentTask, currentPlot, batchSelectedPlots, batchAnalysisSelectedPlots, handleLogin, handleLogout, navigate };
       },
       template: `
         <div class="app-container">
@@ -5113,9 +6102,23 @@
             @navigate="navigate"
             class="page-enter"
           />
+          <batch-sample-form-view 
+            v-else-if="currentPage === 'batch-sample-form'" 
+            :task="currentTask"
+            :selected-plots="batchSelectedPlots"
+            @navigate="navigate"
+            class="page-enter"
+          />
           <batch-analyze-view 
             v-else-if="currentPage === 'batch-analyze'" 
             :task="currentTask"
+            @navigate="navigate"
+            class="page-enter"
+          />
+          <batch-analysis-form-view 
+            v-else-if="currentPage === 'batch-analysis-form'" 
+            :task="currentTask"
+            :selected-plots="batchAnalysisSelectedPlots"
             @navigate="navigate"
             class="page-enter"
           />

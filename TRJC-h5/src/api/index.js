@@ -1,5 +1,9 @@
 import api from './request'
 
+export function getCompanies() {
+  return api.get('/api/auth/companies')
+}
+
 export function login(data) {
   return api.post('/api/auth/login', data, {
     headers: {
@@ -38,6 +42,10 @@ export function getSampleRecords(taskId) {
 
 export function createSampleRecord(taskId, data) {
   return api.post(`/api/tasks/${taskId}/samples`, data)
+}
+
+export function createSampleRecordsBatch(taskId, data) {
+  return api.post(`/api/tasks/${taskId}/samples/batch`, data)
 }
 
 export function getTaskPlots(taskId, ryid) {

@@ -17,7 +17,7 @@ export function updateTask(id, data) {
 }
 
 export function deleteTask(id) {
-  return api.delete(`/api/tasks/${id}`)
+  return api.post(`/api/tasks/${id}/delete`)
 }
 
 export function getTaskDetail(id) {

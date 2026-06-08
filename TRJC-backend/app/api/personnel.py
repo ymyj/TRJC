@@ -5,6 +5,7 @@ from app.database import get_db
 from app.models import PersonInfo
 from app.schemas.personnel import PersonInfoCreate, PersonInfoUpdate, PersonInfoResponse, PersonInfoListResponse
 from app.utils.crypto import encrypt_data, decrypt_data, mask_phone, hash_password
+from app.api.auth import get_current_user
 
 router = APIRouter(prefix="/api/personnel", tags=["人员管理"])
 
@@ -16,6 +17,7 @@ def get_personnel_list(
     keyword: Optional[str] = None,
     gw: Optional[str] = None,
     ssqh: Optional[str] = None,
+    gs: Optional[str] = None,
     ryzt: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
@@ -28,6 +30,8 @@ def get_personnel_list(
         query = query.filter(PersonInfo.GW == gw)
     if ssqh:
         query = query.filter(PersonInfo.SSQH == ssqh)
+    if gs:
+        query = query.filter(PersonInfo.GS == gs)
     if ryzt:
         query = query.filter(PersonInfo.RYZT == ryzt)
 
@@ -43,6 +47,7 @@ def get_personnel_list(
             "GW": item.GW,
             "SSQH": item.SSQH,
             "SSBM": item.SSBM,
+            "GS": item.GS,
             "RYZT": item.RYZT,
             "CJSJ": item.CJSJ
         }
@@ -54,7 +59,7 @@ def get_personnel_list(
 @router.get("/options", response_model=dict)
 def get_personnel_options(db: Session = Depends(get_db)):
     items = db.query(PersonInfo).filter(PersonInfo.SFSC == 0, PersonInfo.RYZT == "active").all()
-    result = [{"ID": item.ID, "XM": item.XM, "GW": item.GW, "SSQH": item.SSQH} for item in items]
+    result = [{"ID": item.ID, "XM": item.XM, "GW": item.GW, "SSQH": item.SSQH, "GS": item.GS} for item in items]
     return {"code": 200, "data": result}
 
 
@@ -77,7 +82,8 @@ def get_personnel_for_assignment(
             "LXFS": decrypt_data(item.LXFS),
             "GW": item.GW,
             "SSQH": item.SSQH,
-            "SSBM": item.SSBM
+            "SSBM": item.SSBM,
+            "GS": item.GS
         }
         result.append(item_dict)
 
@@ -94,6 +100,7 @@ def create_personnel(data: PersonInfoCreate, db: Session = Depends(get_db)):
         GW=data.GW,
         SSQH=data.SSQH,
         SSBM=data.SSBM,
+        GS=data.GS,
         RYZT=data.RYZT
     )
     db.add(db_item)
@@ -122,6 +129,8 @@ def update_personnel(person_id: int, data: PersonInfoUpdate, db: Session = Depen
         item.SSQH = data.SSQH
     if data.SSBM is not None:
         item.SSBM = data.SSBM
+    if data.GS is not None:
+        item.GS = data.GS
     if data.RYZT is not None:
         item.RYZT = data.RYZT
 
@@ -156,6 +165,7 @@ def get_personnel_detail(person_id: int, db: Session = Depends(get_db)):
             "GW": item.GW,
             "SSQH": item.SSQH,
             "SSBM": item.SSBM,
+            "GS": item.GS,
             "RYZT": item.RYZT,
             "CJSJ": item.CJSJ
         }

@@ -303,13 +303,20 @@ const handleAction = async (task, action) => {
   } else if (action === 'edit') {
     router.push(`/tasks/publish?editId=${task.ID}`)
   } else if (action === 'delete') {
+    if (!confirm(`确定要删除该任务吗？\n任务编号：${task.RWBH}\n任务名称：${task.RWMC}`)) {
+      return
+    }
     try {
       const res = await deleteTask(task.ID)
       if (res.data.code === 200) {
+        alert('删除成功')
         fetchList()
+      } else {
+        alert(res.data.msg || '删除失败')
       }
     } catch (error) {
       console.error('删除任务失败:', error)
+      alert('删除失败，请稍后重试')
     }
   }
 }

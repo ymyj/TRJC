@@ -1,7 +1,7 @@
 import time
 import os
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Request
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -11,6 +11,8 @@ from app.database import get_db
 from app.models import TaskInfo, TaskPlot, TaskPlotStatus, TaskAssign, PlotInfo, PersonInfo, SurveyRecord, SampleRecord, TaskAttachment
 from app.schemas.task import TaskInfoCreate, TaskInfoUpdate, TaskInfoResponse, TaskStatsResponse
 from app.utils.code_generator import generate_task_number
+from app.utils.crypto import decrypt_data
+from app.api.auth import get_current_user
 
 router = APIRouter(prefix="/api/tasks", tags=["任务管理"])
 
@@ -27,9 +29,27 @@ def get_task_list(
     start_time: Optional[str] = None,
     end_time: Optional[str] = None,
     ryid: Optional[int] = None,
+    request: Request = None,
     db: Session = Depends(get_db)
 ):
     base_query = db.query(TaskInfo).filter(TaskInfo.SFSC == 0)
+
+    # 权限控制：根据当前用户角色过滤
+    if request:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            from app.api.auth import decode_access_token
+            payload = decode_access_token(auth_header.replace("Bearer ", ""))
+            if payload:
+                user_id = int(payload.get("sub", 0))
+                user = db.query(PersonInfo).filter(PersonInfo.ID == user_id, PersonInfo.SFSC == 0).first()
+                if user:
+                    if user.GW == "管理员":
+                        # 管理员：查看该公司全部任务
+                        base_query = base_query.filter(TaskInfo.SFSC == 0)
+                    elif user.GW == "项目经理":
+                        # 项目经理：只能看自己创建的任务
+                        base_query = base_query.filter(TaskInfo.CJR == user.ID, TaskInfo.SFSC == 0)
 
     if keyword:
         base_query = base_query.filter(TaskInfo.RWMC.like(f"%{keyword}%"))
@@ -104,7 +124,17 @@ def get_task_stats(ryid: Optional[int] = Query(None), db: Session = Depends(get_
 
 
 @router.post("", response_model=dict)
-def create_task(data: TaskInfoCreate, db: Session = Depends(get_db)):
+def create_task(data: TaskInfoCreate, request: Request = None, db: Session = Depends(get_db)):
+    # 获取当前用户ID作为创建人
+    creator_id = None
+    if request:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            from app.api.auth import decode_access_token
+            payload = decode_access_token(auth_header.replace("Bearer ", ""))
+            if payload:
+                creator_id = int(payload.get("sub", 0)) if payload.get("sub") else None
+
     for attempt in range(5):
         task_no = generate_task_number(db)
 
@@ -125,6 +155,7 @@ def create_task(data: TaskInfoCreate, db: Session = Depends(get_db)):
             JHKSSJ=data.JHKSSJ,
             LXDH=data.LXDH,
             RWMS=data.RWMS,
+            CJR=creator_id,
             ZT="draft"
         )
         db.add(db_item)
@@ -235,6 +266,17 @@ def update_task(task_id: int, data: TaskInfoUpdate, db: Session = Depends(get_db
 
 @router.delete("/{task_id}", response_model=dict)
 def delete_task(task_id: int, db: Session = Depends(get_db)):
+    item = db.query(TaskInfo).filter(TaskInfo.ID == task_id, TaskInfo.SFSC == 0).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="任务不存在")
+
+    item.SFSC = 1
+    db.commit()
+    return {"code": 200, "msg": "删除成功"}
+
+
+@router.post("/{task_id}/delete", response_model=dict)
+def delete_task_post(task_id: int, db: Session = Depends(get_db)):
     item = db.query(TaskInfo).filter(TaskInfo.ID == task_id, TaskInfo.SFSC == 0).first()
     if not item:
         raise HTTPException(status_code=404, detail="任务不存在")

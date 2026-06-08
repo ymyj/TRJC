@@ -40,6 +40,7 @@ class TaskInfoResponse(BaseModel):
     JHKSSJ: Optional[str] = None
     LXDH: Optional[str] = None
     RWMS: Optional[str] = None
+    CJR: Optional[int] = None
     ZT: str
     CJSJ: Optional[datetime] = None
     SFSC: int = 0

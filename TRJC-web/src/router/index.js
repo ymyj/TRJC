@@ -100,7 +100,9 @@ router.beforeEach((to, from, next) => {
   } else {
     if (token) {
       const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
-      if (userInfo.GW !== '项目经理') {
+      // 管理员和项目经理可以访问全部页面
+      const allowedRoles = ['项目经理', '管理员']
+      if (!allowedRoles.includes(userInfo.GW)) {
         localStorage.removeItem('token')
         localStorage.removeItem('userInfo')
         next('/login')

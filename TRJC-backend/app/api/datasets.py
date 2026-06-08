@@ -13,11 +13,15 @@ router = APIRouter(prefix="/api/datasets", tags=["耕地质量数据集"])
 def get_dataset_list(
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1, le=100),
+    pageSize: Optional[int] = None,
     keyword: Optional[str] = None,
     plotNumber: Optional[str] = None,
     sampleDate: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
+    # 优先使用 pageSize 参数，兼容前端
+    if pageSize:
+        size = pageSize
     query = db.query(FarmlandDataset).filter(FarmlandDataset.SFSC == 0)
 
     if keyword:
@@ -30,7 +34,7 @@ def get_dataset_list(
         query = query.filter(FarmlandDataset.CYRQ == sampleDate)
 
     total = query.count()
-    items = query.offset((page - 1) * size).limit(size).all()
+    items = query.order_by(FarmlandDataset.ID.desc()).offset((page - 1) * size).limit(size).all()
 
     result = []
     for item in items:
@@ -143,3 +147,14 @@ def get_dataset_detail(dataset_id: int, db: Session = Depends(get_db)):
             "ZLFJ": item.ZLFJ
         }
     }
+
+
+@router.post("/{dataset_id}/delete", response_model=dict)
+def delete_dataset(dataset_id: int, db: Session = Depends(get_db)):
+    item = db.query(FarmlandDataset).filter(FarmlandDataset.ID == dataset_id, FarmlandDataset.SFSC == 0).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="数据集不存在")
+    
+    item.SFSC = 1
+    db.commit()
+    return {"code": 200, "msg": "删除成功"}

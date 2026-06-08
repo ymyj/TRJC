@@ -3,6 +3,7 @@ import router from '../router'
 
 const api = axios.create({
   baseURL: 'http://localhost:8000/trjcai', // 服务器地址：https://xx7x.star7.cn:8090/trjcai/
+  // baseURL: 'https://xx7x.star7.cn:8090/trjcai/', // 服务器地址：https://xx7x.star7.cn:8090/trjcai/
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'

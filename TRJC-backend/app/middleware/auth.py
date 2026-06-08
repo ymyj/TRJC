@@ -6,6 +6,7 @@ from app.api.auth import decode_access_token
 WHITELIST = [
     "/api/auth/login",
     "/api/auth/register",
+    "/api/auth/companies",
     "/docs",
     "/openapi.json",
     "/redoc",

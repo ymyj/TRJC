@@ -1,5 +1,9 @@
 import api from './request'
 
+export function getCompanies() {
+  return api.get('/api/auth/companies')
+}
+
 export function login(data) {
   return api.post('/api/auth/login', data, {
     headers: {
