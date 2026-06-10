@@ -85,5 +85,6 @@ def _create_dataset_from_completed_plot(db, task_id, plot_id, preloaded_analysis
         G=analysis.GE_CHROME if analysis else None,
         GDZLDJ=None,
         ZLFJ=None,
+        GS=task.GS,
     )
     db.add(dataset)

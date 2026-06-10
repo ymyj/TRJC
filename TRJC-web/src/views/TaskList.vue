@@ -39,6 +39,10 @@
           <label class="filter-label">负责人</label>
           <input type="text" class="form-input" placeholder="请输入负责人" v-model="filterForm.person">
         </div>
+        <div class="filter-item" v-if="isSuperAdmin">
+          <label class="filter-label">所属公司</label>
+          <input type="text" class="form-input" placeholder="模糊搜索公司" v-model="filterForm.gs">
+        </div>
         <div class="filter-item">
           <label class="filter-label">创建时间</label>
           <el-date-picker
@@ -78,6 +82,7 @@
           <tr>
             <th>任务名称</th>
             <th>任务类型</th>
+            <th>所属公司</th>
             <th>所属区划</th>
             <th>负责人</th>
             <th>状态</th>
@@ -96,6 +101,7 @@
             <td>
               <span class="tag" :class="getTypeClass(task.RWLX)">{{ getTypeText(task.RWLX) }}</span>
             </td>
+            <td>{{ task.GS || '-' }}</td>
             <td>{{ task.SSQH }}</td>
             <td>
               <span class="user-avatar" :style="{ background: getAvatarColor(task.FZR) }">{{ task.FZR.charAt(0) }}</span>
@@ -150,8 +156,13 @@ const filterForm = reactive({
   type: '',
   area: '',
   person: '',
+  gs: '',
   dateRange: null
 })
+
+// 获取当前登录用户信息
+const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+const isSuperAdmin = userInfo.GW === '超管'
 
 const viewMode = ref('list')
 const taskList = ref([])
@@ -238,6 +249,7 @@ const fetchList = async () => {
   if (filterForm.type) params.rwlx = filterForm.type
   if (filterForm.area) params.ssqh = filterForm.area
   if (filterForm.person) params.fzr = filterForm.person
+  if (filterForm.gs && isSuperAdmin) params.gs = filterForm.gs
   if (filterForm.dateRange && filterForm.dateRange.length === 2) {
     params.start_time = filterForm.dateRange[0]
     params.end_time = filterForm.dateRange[1] + ' 23:59:59'
@@ -253,9 +265,7 @@ const fetchList = async () => {
 
 const fetchStats = async () => {
   const res = await getTaskStats()
-  if (res.data.code === 200) {
-    console.log('任务统计:', res.data.data)
-  }
+  // 获取任务统计数据
 }
 
 const updatePaginationPages = () => {

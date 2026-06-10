@@ -7,7 +7,6 @@ class PersonInfo(Base):
     __tablename__ = "person_info"
 
     ID = Column(Integer, primary_key=True, autoincrement=True, comment="主键")
-    YHM = Column(String(100), comment="用户名-加密存储")
     XM = Column(String(200), comment="姓名-加密存储")
     LXFS = Column(String(200), comment="联系方式-加密存储")
     MM = Column(String(200), comment="密码-bcrypt加密存储")
@@ -31,6 +30,7 @@ class PlotInfo(Base):
     JD = Column(DECIMAL(10, 6), comment="经度")
     WD = Column(DECIMAL(10, 6), comment="纬度")
     WLZB = Column(JSON, comment="围栏坐标")
+    GS = Column(String(100), comment="所属公司")
     CJR = Column(Integer, comment="创建人ID")
     CJSJ = Column(DateTime, server_default=func.now(), comment="创建时间")
     SFSC = Column(TINYINT, default=0, comment="是否删除")
@@ -49,6 +49,7 @@ class TaskInfo(Base):
     LXDH = Column(String(50), comment="联系电话")
     RWMS = Column(Text, comment="任务描述")
     CJR = Column(Integer, comment="创建人ID")
+    GS = Column(String(100), comment="所属公司")
     ZT = Column(String(20), default="draft", comment="状态")
     CJSJ = Column(DateTime, server_default=func.now(), comment="创建时间")
     SFSC = Column(TINYINT, default=0, comment="是否删除")
@@ -200,6 +201,7 @@ class FarmlandDataset(Base):
     G = Column(DECIMAL(8, 2), comment="铬")
     GDZLDJ = Column(DECIMAL(10, 6), comment="耕地质量等级")
     ZLFJ = Column(String(20), comment="质量分级")
+    GS = Column(String(100), comment="所属公司")
     SFSC = Column(TINYINT, default=0, comment="是否删除")
 
 

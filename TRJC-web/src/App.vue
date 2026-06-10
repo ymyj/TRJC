@@ -30,7 +30,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from './components/Sidebar.vue'
 import { logout } from './api/auth'
@@ -49,11 +49,11 @@ const userInfo = ref({
 
 const loadUserInfo = () => {
   const info = localStorage.getItem('userInfo')
-  console.log('从localStorage读取的用户信息:', info)
+
   if (info) {
     try {
       userInfo.value = JSON.parse(info)
-      console.log('解析后的用户信息:', userInfo.value)
+
     } catch (e) {
       console.error('解析用户信息失败', e)
     }
@@ -86,6 +86,16 @@ onMounted(() => {
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
 })
+
+// 监听路由变化，登录后刷新用户信息
+watch(
+  () => route.path,
+  (newPath, oldPath) => {
+    if (newPath !== '/login' && oldPath === '/login') {
+      loadUserInfo()
+    }
+  }
+)
 </script>
 
 <style scoped>

@@ -3,8 +3,9 @@ from sqlalchemy.orm import Session
 from typing import Optional
 from datetime import date
 from app.database import get_db
-from app.models import FarmlandDataset
+from app.models import FarmlandDataset, PersonInfo
 from app.schemas.dataset import FarmlandDatasetCreate, FarmlandDatasetUpdate, FarmlandDatasetResponse
+from app.api.auth import get_current_user, is_super_admin, is_company_admin
 
 router = APIRouter(prefix="/api/datasets", tags=["耕地质量数据集"])
 
@@ -17,12 +18,27 @@ def get_dataset_list(
     keyword: Optional[str] = None,
     plotNumber: Optional[str] = None,
     sampleDate: Optional[str] = None,
+    gs: Optional[str] = None,  # 所属公司筛选（仅超管可用）
+    current_user: PersonInfo = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     # 优先使用 pageSize 参数，兼容前端
     if pageSize:
-        size = pageSize
+        size = int(pageSize)
     query = db.query(FarmlandDataset).filter(FarmlandDataset.SFSC == 0)
+
+    # 权限控制：根据当前用户角色过滤
+    if is_super_admin(current_user):
+        # 超管：可查看所有数据，支持按公司筛选
+        if gs:
+            query = query.filter(FarmlandDataset.GS.like(f"%{gs}%"))
+    elif is_company_admin(current_user):
+        # 企业管理员：只能看本公司的数据
+        query = query.filter(FarmlandDataset.GS == current_user.GS)
+    else:
+        # 其他岗位：默认看本公司数据
+        if current_user.GS:
+            query = query.filter(FarmlandDataset.GS == current_user.GS)
 
     if keyword:
         query = query.filter(FarmlandDataset.RWMC.like(f"%{keyword}%"))
@@ -56,13 +72,25 @@ def get_dataset_list(
             "irrigationCapacity": item.GGNL,
             "drainageCapacity": item.PSNL,
             "phValue": float(item.PHZ) if item.PHZ else None,
+            "GS": item.GS,
         })
 
     return {"code": 200, "data": {"list": result, "total": total, "page": page, "size": size}}
 
 
 @router.post("", response_model=dict)
-def create_dataset(data: FarmlandDatasetCreate, db: Session = Depends(get_db)):
+def create_dataset(
+    data: FarmlandDatasetCreate,
+    current_user: PersonInfo = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # 优先使用当前用户的GS，如果为空则从关联任务中获取
+    dataset_gs = current_user.GS
+    if not dataset_gs and data.RWID:
+        from app.models import TaskInfo
+        task = db.query(TaskInfo).filter(TaskInfo.ID == data.RWID, TaskInfo.SFSC == 0).first()
+        if task:
+            dataset_gs = task.GS
     db_item = FarmlandDataset(
         RWID=data.RWID,
         DKID=data.DKID,
@@ -95,7 +123,8 @@ def create_dataset(data: FarmlandDatasetCreate, db: Session = Depends(get_db)):
         Q=data.Q,
         G=data.G,
         GDZLDJ=data.GDZLDJ,
-        ZLFJ=data.ZLFJ
+        ZLFJ=data.ZLFJ,
+        GS=dataset_gs
     )
     db.add(db_item)
     db.commit()
@@ -144,7 +173,8 @@ def get_dataset_detail(dataset_id: int, db: Session = Depends(get_db)):
             "Q": float(item.Q) if item.Q else None,
             "G": float(item.G) if item.G else None,
             "GDZLDJ": float(item.GDZLDJ) if item.GDZLDJ else None,
-            "ZLFJ": item.ZLFJ
+            "ZLFJ": item.ZLFJ,
+            "GS": item.GS,
         }
     }
 

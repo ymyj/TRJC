@@ -18,6 +18,10 @@
           <label class="filter-label">采样日期</label>
           <input type="text" class="form-input" placeholder="请选择采样日期" v-model="filterForm.sampleDate">
         </div>
+        <div class="filter-item" v-if="isSuperAdmin">
+          <label class="filter-label">所属公司</label>
+          <input type="text" class="form-input" placeholder="模糊搜索公司" v-model="filterForm.gs">
+        </div>
       </div>
       <div class="filter-row">
         <div class="filter-actions">
@@ -39,14 +43,15 @@
             <tr>
               <th class="col-fixed col-fixed-left-1">任务名称</th>
               <th class="col-fixed col-fixed-left-2">图斑编号</th>
+              <th>所属公司</th>
               <th>经度</th>
               <th>纬度</th>
               <th>采样日期</th>
               <th>地形部位</th>
-              <th>有效土层厚度(cm)</th>
-              <th>耕层质地</th>
+              <th>有效土/障碍层(cm)</th>
+              <th>耕地质地</th>
               <th>容重(g/cm³)</th>
-              <th>质地构型</th>
+              <th>结构构型</th>
               <th>生物多样性</th>
               <th>农田林网化程度</th>
               <th>障碍因素</th>
@@ -60,6 +65,7 @@
             <tr v-for="item in datasetList" :key="item.id">
               <td class="col-fixed col-fixed-left-1">{{ item.taskName }}</td>
               <td class="col-fixed col-fixed-left-2">{{ item.plotNumber }}</td>
+              <td>{{ item.GS || '-' }}</td>
               <td>{{ item.longitude }}</td>
               <td>{{ item.latitude }}</td>
               <td>{{ item.sampleDate }}</td>
@@ -108,13 +114,18 @@ import { ref, reactive, onMounted } from 'vue'
 import DatasetDetailModal from '../components/DatasetDetailModal.vue'
 import { getDatasetList, getDatasetDetail, deleteDataset } from '../api'
 
+// 获取当前登录用户信息
+const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+const isSuperAdmin = userInfo.GW === '超管'
+
 const modalVisible = ref(false)
 const selectedData = ref({})
 
 const filterForm = reactive({
   taskName: '',
   plotNumber: '',
-  sampleDate: ''
+  sampleDate: '',
+  gs: ''
 })
 
 const datasetList = ref([])
@@ -148,6 +159,7 @@ const fetchList = async () => {
   if (filterForm.taskName) params.keyword = filterForm.taskName
   if (filterForm.plotNumber) params.plotNumber = filterForm.plotNumber
   if (filterForm.sampleDate) params.sampleDate = filterForm.sampleDate
+  if (filterForm.gs && isSuperAdmin) params.gs = filterForm.gs
 
   const res = await getDatasetList(params)
   if (res.data.code === 200) {

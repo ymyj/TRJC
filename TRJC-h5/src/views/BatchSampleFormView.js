@@ -48,7 +48,7 @@ export const BatchSampleFormView = {
         coord_d1wd: '',
         depth: ''
       }));
-      console.log('[BatchSampleForm] Initialized plotData:', plotData.value);
+
     };
 
     const updatePlotField = (index, field, value) => {
@@ -113,7 +113,7 @@ export const BatchSampleFormView = {
           }))
         };
 
-        console.log('[BatchSampleForm] Submitting payload:', JSON.stringify(payload, null, 2));
+
 
         const res = await TRJC.api.createSampleRecordsBatch(taskId, payload);
         if (res.data.code === 200) {

@@ -291,7 +291,6 @@ const fetchLandDetail = async () => {
     const plotId = route.params.id
     const taskId = route.query.taskId
     if (!taskId) {
-      console.warn('缺少任务ID参数')
       return
     }
     const res = await getTaskPlotDetail(taskId, plotId)

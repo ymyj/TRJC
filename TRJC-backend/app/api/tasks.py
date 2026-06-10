@@ -12,7 +12,7 @@ from app.models import TaskInfo, TaskPlot, TaskPlotStatus, TaskAssign, PlotInfo,
 from app.schemas.task import TaskInfoCreate, TaskInfoUpdate, TaskInfoResponse, TaskStatsResponse
 from app.utils.code_generator import generate_task_number
 from app.utils.crypto import decrypt_data
-from app.api.auth import get_current_user
+from app.api.auth import get_current_user, is_super_admin, is_company_admin, get_user_company
 
 router = APIRouter(prefix="/api/tasks", tags=["任务管理"])
 
@@ -26,30 +26,29 @@ def get_task_list(
     ssqh: Optional[str] = None,
     fzr: Optional[str] = None,
     rwlx: Optional[str] = None,
+    gs: Optional[str] = None,  # 所属公司筛选（仅超管可用）
     start_time: Optional[str] = None,
     end_time: Optional[str] = None,
     ryid: Optional[int] = None,
-    request: Request = None,
+    current_user: PersonInfo = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     base_query = db.query(TaskInfo).filter(TaskInfo.SFSC == 0)
 
     # 权限控制：根据当前用户角色过滤
-    if request:
-        auth_header = request.headers.get("Authorization")
-        if auth_header and auth_header.startswith("Bearer "):
-            from app.api.auth import decode_access_token
-            payload = decode_access_token(auth_header.replace("Bearer ", ""))
-            if payload:
-                user_id = int(payload.get("sub", 0))
-                user = db.query(PersonInfo).filter(PersonInfo.ID == user_id, PersonInfo.SFSC == 0).first()
-                if user:
-                    if user.GW == "管理员":
-                        # 管理员：查看该公司全部任务
-                        base_query = base_query.filter(TaskInfo.SFSC == 0)
-                    elif user.GW == "项目经理":
-                        # 项目经理：只能看自己创建的任务
-                        base_query = base_query.filter(TaskInfo.CJR == user.ID, TaskInfo.SFSC == 0)
+    if is_super_admin(current_user):
+        # 超管：可查看所有数据，支持按公司筛选
+        if gs:
+            base_query = base_query.filter(TaskInfo.GS.like(f"%{gs}%"))
+    elif is_company_admin(current_user):
+        # 企业管理员：只能看本公司的任务
+        base_query = base_query.filter(TaskInfo.GS == current_user.GS)
+    elif current_user.GW == "项目经理":
+        # 项目经理：只能看自己创建的任务
+        base_query = base_query.filter(TaskInfo.CJR == current_user.ID, TaskInfo.SFSC == 0)
+    else:
+        # 其他岗位：通过人员ID关联的任务
+        pass
 
     if keyword:
         base_query = base_query.filter(TaskInfo.RWMC.like(f"%{keyword}%"))
@@ -97,6 +96,7 @@ def get_task_list(
             "SSQH": item.SSQH,
             "FZR": item.FZR,
             "ZT": item.ZT,
+            "GS": item.GS,
             "CJSJ": item.CJSJ.strftime("%Y-%m-%d %H:%M:%S") if item.CJSJ else None,
             "assignee_count": len(assignees)
         })
@@ -124,16 +124,15 @@ def get_task_stats(ryid: Optional[int] = Query(None), db: Session = Depends(get_
 
 
 @router.post("", response_model=dict)
-def create_task(data: TaskInfoCreate, request: Request = None, db: Session = Depends(get_db)):
+def create_task(
+    data: TaskInfoCreate,
+    current_user: PersonInfo = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     # 获取当前用户ID作为创建人
-    creator_id = None
-    if request:
-        auth_header = request.headers.get("Authorization")
-        if auth_header and auth_header.startswith("Bearer "):
-            from app.api.auth import decode_access_token
-            payload = decode_access_token(auth_header.replace("Bearer ", ""))
-            if payload:
-                creator_id = int(payload.get("sub", 0)) if payload.get("sub") else None
+    creator_id = current_user.ID
+    # 自动填充所属公司
+    task_gs = current_user.GS if not is_super_admin(current_user) else None
 
     for attempt in range(5):
         task_no = generate_task_number(db)
@@ -156,6 +155,7 @@ def create_task(data: TaskInfoCreate, request: Request = None, db: Session = Dep
             LXDH=data.LXDH,
             RWMS=data.RWMS,
             CJR=creator_id,
+            GS=task_gs,
             ZT="draft"
         )
         db.add(db_item)

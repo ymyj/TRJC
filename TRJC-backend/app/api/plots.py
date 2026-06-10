@@ -5,6 +5,7 @@ from app.database import get_db
 from app.models import PlotInfo, PersonInfo, TaskAssign, TaskPlot, TaskInfo, TaskPlotStatus
 from app.schemas.plot import PlotInfoCreate, PlotInfoUpdate, PlotInfoResponse, PlotOptionResponse
 from app.utils.crypto import decrypt_data
+from app.api.auth import get_current_user, is_super_admin, is_company_admin
 
 router = APIRouter(prefix="/api/plots", tags=["地块管理"])
 
@@ -15,9 +16,24 @@ def get_plot_list(
     size: int = Query(10, ge=1, le=100),
     keyword: Optional[str] = None,
     ssqh: Optional[str] = None,
+    gs: Optional[str] = None,  # 所属公司筛选（仅超管可用）
+    current_user: PersonInfo = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    query = db.query(PlotInfo).filter(PlotInfo.SFSC == 0).order_by(PlotInfo.CJSJ.desc())
+    query = db.query(PlotInfo).filter(PlotInfo.SFSC == 0)
+
+    # 权限控制：根据当前用户角色过滤
+    if is_super_admin(current_user):
+        # 超管：可查看所有数据，支持按公司筛选
+        if gs:
+            query = query.filter(PlotInfo.GS.like(f"%{gs}%"))
+    elif is_company_admin(current_user):
+        # 企业管理员：只能看本公司的地块
+        query = query.filter(PlotInfo.GS == current_user.GS)
+    else:
+        # 其他岗位：默认看本公司数据
+        if current_user.GS:
+            query = query.filter(PlotInfo.GS == current_user.GS)
 
     if keyword:
         query = query.filter(PlotInfo.TBH.like(f"%{keyword}%"))
@@ -25,7 +41,7 @@ def get_plot_list(
         query = query.filter(PlotInfo.SSQH == ssqh)
 
     total = query.count()
-    items = query.offset((page - 1) * size).limit(size).all()
+    items = query.order_by(PlotInfo.CJSJ.desc()).offset((page - 1) * size).limit(size).all()
 
     result = []
     for item in items:
@@ -37,6 +53,7 @@ def get_plot_list(
             "SSQH": item.SSQH,
             "JD": float(item.JD) if item.JD else None,
             "WD": float(item.WD) if item.WD else None,
+            "GS": item.GS,
             "CJSJ": item.CJSJ.strftime("%Y-%m-%d %H:%M:%S") if item.CJSJ else None
         })
 
@@ -51,8 +68,13 @@ def get_plot_options(db: Session = Depends(get_db)):
 
 
 @router.post("", response_model=dict)
-def create_plot(data: PlotInfoCreate, request: Request, db: Session = Depends(get_db)):
-    user_id = request.state.user_id
+def create_plot(
+    data: PlotInfoCreate,
+    current_user: PersonInfo = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    user_id = current_user.ID
+    plot_gs = current_user.GS if not is_super_admin(current_user) else None
     db_item = PlotInfo(
         TBH=data.TBH,
         SSDY=data.SSDY,
@@ -61,6 +83,7 @@ def create_plot(data: PlotInfoCreate, request: Request, db: Session = Depends(ge
         JD=data.JD,
         WD=data.WD,
         WLZB=data.WLZB,
+        GS=plot_gs,
         CJR=user_id
     )
     db.add(db_item)

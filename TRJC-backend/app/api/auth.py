@@ -35,9 +35,25 @@ def get_companies(db: Session = Depends(get_db)):
 
 
 class LoginRequest(BaseModel):
-    username: str
+    phone: str
     password: str
-    gs: str  # 所属公司
+
+
+def is_super_admin(user) -> bool:
+    """判断是否为超管账号"""
+    return user.GW == "超管"
+
+
+def is_company_admin(user) -> bool:
+    """判断是否为企业管理员"""
+    return user.GW == "管理员"
+
+
+def get_user_company(user) -> str:
+    """获取用户所属公司，超管返回None"""
+    if is_super_admin(user):
+        return None
+    return user.GS
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -78,28 +94,23 @@ def get_current_user(
 
 @router.post("/login", response_model=dict)
 def login(login_data: LoginRequest, db: Session = Depends(get_db), request: Request = None):
-    # 先根据公司过滤用户
+    # 直接用手机号匹配用户（不再按公司过滤）
     users = db.query(PersonInfo).filter(
-        PersonInfo.SFSC == 0,
-        PersonInfo.GS == login_data.gs
+        PersonInfo.SFSC == 0
     ).all()
 
     user = None
     for u in users:
         try:
-            decrypted_username = decrypt_data(u.YHM) if u.YHM else None
             decrypted_phone = decrypt_data(u.LXFS) if u.LXFS else None
-            decrypted_name = decrypt_data(u.XM) if u.XM else None
-            if (decrypted_username == login_data.username or
-                decrypted_phone == login_data.username or
-                decrypted_name == login_data.username):
+            if decrypted_phone == login_data.phone:
                 user = u
                 break
         except Exception:
             continue
 
     if not user:
-        raise HTTPException(status_code=401, detail="用户名或密码错误")
+        raise HTTPException(status_code=401, detail="手机号或密码错误")
 
     if not user.MM:
         raise HTTPException(status_code=401, detail="用户名或密码错误")
@@ -110,16 +121,17 @@ def login(login_data: LoginRequest, db: Session = Depends(get_db), request: Requ
     login_source = request.headers.get("X-Login-Source", "h5") if request else "h5"
 
     # 权限控制:
-    # 管理员: 可登录Web+H5
+    # 超管: 可登录Web+H5，查看所有数据
+    # 管理员: 可登录Web+H5，查看本公司数据
     # 项目经理: 可登录Web+H5
     # 其他岗位: 仅可登录H5
-    if login_source == "web" and user.GW not in ("管理员", "项目经理"):
+    if login_source == "web" and user.GW not in ("超管", "管理员", "项目经理"):
         raise HTTPException(
             status_code=403,
             detail="该岗位不可登录Web端，请使用移动端登录"
         )
 
-    token = create_access_token(data={"sub": str(user.ID), "gs": user.GS})
+    token = create_access_token(data={"sub": str(user.ID), "gs": user.GS, "gw": user.GW})
 
     return {
         "code": 200,
@@ -134,7 +146,7 @@ def login(login_data: LoginRequest, db: Session = Depends(get_db), request: Requ
                 "SSQH": user.SSQH,
                 "SSBM": user.SSBM,
                 "GS": user.GS,
-                "isAdmin": user.GW == "管理员"
+                "isAdmin": user.GW in ("超管", "管理员")
             }
         }
     }

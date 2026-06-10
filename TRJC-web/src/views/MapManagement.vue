@@ -6,6 +6,10 @@
           <label class="filter-label">图斑编号</label>
           <input type="text" class="form-input" placeholder="请输入图斑编号" v-model="filterForm.keyword">
         </div>
+        <div class="filter-item" v-if="isSuperAdmin">
+          <label class="filter-label">所属公司</label>
+          <input type="text" class="form-input" placeholder="请输入所属公司" v-model="filterForm.gs">
+        </div>
         <div class="filter-item">
           <label class="filter-label">所属区划</label>
           <select class="form-select" v-model="filterForm.ssqh">
@@ -45,6 +49,7 @@
           <tr>
             <th>图斑编号</th>
             <th>所属单元</th>
+            <th>所属公司</th>
             <th>图斑面积（㎡）</th>
             <th>所属区划</th>
             <th>经度</th>
@@ -57,6 +62,7 @@
           <tr v-for="item in plotList" :key="item.ID">
             <td>{{ item.TBH }}</td>
             <td>{{ item.SSDY }}</td>
+            <td>{{ item.GS || '-' }}</td>
             <td>{{ item.TBMJ }}</td>
             <td>{{ item.SSQH }}</td>
             <td>{{ item.JD }}</td>
@@ -71,7 +77,7 @@
             </td>
           </tr>
           <tr v-if="plotList.length === 0">
-            <td colspan="8" class="empty-cell">暂无数据</td>
+            <td colspan="9" class="empty-cell">暂无数据</td>
           </tr>
         </tbody>
       </table>
@@ -155,8 +161,11 @@ const router = useRouter()
 
 const filterForm = reactive({
   keyword: '',
+  gs: '',
   ssqh: ''
 })
+
+const isSuperAdmin = ref(false)
 
 const plotList = ref([])
 
@@ -189,6 +198,9 @@ const fetchList = async () => {
       keyword: filterForm.keyword || undefined,
       ssqh: filterForm.ssqh || undefined
     }
+    if (isSuperAdmin.value && filterForm.gs) {
+      params.gs = filterForm.gs
+    }
     const res = await getPlotList(params)
     if (res.data.code === 200) {
       plotList.value = res.data.data.list || []
@@ -203,6 +215,7 @@ const fetchList = async () => {
 
 const resetFilter = () => {
   filterForm.keyword = ''
+  filterForm.gs = ''
   filterForm.ssqh = ''
   pagination.current = 1
   fetchList()
@@ -296,6 +309,8 @@ const changePage = (page) => {
 }
 
 onMounted(() => {
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+  isSuperAdmin.value = userInfo.GW === '超管'
   fetchList()
 })
 </script>

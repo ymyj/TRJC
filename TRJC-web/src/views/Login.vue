@@ -23,33 +23,18 @@
 
       <form class="login-form" @submit.prevent="handleLogin">
         <div class="form-group">
-          <label class="form-label">公司</label>
-          <div class="input-wrapper">
-            <select
-              class="form-select"
-              v-model="form.gs"
-              required
-            >
-              <option value="">请选择公司</option>
-              <option v-for="gs in companyList" :key="gs" :value="gs">{{ gs }}</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">用户名</label>
+          <label class="form-label">手机号</label>
           <div class="input-wrapper">
             <span class="input-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="#b4c0d4" stroke-width="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
               </svg>
             </span>
             <input
               type="text"
               class="form-input"
-              v-model="form.username"
-              placeholder="请输入用户名"
+              v-model="form.phone"
+              placeholder="请输入手机号"
               required
             >
           </div>
@@ -97,40 +82,22 @@
 <script setup>
 import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { login, getCompanies } from '../api/auth'
+import { login } from '../api/auth'
 
 const router = useRouter()
 
 const form = reactive({
-  gs: '',
-  username: '',
+  phone: '',
   password: ''
 })
 
 const loading = ref(false)
 const errorMsg = ref('')
-const companyList = ref([])
 const showPassword = ref(false)
 
-// 加载公司列表
-const fetchCompanies = async () => {
-  try {
-    const res = await getCompanies()
-    if (res.data.code === 200) {
-      companyList.value = res.data.data || []
-    }
-  } catch (err) {
-    console.error('获取公司列表失败:', err)
-  }
-}
-
 const handleLogin = async () => {
-  if (!form.gs) {
-    errorMsg.value = '请选择公司'
-    return
-  }
-  if (!form.username || !form.password) {
-    errorMsg.value = '请填写用户名和密码'
+  if (!form.phone || !form.password) {
+    errorMsg.value = '请填写手机号和密码'
     return
   }
 
@@ -138,11 +105,11 @@ const handleLogin = async () => {
   errorMsg.value = ''
 
   try {
-    const res = await login(form)
-    console.log('登录响应:', res.data)
+    const res = await login({ phone: form.phone, password: form.password })
+
     if (res.data.code === 200) {
       const { token, user } = res.data.data
-      console.log('登录获取的用户信息:', user)
+
       localStorage.setItem('token', token)
       localStorage.setItem('userInfo', JSON.stringify(user))
       router.push('/')
@@ -151,7 +118,7 @@ const handleLogin = async () => {
     }
   } catch (err) {
     if (err.response && err.response.status === 401) {
-      errorMsg.value = '用户名或密码错误'
+      errorMsg.value = '手机号或密码错误'
     } else if (err.response && err.response.status === 403) {
       errorMsg.value = err.response.data.detail || '无权限登录'
     } else {
@@ -161,10 +128,6 @@ const handleLogin = async () => {
     loading.value = false
   }
 }
-
-onMounted(() => {
-  fetchCompanies()
-})
 </script>
 
 <style scoped>

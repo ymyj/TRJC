@@ -28,7 +28,7 @@
             <option value="丰台区">丰台区</option>
           </select>
         </div>
-        <div class="filter-item">
+        <div class="filter-item" v-if="isSuperAdmin">
           <label class="filter-label">公司</label>
           <select class="form-select" v-model="filterForm.gs">
             <option value="">全部公司</option>
@@ -69,10 +69,10 @@
           <tr>
             <th>姓名</th>
             <th>联系方式</th>
-            <th>岗位</th>
+            <th>公司</th>
             <th>所属区划</th>
             <th>所属部门</th>
-            <th>公司</th>
+            <th>岗位</th>
             <th>人员状态</th>
             <th>创建时间</th>
             <th>操作</th>
@@ -87,10 +87,10 @@
               </div>
             </td>
             <td>{{ person.LXFS }}</td>
-            <td>{{ person.GW }}</td>
+            <td>{{ person.GS || '-' }}</td>
             <td>{{ person.SSQH }}</td>
             <td>{{ person.SSBM }}</td>
-            <td>{{ person.GS || '-' }}</td>
+            <td>{{ person.GW }}</td>
             <td>
               <span class="status-tag" :class="getStatusClass(person.RYZT)">
                 {{ person.RYZT === 'active' ? '在职' : '离职' }}
@@ -135,8 +135,8 @@
         <div class="modal-body">
           <div class="form-row">
             <div class="form-item">
-              <label class="form-label">用户名<span class="required">*</span></label>
-              <input type="text" class="form-input" placeholder="请输入用户名" v-model="form.YHM">
+              <label class="form-label">姓名<span class="required">*</span></label>
+              <input type="text" class="form-input" placeholder="请输入姓名" v-model="form.XM">
             </div>
             <div class="form-item">
               <label class="form-label">密码<span class="required" v-if="!isEdit">*</span></label>
@@ -147,20 +147,15 @@
                 v-model="passwordDisplay"
                 @input="onPasswordInput"
                 @focus="onPasswordFocus"
+                autocomplete="new-password"
               >
             </div>
           </div>
           <div class="form-row">
             <div class="form-item">
-              <label class="form-label">姓名<span class="required">*</span></label>
-              <input type="text" class="form-input" placeholder="请输入姓名" v-model="form.XM">
-            </div>
-            <div class="form-item">
               <label class="form-label">联系方式<span class="required">*</span></label>
               <input type="text" class="form-input" placeholder="请输入联系方式" v-model="form.LXFS">
             </div>
-          </div>
-          <div class="form-row">
             <div class="form-item">
               <label class="form-label">岗位</label>
               <select class="form-select" v-model="form.GW">
@@ -171,6 +166,25 @@
                 <option value="采样员">采样员</option>
                 <option value="分析员">分析员</option>
               </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-item">
+              <label class="form-label">公司<span class="required">*</span></label>
+              <select v-if="isSuperAdmin" class="form-select" v-model="form.GS" @change="onCompanyChange">
+                <option value="">请选择公司</option>
+                <option v-for="gs in companyOptions" :key="gs" :value="gs">{{ gs }}</option>
+                <option value="__custom__">+ 输入新公司</option>
+              </select>
+              <input v-else class="form-input" :value="currentUserGS" disabled style="background-color: #f5f5f5;">
+              <div v-if="isSuperAdmin && isCustomCompany" style="margin-top: 8px;">
+                <input 
+                  type="text" 
+                  class="form-input" 
+                  placeholder="请输入新公司名称" 
+                  v-model="customCompany"
+                >
+              </div>
             </div>
             <div class="form-item">
               <label class="form-label">所属区划</label>
@@ -186,28 +200,10 @@
           </div>
           <div class="form-row">
             <div class="form-item">
-              <label class="form-label">公司<span class="required">*</span></label>
-              <select class="form-select" v-model="form.GS" @change="onCompanyChange">
-                <option value="">请选择公司</option>
-                <option v-for="gs in companyOptions" :key="gs" :value="gs">{{ gs }}</option>
-                <option value="__custom__">+ 输入新公司</option>
-              </select>
-              <div v-if="isCustomCompany" style="margin-top: 8px;">
-                <input 
-                  type="text" 
-                  class="form-input" 
-                  placeholder="请输入新公司名称" 
-                  v-model="customCompany"
-                >
-              </div>
-            </div>
-            <div class="form-item">
               <label class="form-label">所属部门</label>
               <input type="text" class="form-input" placeholder="请输入所属部门" v-model="form.SSBM">
             </div>
-          </div>
-          <div class="form-row">
-            <div class="form-item" style="max-width: 50%;">
+            <div class="form-item">
               <label class="form-label">人员状态<span class="required">*</span></label>
               <select class="form-select" v-model="form.RYZT">
                 <option value="active">在职</option>
@@ -226,7 +222,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { getPersonnelList, getPersonnelDetail, createPersonnel, updatePersonnel, deletePersonnel } from '../api'
 import { getCompanies } from '../api/auth'
 
@@ -241,6 +237,11 @@ const filterForm = reactive({
 const companyOptions = ref([])
 
 const personList = ref([])
+
+// 获取当前登录用户信息
+const userInfo = computed(() => JSON.parse(localStorage.getItem('userInfo') || '{}'))
+const isSuperAdmin = computed(() => userInfo.value.GW === '超管')
+const currentUserGS = computed(() => userInfo.value.GS || '')
 
 const showModal = ref(false)
 const isEdit = ref(false)
@@ -261,7 +262,6 @@ const onCompanyChange = () => {
 }
 
 const form = reactive({
-  YHM: '',
   XM: '',
   LXFS: '',
   password: '',
@@ -359,15 +359,16 @@ const closeModal = () => {
 }
 
 const resetForm = () => {
-  form.YHM = ''
-  form.XM = ''
-  form.LXFS = ''
-  form.password = ''
-  form.GW = ''
-  form.SSQH = ''
-  form.SSBM = ''
-  form.GS = ''
-  form.RYZT = 'active'
+  Object.assign(form, {
+    XM: '',
+    LXFS: '',
+    password: '',
+    GW: '',
+    SSQH: '',
+    SSBM: '',
+    GS: isSuperAdmin.value ? '' : currentUserGS.value,
+    RYZT: 'active'
+  })
   passwordDisplay.value = ''
   customCompany.value = ''
   isCustomCompany.value = false
@@ -389,8 +390,8 @@ const onPasswordInput = () => {
 }
 
 const confirmSubmit = async () => {
-  if (!form.XM || !form.LXFS || !form.YHM) {
-    alert('请填写必填项（用户名、姓名、联系方式）')
+  if (!form.XM || !form.LXFS) {
+    alert('请填写必填项（姓名、联系方式）')
     return
   }
   // 确定公司值
@@ -436,7 +437,6 @@ const handleEdit = async (person) => {
       const data = res.data.data
       isEdit.value = true
       editId.value = person.ID
-      form.YHM = data.YHM || ''
       form.XM = data.XM || ''
       form.LXFS = data.LXFS || ''
       form.password = ''

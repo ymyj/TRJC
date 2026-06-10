@@ -190,7 +190,7 @@ const initMap = () => {
 const createMap = () => {
   try {
     map = new T.Map('tianditu-map')
-    map.centerAndZoom(new T.LngLat(116.4074, 39.9042), 12)
+    map.centerAndZoom(new T.LngLat(120.1536, 30.2741), 12)
     const vecLayer = new T.TileLayer(
       'https://t0.tianditu.gov.cn/vec_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=d5cbd0c27896bb8f535dc57ecef2718c',
       { minZoom: 1, maxZoom: 18 }
